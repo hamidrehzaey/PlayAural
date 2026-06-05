@@ -73,6 +73,8 @@ auth-username-taken = Tên đăng nhập đã được sử dụng. Vui lòng ch
 
 login-welcome-title = Chào mừng bạn đến với PlayAural
 login-welcome-info = Vui lòng đăng nhập hoặc đăng ký để tiếp tục.
+login-use-local-server = Kết nối tới máy chủ phát triển cục bộ
+login-server-switched = Đang dùng: { $server }
 login-logged-in-as = Đã đăng nhập với tên: { $username }
 login-btn-login-now = Đăng nhập ngay
 login-btn-auto-login = Tự động đăng nhập lần sau

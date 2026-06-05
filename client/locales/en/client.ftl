@@ -73,6 +73,8 @@ auth-username-taken = Username already taken. Please choose a different username
 
 login-welcome-title = Welcome to PlayAural
 login-welcome-info = Please log in or register to continue.
+login-use-local-server = Connect to local dev server
+login-server-switched = Now using: { $server }
 login-logged-in-as = Logged in as: { $username }
 login-btn-login-now = Login Now
 login-btn-auto-login = Login Automatically Next Time

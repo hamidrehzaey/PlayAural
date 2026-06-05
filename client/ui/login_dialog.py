@@ -42,7 +42,21 @@ class LoginDialog(wx.Dialog):
         # Ensure this server exists in config, if not create it default to official server
         if not self.config_manager.get_server_by_id(self.server_id):
             self.config_manager.add_server("Official Server", "wss://playaural.ddt.one", "443", server_id=self.server_id)
-        
+
+        # Local dev server toggle: only when running from source (never in a
+        # packaged/production build), so testers can point at a local server
+        # without hand-editing identities.json.
+        self.is_source_build = not getattr(sys, "frozen", False)
+        self.local_server_id = "local_dev_server"
+        if self.is_source_build:
+            if not self.config_manager.get_server_by_id(self.local_server_id):
+                self.config_manager.add_server(
+                    "Local Dev Server", "localhost", "8000", server_id=self.local_server_id
+                )
+            # Remember the last-used choice across launches (source builds only).
+            if self.config_manager.identities.get("last_server_id") == self.local_server_id:
+                self.server_id = self.local_server_id
+
         self.server_url = self.config_manager.get_server_url(self.server_id)
 
         self.username = ""
@@ -72,6 +86,16 @@ class LoginDialog(wx.Dialog):
         # Info Text
         self.info_text = wx.StaticText(self.panel, label=Localization.get("login-welcome-info"))
         self.sizer.Add(self.info_text, 0, wx.ALL | wx.CENTER, 10)
+
+        # Dev-only: switch between the official server and a local dev server.
+        # Hidden entirely in packaged/production builds.
+        if self.is_source_build:
+            self.chk_local_server = wx.CheckBox(
+                self.panel, label=Localization.get("login-use-local-server")
+            )
+            self.chk_local_server.SetValue(self.server_id == self.local_server_id)
+            self.chk_local_server.Bind(wx.EVT_CHECKBOX, self.on_toggle_local_server)
+            self.sizer.Add(self.chk_local_server, 0, wx.ALL | wx.CENTER, 10)
 
         # Content Sizers (swapped based on state)
         self.action_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -172,6 +196,22 @@ class LoginDialog(wx.Dialog):
     def on_login_cached(self, event):
         """Login with current cached credentials."""
         self._verify_and_login(self.username, self.password)
+
+    def on_toggle_local_server(self, event):
+        """Switch between the official and local dev server (source builds only)."""
+        use_local = self.chk_local_server.GetValue()
+        self.server_id = self.local_server_id if use_local else "official_server"
+        self.server_url = self.config_manager.get_server_url(self.server_id)
+        self.config_manager.set_last_server(self.server_id)
+        # Refresh the account area for the newly selected server.
+        self._check_existing_account()
+        self.status_text.SetLabel(
+            Localization.get(
+                "login-server-switched",
+                server=self.config_manager.get_server_display_name(self.server_id),
+            )
+        )
+        self.panel.Layout()
 
     def on_remove_account(self, event):
         """Remove current account and reset UI."""
