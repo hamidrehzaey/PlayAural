@@ -74,6 +74,9 @@ def _pick_random_move(game: BackgammonGame, color: str) -> str | None:
     """Pick a random legal move, trying all unused die values."""
     gs = game.game_state
     for die_val in remaining_dice_unique(gs):
+        # Respect the forced-die rule: only dice the game allows are playable.
+        if game._forced_dice is not None and die_val not in game._forced_dice:
+            continue
         moves = generate_legal_moves(gs, color, die_val)
         if moves:
             move = random.choice(moves)  # nosec B311
@@ -96,6 +99,9 @@ def _pick_simple_move(game: BackgammonGame, color: str) -> str | None:
     best_score = -9999
 
     for die_val in remaining_dice_unique(gs):
+        # Respect the forced-die rule: only dice the game allows are playable.
+        if game._forced_dice is not None and die_val not in game._forced_dice:
+            continue
         for move in generate_legal_moves(gs, color, die_val):
             score = _score_move(gs, move, color)
             if score > best_score:
