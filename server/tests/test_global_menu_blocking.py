@@ -41,7 +41,7 @@ async def test_options_submenu_selection_while_playing_routes_to_server() -> Non
     server, host, _guest, _table, _game, _host_player = _make_playing_game_server()
     server._sync_pref_to_client = lambda *args, **kwargs: None
     try:
-        original_turn_sound = host.preferences.play_turn_sound
+        original_typing_sounds = host.preferences.play_typing_sounds
 
         await server._handle_open_options(SimpleNamespace(username=host.username))
         await server._handle_menu(
@@ -59,11 +59,11 @@ async def test_options_submenu_selection_while_playing_routes_to_server() -> Non
             {
                 "type": "menu",
                 "menu_id": "options_audio_submenu",
-                "selection_id": "turn_sound",
+                "selection_id": "play_typing_sounds",
             },
         )
 
-        assert host.preferences.play_turn_sound is not original_turn_sound
+        assert host.preferences.play_typing_sounds is not original_typing_sounds
         assert server._user_states[host.username]["menu"] == "options_audio_submenu"
         assert "options_audio_submenu" in host.menus
     finally:
@@ -80,10 +80,10 @@ async def test_options_submenu_blocks_game_menu_rebuild_while_playing() -> None:
             {
                 "type": "menu",
                 "menu_id": "options_menu",
-                "selection_id": "options_game",
+                "selection_id": "options_audio",
             },
         )
-        assert server._user_states[host.username]["menu"] == "options_game_submenu"
+        assert server._user_states[host.username]["menu"] == "options_audio_submenu"
 
         host.clear_messages()
         game.rebuild_player_menu(host_player)
@@ -92,7 +92,7 @@ async def test_options_submenu_blocks_game_menu_rebuild_while_playing() -> None:
             message.type == "show_menu" and message.data.get("menu_id") == "turn_menu"
             for message in host.messages
         )
-        assert server._user_states[host.username]["menu"] == "options_game_submenu"
+        assert server._user_states[host.username]["menu"] == "options_audio_submenu"
     finally:
         server._db.close()
 
