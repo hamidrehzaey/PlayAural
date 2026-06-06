@@ -1662,6 +1662,7 @@ class NinetyNineGame(Game):
             return
 
         drawn = self._draw_card()
+        drawn_slot_id: str | None = None
         if drawn:
             player.hand.append(drawn)
             self._sort_hand(player)
@@ -1679,11 +1680,24 @@ class NinetyNineGame(Game):
                 else:
                     user.speak_l("ninetynine-player-draws", buffer="game", player=player.name)
 
+            # Slot id of the card just drawn, so the drawer's cursor lands on it.
+            try:
+                drawn_slot_id = f"card_slot_{player.hand.index(drawn) + 1}"
+            except ValueError:
+                drawn_slot_id = None
+
         player.draw_timeout_ticks = 0
         # Focus-preserving refresh: the drawer is a background player and the
         # current player is mid-turn — a full rebuild would yank their cursor.
+        # The drawer lands on the card they drew; everyone else keeps their focus.
         self._update_all_turn_actions()
-        self.update_all_menus()
+        for p in self.players:
+            if not isinstance(p, NinetyNinePlayer):
+                continue
+            if p.id == player.id and drawn_slot_id is not None:
+                self.update_player_menu(p, selection_id=drawn_slot_id)
+            else:
+                self.update_player_menu(p)
 
     def _action_check_count(self, player: Player, action_id: str) -> None:
         """Announce the current count."""

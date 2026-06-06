@@ -538,6 +538,41 @@ class TestNinetyNinePlayTest:
         assert len(player1.hand) == 1  # forfeited the top-up
         assert game.current_player == player2  # turn order untouched
 
+    def test_manual_draw_lands_focus_on_drawn_card(self):
+        """Drawing should land the drawer's cursor on the card they drew, wherever
+        it sorts into the hand — not on whatever slot the cursor last occupied."""
+        game = NinetyNineGame(options=NinetyNineOptions(autodraw=False))
+        user1 = MockUser("Alice")
+        user2 = MockUser("Bob")
+        player1 = game.add_player("Alice", user1)
+        player2 = game.add_player("Bob", user2)
+        game.setup_keybinds()
+        game.on_start()
+        game.alive_player_ids = [player1.id, player2.id]
+        game.set_turn_players([player1, player2])
+        game.turn_index = 0
+        game.count = 50
+        player1.hand = [
+            Card(id=1, rank=3, suit=SUIT_HEARTS),
+            Card(id=2, rank=9, suit=SUIT_HEARTS),
+        ]
+        # Open the draw window and rig the deck so the next draw is a known card
+        # that sorts into the middle of the hand.
+        player1.draw_timeout_ticks = DRAW_TIMEOUT_TICKS
+        game.deck.cards = [Card(id=3, rank=6, suit=SUIT_HEARTS)]
+        before_ids = {c.id for c in player1.hand}
+        user1.messages.clear()
+
+        game._action_draw_card(player1, "draw_card")
+
+        drawn = next(c for c in player1.hand if c.id not in before_ids)
+        expected_slot = f"card_slot_{player1.hand.index(drawn) + 1}"
+        sel = None
+        for msg in user1.messages:
+            if msg.type == "update_menu" and msg.data.get("menu_id") == "turn_menu":
+                sel = msg.data.get("selection_id")
+        assert sel == expected_slot
+
     def test_milestone_elimination_does_not_wedge_manual_draw(self):
         """A player eliminated by a milestone-pass penalty on their own play must
         not be left holding an open draw window that strands the round.
