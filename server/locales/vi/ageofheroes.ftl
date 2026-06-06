@@ -224,11 +224,11 @@ ageofheroes-war-prepared = Lực lượng của bạn: { $armies } { $armies ->
 }{ $generals ->
     [0] {""}
     [one] {", 1 tướng"}
-   *[other] {", { $generals } tướng"}
+   *[other] { ", " }{ $generals } tướng
 }{ $heroes ->
     [0] {""}
     [one] {", 1 anh hùng"}
-   *[other] {", { $heroes } anh hùng"}
+   *[other] { ", " }{ $heroes } anh hùng
 }.
 ageofheroes-war-roll-you = Bạn gieo được { $roll }.
 ageofheroes-war-roll-other = { $player } gieo được { $roll }.

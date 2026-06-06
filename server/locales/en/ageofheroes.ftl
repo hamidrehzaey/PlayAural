@@ -224,11 +224,11 @@ ageofheroes-war-prepared = Your forces: { $armies } { $armies ->
 }{ $generals ->
     [0] {""}
     [one] {" and 1 general"}
-    *[other] {" and { $generals } generals"}
+    *[other] { " and " }{ $generals } generals
 }{ $heroes ->
     [0] {""}
     [one] {" and 1 hero"}
-    *[other] {" and { $heroes } heroes"}
+    *[other] { " and " }{ $heroes } heroes
 }.
 ageofheroes-war-roll-you = You roll { $roll }.
 ageofheroes-war-roll-other = { $player } rolls { $roll }.
