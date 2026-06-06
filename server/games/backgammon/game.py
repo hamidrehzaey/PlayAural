@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 from ..base import Game, Player, GameOptions
 from ..registry import register_game
 from ...game_utils.actions import Action, ActionSet, Visibility
-from ...game_utils.options import IntOption, MenuOption, option_field
+from ...game_utils.options import IntOption, MenuOption, BoolOption, option_field
 from ...game_utils.bot_helper import BotHelper
 from ...game_utils.game_result import GameResult, PlayerResult
 from ...messages.localization import Localization
@@ -84,6 +84,14 @@ class BackgammonOptions(GameOptions):
             label="backgammon-option-bot-difficulty",
             prompt="backgammon-option-select-bot-difficulty",
             change_msg="backgammon-option-changed-bot-difficulty",
+        )
+    )
+    verbose_announcements: bool = option_field(
+        BoolOption(
+            default=True,
+            value_key="enabled",
+            label="backgammon-option-verbose-announcements",
+            change_msg="backgammon-option-changed-verbose-announcements",
         )
     )
 
@@ -1403,15 +1411,8 @@ class BackgammonGame(Game):
         self, user: User, move: BackgammonMove, mover_color: str, viewer_color: str
     ) -> None:
         """Speak a single sub-move to a user with point numbers in their perspective."""
-        try:
-            brief = bool(
-                user.preferences.get_effective(
-                    "brief_announcements", game_type=self.get_type()
-                )
-            )
-        except AttributeError:
-            # PlayAural has no brief_announcements preference; default to verbose.
-            brief = False
+        # Verbosity is a per-table game option (host-configured).
+        brief = not self.options.verbose_announcements
         if not brief:
             self._speak_move_verbose(user, move, mover_color, viewer_color)
             return
