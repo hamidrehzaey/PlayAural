@@ -920,6 +920,37 @@ def test_brief_announcements_strip_ranks_from_selection_menu_labels() -> None:
     assert all(label in character_names for label in labels)
 
 
+def test_unclaimed_characters_announced_as_one_sentence() -> None:
+    game = make_game(start=True)
+    players = game.get_active_players()
+    # Four of eight ranks are claimed; ranks 5-8 go unselected this round.
+    for player, rank in zip(
+        players,
+        [CHARACTER_ASSASSIN, CHARACTER_THIEF, CHARACTER_MAGICIAN, CHARACTER_KING],
+    ):
+        player.selected_character_rank = rank
+    user = game.get_user(players[0])
+
+    user.clear_messages()
+    game._announce_unclaimed_characters()
+    spoken = user.get_spoken_messages()
+    # A single combined sentence, never one line per rank.
+    assert spoken == ["There is no bishop, merchant, architect, or warlord."]
+
+    # Brief mode produces the exact same sentence -- it carries no rank to strip.
+    user.preferences.brief_announcements = True
+    user.clear_messages()
+    game._announce_unclaimed_characters()
+    assert user.get_spoken_messages() == ["There is no bishop, merchant, architect, or warlord."]
+
+
+def test_unclaimed_character_phrase_grammar() -> None:
+    game = make_game(start=True)
+    assert game._join_or(["bishop"], "en") == "bishop"
+    assert game._join_or(["architect", "warlord"], "en") == "architect or warlord"
+    assert game._join_or(["assassin", "thief", "magician"], "en") == "assassin, thief, or magician"
+
+
 def test_status_character_and_discards_use_tts_while_detailed_status_opens_a_status_box() -> None:
     game = make_game(start=True)
     player = game.players[0]

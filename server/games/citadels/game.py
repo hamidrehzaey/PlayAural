@@ -943,6 +943,7 @@ class CitadelsGame(Game):
         self.turn_index = 0
         self.current_rank = CHARACTER_ASSASSIN
         self.broadcast_l("citadels-turn-phase-start", buffer="game")
+        self._announce_unclaimed_characters()
         self.rebuild_all_menus()
         self._advance_rank_resolution()
 
@@ -958,12 +959,8 @@ class CitadelsGame(Game):
             rank = self.current_rank
             owner = self._player_with_rank(rank)
             if owner is None:
-                self._broadcast_localized(
-                    "citadels-rank-unclaimed",
-                    buffer="game",
-                    rank=rank,
-                    character=lambda locale: self._character_name(rank, locale),
-                )
+                # Unclaimed ranks were already named together in one sentence at
+                # the start of the calling phase; advance past them silently.
                 self.current_rank += 1
                 continue
             if rank == self.killed_rank:
@@ -2532,6 +2529,43 @@ class CitadelsGame(Game):
 
     def _character_name(self, rank: int, locale: str) -> str:
         return Localization.get(locale, f"citadels-character-{rank}")
+
+    def _unclaimed_ranks(self) -> list[int]:
+        """In-play character ranks that no player selected, in calling order."""
+        return [
+            rank
+            for rank in self._character_ranks_in_play()
+            if self._player_with_rank(rank) is None
+        ]
+
+    def _join_or(self, items: list[str], locale: str) -> str:
+        """Join names into a natural disjunctive phrase (a, b, or c)."""
+        if len(items) <= 1:
+            return items[0] if items else ""
+        if len(items) == 2:
+            return Localization.get(locale, "citadels-list-pair", first=items[0], last=items[1])
+        head = ", ".join(items[:-1])
+        return Localization.get(locale, "citadels-list-series", head=head, last=items[-1])
+
+    def _announce_unclaimed_characters(self) -> None:
+        """Name every unselected character once, e.g. 'There is no king.'.
+
+        Spoken per recipient so the role names and disjunction render in each
+        user's locale. Identical in brief and verbose mode -- never rank-bearing.
+        """
+        unclaimed = self._unclaimed_ranks()
+        if not unclaimed:
+            return
+        for player in self.players:
+            user = self.get_user(player)
+            if not user:
+                continue
+            names = [self._character_name(rank, user.locale).lower() for rank in unclaimed]
+            user.speak_l(
+                "citadels-no-characters",
+                buffer="game",
+                characters=self._join_or(names, user.locale),
+            )
 
     def _brief_arm(self, user: "User | None") -> str:
         """Fluent select arm for this user's brief-announcement preference.

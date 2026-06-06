@@ -57,10 +57,9 @@ citadels-select-character-line = { $brief ->
    *[no] Hạng { $rank }: { $character }
 }
 citadels-turn-phase-start = Bắt đầu gọi nhân vật.
-citadels-rank-unclaimed = { $brief ->
-    [yes] { $character } không được chọn trong vòng này.
-   *[no] Hạng { $rank }, { $character }, không được chọn trong vòng này.
-}
+citadels-no-characters = Không có { $characters }.
+citadels-list-pair = { $first } hoặc { $last }
+citadels-list-series = { $head } hoặc { $last }
 citadels-character-revealed = { $brief ->
     [yes] { $player } lật { $character }.
    *[no] { $player } lật hạng { $rank }, { $character }.

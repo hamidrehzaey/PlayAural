@@ -57,10 +57,9 @@ citadels-select-character-line = { $brief ->
    *[no] Rank { $rank }: { $character }
 }
 citadels-turn-phase-start = Character calling begins.
-citadels-rank-unclaimed = { $brief ->
-    [yes] { $character } was not chosen this round.
-   *[no] Rank { $rank }, { $character }, was not chosen this round.
-}
+citadels-no-characters = There is no { $characters }.
+citadels-list-pair = { $first } or { $last }
+citadels-list-series = { $head }, or { $last }
 citadels-character-revealed = { $brief ->
     [yes] { $player } reveals the { $character }.
    *[no] { $player } reveals rank { $rank }, { $character }.
