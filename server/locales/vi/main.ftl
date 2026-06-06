@@ -146,6 +146,15 @@ language-changed = Ngôn ngữ đã được đặt là { $language }.
 option-on = Bật
 option-off = Tắt
 
+# Điều khiển trong menu tùy chọn nhiều lựa chọn
+option-back = Quay lại
+option-select-all = Chọn tất cả
+option-deselect-all = Bỏ chọn tất cả
+option-selected-count = Đã chọn { $count }
+option-deselected-count = Đã bỏ chọn { $count }
+option-min-selected = Bạn phải chọn ít nhất { $count }.
+option-max-selected = Bạn chỉ được chọn tối đa { $count }.
+
 turn-sound-option = Âm thanh báo lượt: { $status }
 
 custom-bot-names-option = Tên bot tùy chỉnh: { $status }

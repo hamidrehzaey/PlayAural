@@ -146,6 +146,15 @@ language-changed = Language set to { $language }.
 option-on = On
 option-off = Off
 
+# Multi-select option sub-menu controls
+option-back = Back
+option-select-all = Select all
+option-deselect-all = Deselect all
+option-selected-count = { $count } selected
+option-deselected-count = { $count } deselected
+option-min-selected = You must select at least { $count }.
+option-max-selected = You can select at most { $count }.
+
 turn-sound-option = Turn sound: { $status }
 
 custom-bot-names-option = Custom bot names: { $status }

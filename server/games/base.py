@@ -137,6 +137,10 @@ class Game(
         ] = {}  # player_id -> context during action execution
         self._status_box_open: set[str] = set()  # player_ids with status box open
         self._actions_menu_open: set[str] = set()  # player_ids with actions menu open
+        # Runtime-only options navigation stack for multi-select options
+        # (player_id -> list of path segments). Transient lobby state; not
+        # serialized, so it safely resets to top-level on reconnect/restore.
+        self._options_path: dict[str, list[str]] = {}
         self._destroyed: bool = False  # Whether game has been destroyed
         self._last_game_result = None  # Stored for end-screen restoration
         # Per-player transcript of table events (runtime-only). Games that want a
