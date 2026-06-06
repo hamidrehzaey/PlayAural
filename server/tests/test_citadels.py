@@ -966,28 +966,55 @@ def test_turn_does_not_auto_end_while_an_action_is_available() -> None:
     assert game.current_player is player
 
 
-def test_unclaimed_characters_announced_as_one_sentence() -> None:
+def test_skipped_characters_announced_in_runs_as_the_herald_passes_them() -> None:
     game = make_game(start=True)
+    advance_until(game, lambda: not game.has_active_sequence(), max_ticks=100)
     players = game.get_active_players()
-    # Four of eight ranks are claimed; ranks 5-8 go unselected this round.
-    for player, rank in zip(
-        players,
-        [CHARACTER_ASSASSIN, CHARACTER_THIEF, CHARACTER_MAGICIAN, CHARACTER_KING],
-    ):
-        player.selected_character_rank = rank
-    user = game.get_user(players[0])
+    p1, p2 = players[0], players[1]
+    p1.selected_character_rank = CHARACTER_MAGICIAN  # rank 3
+    p2.selected_character_rank = CHARACTER_BISHOP    # rank 5
+    user = game.get_user(p1)
+
+    # The run of skipped ranks 1-2 is named in one line just before the first
+    # active character (the magician) is revealed.
+    game.current_rank = CHARACTER_ASSASSIN
+    user.clear_messages()
+    game._advance_rank_resolution()
+    assert "There is no assassin or thief." in user.get_spoken_messages()
+    assert game.current_player is p1
+
+    # As the herald moves on it skips rank 4 before reaching the bishop.
+    game.current_rank = CHARACTER_KING
+    user.clear_messages()
+    game._advance_rank_resolution()
+    assert "There is no king." in user.get_spoken_messages()
+    assert game.current_player is p2
+
+    # The trailing run (6-8) is named once before the round rolls over.
+    game.current_rank = CHARACTER_MERCHANT
+    user.clear_messages()
+    game._advance_rank_resolution()
+    assert "There is no merchant, architect, or warlord." in user.get_spoken_messages()
+
+
+def test_skipped_run_is_one_line_and_ignores_brief_mode() -> None:
+    game = make_game(start=True)
+    user = game.get_user(game.players[0])
 
     user.clear_messages()
-    game._announce_unclaimed_characters()
-    spoken = user.get_spoken_messages()
-    # A single combined sentence, never one line per rank.
-    assert spoken == ["There is no bishop, merchant, architect, or warlord."]
+    game._announce_unclaimed_run([CHARACTER_BISHOP, CHARACTER_MERCHANT, CHARACTER_WARLORD])
+    assert user.get_spoken_messages() == ["There is no bishop, merchant, or warlord."]
 
-    # Brief mode produces the exact same sentence -- it carries no rank to strip.
+    # The run line carries no rank, so brief mode renders it identically.
     user.preferences.brief_announcements = True
     user.clear_messages()
-    game._announce_unclaimed_characters()
-    assert user.get_spoken_messages() == ["There is no bishop, merchant, architect, or warlord."]
+    game._announce_unclaimed_run([CHARACTER_BISHOP, CHARACTER_MERCHANT, CHARACTER_WARLORD])
+    assert user.get_spoken_messages() == ["There is no bishop, merchant, or warlord."]
+
+    # An empty run says nothing at all.
+    user.clear_messages()
+    game._announce_unclaimed_run([])
+    assert user.get_spoken_messages() == []
 
 
 def test_unclaimed_character_phrase_grammar() -> None:

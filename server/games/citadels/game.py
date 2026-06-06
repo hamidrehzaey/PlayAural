@@ -944,7 +944,6 @@ class CitadelsGame(Game):
         self.turn_index = 0
         self.current_rank = CHARACTER_ASSASSIN
         self.broadcast_l("citadels-turn-phase-start", buffer="game")
-        self._announce_unclaimed_characters()
         self.rebuild_all_menus()
         self._advance_rank_resolution()
 
@@ -953,17 +952,21 @@ class CitadelsGame(Game):
         self.turn_subphase = SUBPHASE_NORMAL
         self.turn_player_ids = []
         self.turn_index = 0
+        # Collect the run of consecutive unclaimed ranks the herald passes over
+        # on the way to the next active character, then name them in one line.
+        skipped: list[int] = []
         while self.current_rank is not None:
             if self.current_rank > max(self._character_ranks_in_play()):
+                self._announce_unclaimed_run(skipped)
                 self._start_round_cleanup()
                 return
             rank = self.current_rank
             owner = self._player_with_rank(rank)
             if owner is None:
-                # Unclaimed ranks were already named together in one sentence at
-                # the start of the calling phase; advance past them silently.
+                skipped.append(rank)
                 self.current_rank += 1
                 continue
+            self._announce_unclaimed_run(skipped)
             if rank == self.killed_rank:
                 self.start_sequence(
                     self._next_sequence_id("citadels_skip"),
@@ -2574,14 +2577,6 @@ class CitadelsGame(Game):
     def _character_name(self, rank: int, locale: str) -> str:
         return Localization.get(locale, f"citadels-character-{rank}")
 
-    def _unclaimed_ranks(self) -> list[int]:
-        """In-play character ranks that no player selected, in calling order."""
-        return [
-            rank
-            for rank in self._character_ranks_in_play()
-            if self._player_with_rank(rank) is None
-        ]
-
     def _join_or(self, items: list[str], locale: str) -> str:
         """Join names into a natural disjunctive phrase (a, b, or c)."""
         if len(items) <= 1:
@@ -2591,20 +2586,21 @@ class CitadelsGame(Game):
         head = ", ".join(items[:-1])
         return Localization.get(locale, "citadels-list-series", head=head, last=items[-1])
 
-    def _announce_unclaimed_characters(self) -> None:
-        """Name every unselected character once, e.g. 'There is no king.'.
+    def _announce_unclaimed_run(self, ranks: list[int]) -> None:
+        """Name a run of skipped characters in one line, e.g. 'There is no king.'.
 
-        Spoken per recipient so the role names and disjunction render in each
-        user's locale. Identical in brief and verbose mode -- never rank-bearing.
+        Called as the herald passes over consecutive unselected ranks to reach
+        the next active character (or the round's end). Spoken per recipient so
+        the role names and disjunction render in each user's locale; identical in
+        brief and verbose mode, since it never carries a rank.
         """
-        unclaimed = self._unclaimed_ranks()
-        if not unclaimed:
+        if not ranks:
             return
         for player in self.players:
             user = self.get_user(player)
             if not user:
                 continue
-            names = [self._character_name(rank, user.locale).lower() for rank in unclaimed]
+            names = [self._character_name(rank, user.locale).lower() for rank in ranks]
             user.speak_l(
                 "citadels-no-characters",
                 buffer="game",
