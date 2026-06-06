@@ -177,6 +177,7 @@ class BackgammonGame(Game):
                     is_enabled="_is_point_enabled",
                     is_hidden="_is_point_hidden",
                     get_label="_get_point_label",
+                    get_sound="_get_point_sound",
                     show_in_actions_menu=False,
                 )
             )
@@ -590,7 +591,11 @@ class BackgammonGame(Game):
         point_items: list[MenuItem] = []
         other_items: list[MenuItem] = []
         for resolved in self.get_all_visible_actions(player):
-            item = MenuItem(text=resolved.label, id=resolved.action.id)
+            item = MenuItem(
+                text=resolved.label,
+                id=resolved.action.id,
+                sound=resolved.sound,
+            )
             if resolved.action.id.startswith("point_"):
                 point_items.append(item)
             else:
@@ -1724,19 +1729,16 @@ class BackgammonGame(Game):
         key = "backgammon-point-occupied-selected" if selected else "backgammon-point-occupied"
         return Localization.get(locale, key, point=pn, color=owner_name, count=cnt)
 
-    def _play_navigation_sound(self, player: Player, point_idx: int) -> None:
-        """Play a perspective-relative navigation sound for a board point.
+    def _point_sound_for(self, player: Player, point_idx: int) -> str | None:
+        """Resolve the perspective-relative navigation sound for a board point.
 
         Sounds are "mine" vs "theirs" rather than fixed colors, so Red and
-        White each hear their own checkers as the same sound.
+        White each hear their own checkers as the same sound. Empty points
+        have no sound (None).
         """
-        user = self.get_user(player)
-        if not user:
-            return
-
         val = self.game_state.board.points[point_idx]
         if val == 0:
-            return
+            return None
 
         is_own = (isinstance(player, BackgammonPlayer) and player.color == "red" and val > 0) or (
             isinstance(player, BackgammonPlayer) and player.color == "white" and val < 0
@@ -1744,10 +1746,29 @@ class BackgammonGame(Game):
         count = abs(val)
 
         if is_own:
-            sound = "game_squares/token1.ogg" if count == 1 else "game_squares/token3.ogg"
-        else:
-            sound = "game_squares/token7.ogg" if count == 1 else "game_squares/token4.ogg"
-        user.play_sound(sound)
+            return "game_squares/token1.ogg" if count == 1 else "game_squares/token3.ogg"
+        return "game_squares/token7.ogg" if count == 1 else "game_squares/token4.ogg"
+
+    def _get_point_sound(self, player: Player, action_id: str) -> str | None:
+        """Highlight sound for a board point, played by clients on focus.
+
+        Wired into each point Action via ``get_sound`` so plain arrow-key
+        navigation over the board grid plays each square's token sound.
+        """
+        try:
+            point_idx = int(action_id.split("_")[1])
+        except (ValueError, IndexError):
+            return None
+        return self._point_sound_for(player, point_idx)
+
+    def _play_navigation_sound(self, player: Player, point_idx: int) -> None:
+        """Explicitly play a board point's navigation sound (ctrl+up/down)."""
+        user = self.get_user(player)
+        if not user:
+            return
+        sound = self._point_sound_for(player, point_idx)
+        if sound:
+            user.play_sound(sound)
 
     def _is_offer_double_enabled(self, player: Player) -> str | None:
         if self.status != "playing":

@@ -2805,16 +2805,19 @@ class MainWindow(wx.Frame):
         if menu_id == "options_menu":
             self._refresh_audio_input_devices(sync_server=True)
 
-        # Parse items - can be strings or objects with {text, id}
+        # Parse items - can be strings or objects with {text, id, sound}
         items = []
         item_ids = []
+        item_sounds = []
         for item in items_raw:
             if isinstance(item, dict):
                 items.append(item.get("text", ""))
                 item_ids.append(item.get("id"))
+                item_sounds.append(item.get("sound"))
             else:
                 items.append(str(item))
                 item_ids.append(None)
+                item_sounds.append(None)
 
         # Save old item IDs before updating (for diff algorithm)
         old_item_ids = getattr(self, 'current_menu_item_ids', [])
@@ -2918,6 +2921,21 @@ class MainWindow(wx.Frame):
                     self.menu_list.SetSelection(position)
                 else:
                     self.menu_list.SetSelection(0)
+
+        # Attach per-item highlight sounds (e.g. backgammon board squares).
+        # Done after the list reaches its final shape so indices line up.
+        self._update_menu_sounds(item_sounds)
+
+    def _update_menu_sounds(self, item_sounds):
+        """Store each item's highlight sound as ListBox client data.
+
+        The MenuList reads this on selection change to play a per-item sound
+        in place of the generic menuclick. Indices must match the current
+        list contents, so this is called after the menu is fully built.
+        """
+        for i in range(self.menu_list.GetCount()):
+            sound = item_sounds[i] if i < len(item_sounds) else None
+            self.menu_list.SetClientData(i, {"sound": sound} if sound else None)
 
     def on_server_request_input(self, packet):
         """Handle request_input packet from server."""
