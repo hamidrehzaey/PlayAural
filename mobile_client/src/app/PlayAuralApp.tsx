@@ -487,6 +487,7 @@ export function PlayAuralApp() {
   const authModeInitializedRef = useRef(false);
   const previousAuthModeRef = useRef<AuthMode | null>(null);
   const nativeFocusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nativeTabTextInputFocusTimersRef = useRef(new Set<ReturnType<typeof setTimeout>>());
   const lastNativeFocusKeyRef = useRef<string | null>(null);
   const activeTextInputKeyRef = useRef<string | null>(activeTextInputKey);
   const longPressConsumedRef = useRef<string | null>(null);
@@ -597,6 +598,10 @@ export function PlayAuralApp() {
       clearTimeout(nativeFocusTimerRef.current);
       nativeFocusTimerRef.current = null;
     }
+    nativeTabTextInputFocusTimersRef.current.forEach((timer) => {
+      clearTimeout(timer);
+    });
+    nativeTabTextInputFocusTimersRef.current.clear();
   }, []);
 
   const nativeScreenReaderMode = !selfVoicingEnabled && (screenReaderEnabled || WEB_SCREEN_READER_SUPPORT);
@@ -699,6 +704,22 @@ export function PlayAuralApp() {
       }
     }, NATIVE_FOCUS_DELAY_MS);
   }, [nativeScreenReaderMode]);
+
+  const focusChatInputForNativeReader = useCallback(() => {
+    if (!nativeScreenReaderMode) {
+      return;
+    }
+
+    [120, 360].forEach((delayMs) => {
+      let timer: ReturnType<typeof setTimeout>;
+      timer = setTimeout(() => {
+        nativeTabTextInputFocusTimersRef.current.delete(timer);
+        moveNativeAccessibilityFocus("chat:input");
+        chatInputRef.current?.focus();
+      }, delayMs);
+      nativeTabTextInputFocusTimersRef.current.add(timer);
+    });
+  }, [moveNativeAccessibilityFocus, nativeScreenReaderMode]);
 
   const handleTextInputFocus = useCallback((key: string, onFocus?: () => void) => {
     activeTextInputKeyRef.current = key;
@@ -2875,6 +2896,39 @@ export function PlayAuralApp() {
     });
   };
 
+  const openNativeTab = (nextMode: AppMode) => {
+    void audio.handleUserInteraction();
+    playMenuActivateSound();
+
+    if (nextMode === "main") {
+      const previousMode = mode;
+      setMode("main");
+      moveNativeAccessibilityFocus(
+        focusedMenuItem ? `menu:${menuState.menuId}:${menuState.focusIndex}` : null,
+      );
+      if (previousMode !== "main") {
+        announceForNativeScreenReader(localization.t("overlay-closed", {
+          name: localization.t(`mode-${previousMode}`),
+        }));
+      }
+      return;
+    }
+
+    if (nextMode === "shortcuts") {
+      setShortcutFocusIndex(0);
+      moveNativeAccessibilityFocus(shortcutItems[0] ? `shortcut:${shortcutItems[0].id}` : null);
+    } else if (nextMode === "chat") {
+      setChatFocusIndex(0);
+      focusChatInputForNativeReader();
+    } else if (nextMode === "history") {
+      setHistoryIndex(0);
+      moveNativeAccessibilityFocus("history:content");
+    }
+
+    setMode(nextMode);
+    announceForNativeScreenReader(localization.t("overlay-opened", { name: localization.t(`mode-${nextMode}`) }));
+  };
+
   const syncPreference = (key: string, value: boolean | number | string) => {
     const keyParts = key.split("/");
     const flatKey = keyParts[keyParts.length - 1];
@@ -3441,17 +3495,7 @@ export function PlayAuralApp() {
 
   handleSystemSwipeRef.current = handleSystemSwipe;
 
-  const fallbackPrimaryActionLabel = useMemo(() => {
-    if (mode !== "main") {
-      return localization.t("native-fallback-back");
-    }
-    if (menuState.menuId === "turn_menu") {
-      return localization.t("native-fallback-actions");
-    }
-    return localization.t("native-fallback-back");
-  }, [localization, menuState.menuId, mode]);
-
-  const showNativeFallbackButtons =
+  const showNativeNavigationTabs =
     connected && !selfVoicingEnabled && !dialogState && !inputState;
 
   const handleStopSpeech = () => {
@@ -3784,9 +3828,16 @@ export function PlayAuralApp() {
         setVoiceStatusMessage("voice-chat-mic-denied", true);
         return;
       }
+      if (Platform.OS === "android") {
+        await androidForegroundService.sync({
+          message: localization.t("background-service-voice-mic"),
+          serviceType: "microphone",
+          title: localization.t("background-service-title"),
+        });
+      }
     }
     voice.setMicrophoneEnabled(!voiceMicEnabled);
-  }, [ensureVoiceMicrophonePermission, setVoiceStatusMessage, voice, voiceMicEnabled, voiceState]);
+  }, [ensureVoiceMicrophonePermission, localization, setVoiceStatusMessage, voice, voiceMicEnabled, voiceState]);
 
   const requestAuthFlow = async (
     packet: Record<string, unknown>,
@@ -4893,58 +4944,40 @@ export function PlayAuralApp() {
     );
   };
 
-  const renderNativeFallbackBar = () => {
-    if (!showNativeFallbackButtons) {
+  const renderNativeNavigationTabs = () => {
+    if (!showNativeNavigationTabs) {
       return null;
     }
 
-    const fallbackButtons = [
-      {
-        id: "primary",
-        label: fallbackPrimaryActionLabel,
-        onPress: () => {
-          void audio.handleUserInteraction();
-          handleSystemSwipe("up");
-        },
-      },
-      {
-        id: "chat",
-        label: localization.t("mode-chat"),
-        onPress: () => {
-          void audio.handleUserInteraction();
-          toggleOverlay("chat");
-        },
-      },
-      {
-        id: "history",
-        label: localization.t("mode-history"),
-        onPress: () => {
-          void audio.handleUserInteraction();
-          toggleOverlay("history");
-        },
-      },
-      {
-        id: "shortcuts",
-        label: localization.t("mode-shortcuts"),
-        onPress: () => {
-          void audio.handleUserInteraction();
-          toggleOverlay("shortcuts");
-        },
-      },
+    const tabs: Array<{ id: AppMode; label: string }> = [
+      { id: "main", label: localization.t("mode-main") },
+      { id: "chat", label: localization.t("mode-chat") },
+      { id: "history", label: localization.t("mode-history") },
+      { id: "shortcuts", label: localization.t("mode-shortcuts") },
     ];
 
     return (
-      <View style={styles.nativeFallbackBar}>
-        {fallbackButtons.map((button) => (
+      <View
+        accessibilityLabel={localization.t("native-tabs-label")}
+        accessibilityRole="tablist"
+        style={styles.nativeTabBar}
+      >
+        {tabs.map((tab) => (
           <Pressable
-            accessibilityLabel={button.label}
-            accessibilityRole="button"
+            accessibilityLabel={tab.label}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: mode === tab.id }}
             accessible
-            key={button.id}
-            onPress={button.onPress}
-            style={styles.nativeFallbackButton}
+            key={tab.id}
+            onPress={() => {
+              openNativeTab(tab.id);
+            }}
+            style={[
+              styles.nativeTab,
+              mode === tab.id ? styles.nativeTabActive : undefined,
+            ]}
           >
-            <Text style={styles.buttonText}>{button.label}</Text>
+            <Text style={styles.nativeTabText}>{tab.label}</Text>
           </Pressable>
         ))}
       </View>
@@ -5015,24 +5048,23 @@ export function PlayAuralApp() {
           </View>
         ) : (
           <>
-            <View style={styles.header}>
-              <Text style={styles.title}>{localization.t("app-title")}</Text>
-              <Text style={styles.subtitle}>{statusText}</Text>
-              <Text style={styles.subtitle}>Client: Mobile</Text>
-              <Text style={styles.subtitle}>Build: {MOBILE_BUILD_STAMP}</Text>
-            </View>
-
+            {renderNativeNavigationTabs()}
             {!connected ? renderAuthCard() : null}
             {renderOverlay()}
-            {renderNativeFallbackBar()}
 
             <View style={styles.footer}>
-              <Text style={styles.helpText}>{localization.t("footer-gestures-line-1")}</Text>
-              <Text style={styles.helpText}>{localization.t("footer-gestures-line-2")}</Text>
-              <Text style={styles.helpText}>
-                {connected ? localization.t("status-connected") : localization.t("status-disconnected")} |{" "}
-                {mode}
-              </Text>
+              {selfVoicingEnabled ? (
+                <>
+                  <Text style={styles.helpText}>{localization.t("footer-gestures-line-1")}</Text>
+                  <Text style={styles.helpText}>{localization.t("footer-gestures-line-2")}</Text>
+                </>
+              ) : connected ? (
+                <Text style={styles.helpText}>{localization.t("native-mode-help")}</Text>
+              ) : null}
+              <Text style={styles.footerTitle}>{localization.t("app-title")}</Text>
+              <Text style={styles.subtitle}>{statusText}</Text>
+              <Text style={styles.subtitle}>{localization.t("client-label", { value: "Mobile" })}</Text>
+              <Text style={styles.subtitle}>{localization.t("build-label", { value: MOBILE_BUILD_STAMP })}</Text>
             </View>
             <Text
               accessibilityLiveRegion="polite"
@@ -5058,9 +5090,6 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 16,
   },
-  header: {
-    gap: 4,
-  },
   screenReaderOnly: {
     height: 1,
     left: -10000,
@@ -5078,11 +5107,6 @@ const styles = StyleSheet.create({
     top: 8,
     width: 48,
     zIndex: 10,
-  },
-  title: {
-    color: "#f6f7fb",
-    fontSize: 28,
-    fontWeight: "700",
   },
   subtitle: {
     color: "#b6c1ca",
@@ -5292,18 +5316,35 @@ const styles = StyleSheet.create({
   footer: {
     gap: 2,
   },
-  nativeFallbackBar: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-    justifyContent: "space-between",
+  footerTitle: {
+    color: "#f6f7fb",
+    fontSize: 18,
+    fontWeight: "700",
+    marginTop: 8,
   },
-  nativeFallbackButton: {
+  nativeTabBar: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  nativeTab: {
     backgroundColor: "#32414d",
-    borderRadius: 10,
-    flexBasis: "48%",
+    borderColor: "#263443",
+    borderRadius: 8,
+    borderWidth: 1,
+    flexBasis: 0,
     flexGrow: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    minHeight: 44,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+  },
+  nativeTabActive: {
+    backgroundColor: "#3567e3",
+    borderColor: "#7fd4ff",
+  },
+  nativeTabText: {
+    color: "#f6f7fb",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
   },
 });

@@ -688,8 +688,9 @@ export class MobileAudioManager {
     }
 
     await exponentAV.setAudioMode({
+      // expo-av Android has no mix-with-others mode; this is its least disruptive focus mode.
       interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
-      shouldDuckAndroid: false,
+      shouldDuckAndroid: true,
       staysActiveInBackground: true,
     });
   }

@@ -399,7 +399,7 @@ export class MobileVoiceManager {
     try {
       await liveKitNative.AudioSession.configureAudio({
         android: {
-          audioTypeOptions: liveKitNative.AndroidAudioTypePresets.media,
+          audioTypeOptions: this.getAndroidMediaVoiceAudioOptions(liveKitNative),
         },
       });
     } catch {
@@ -419,16 +419,21 @@ export class MobileVoiceManager {
     return {
       android: {
         preferredOutputList,
-        // Use media type so voice routes through STREAM_MUSIC (media volume)
-        // instead of STREAM_VOICE_CALL (call volume). This gives full volume
-        // control (0–100%) and prevents incoming calls from interrupting spatial audio.
-        // WebRTC software AEC (in @livekit/react-native-webrtc) provides echo
-        // cancellation regardless of stream type — same approach used by Discord/Telegram.
-        audioTypeOptions: liveKitNative.AndroidAudioTypePresets.media,
+        // Route through media volume without making voice chat the Android audio-focus owner.
+        audioTypeOptions: this.getAndroidMediaVoiceAudioOptions(liveKitNative),
       },
       ios: {
         defaultOutput,
       },
+    };
+  }
+
+  private getAndroidMediaVoiceAudioOptions(liveKitNative: NativeLiveKitModule) {
+    return {
+      ...liveKitNative.AndroidAudioTypePresets.media,
+      audioAttributesContentType: "speech" as const,
+      audioFocusMode: "gainTransientMayDuck" as const,
+      manageAudioFocus: false,
     };
   }
 }
