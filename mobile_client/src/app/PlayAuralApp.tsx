@@ -59,7 +59,7 @@ import { MobileVoiceManager, type MobileVoiceConnectionState } from "../voice/Mo
 
 const MOBILE_CLIENT_VERSION = "1.0.4.4";
 const MOBILE_BUILD_STAMP = "2026-05-05 14:29:47 +07:00";
-const DEFAULT_SERVER_URL = "ws://localhost:8000";
+const DEFAULT_SERVER_URL = "wss://playaural.ddt.one:443";
 const APK_DOWNLOAD_URL =
   "https://github.com/Daoductrung/PlayAural/releases/latest/download/PlayAural.apk";
 const CLIENT_CONFIG_STORAGE_KEY = "playaural.mobile.clientConfig";
