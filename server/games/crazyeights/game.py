@@ -133,7 +133,7 @@ class CrazyEightsGame(Game, TurnTimerMixin):
 
     def broadcast_sound(self, name: str, volume: int = 100, pan: int = 0, pitch: int = 100) -> None:
         """Suppress default system sounds that conflict with custom ones."""
-        if name in ("join.ogg", "leave.ogg", "join_spectator.ogg", "leave_spectator.ogg"):
+        if name in ("join.ogg", "leave.ogg"):
             return
         super().broadcast_sound(name, volume, pan, pitch)
 
@@ -144,10 +144,7 @@ class CrazyEightsGame(Game, TurnTimerMixin):
         return player
 
     def add_spectator(self, name: str, user: User) -> Player:
-        player = super().add_spectator(name, user)
-        # Restore spectator join sound since we suppressed the default one
-        super().broadcast_sound("join_spectator.ogg")
-        return player
+        return super().add_spectator(name, user)
 
     def _action_add_bot(self, player: Player, bot_name: str, action_id: str) -> None:
         bot_name = self._resolve_add_bot_name(player, bot_name)
@@ -176,7 +173,7 @@ class CrazyEightsGame(Game, TurnTimerMixin):
             if self._table:
                 self._table.remove_member(player.name)
             # Standard spectator leave sound
-            super().broadcast_sound("leave_spectator.ogg")
+            self.broadcast_sound("leave_spectator.ogg")
             self.rebuild_all_menus()
             return
 

@@ -89,6 +89,59 @@ def test_resetting_crazyeights_table_does_not_replay_join_sounds():
     assert "game_crazyeights/personsit.ogg" not in bob.get_sounds_played()
 
 
+def test_crazyeights_spectator_broadcast_uses_standard_audio():
+    game = CrazyEightsGame()
+    alice_user = MockUser("Alice", uuid="p1")
+    watcher_user = MockUser("Watcher", uuid="p2")
+    game.add_player("Alice", alice_user)
+    game.add_spectator("Watcher", watcher_user)
+    alice_user.clear_messages()
+    watcher_user.clear_messages()
+
+    game.broadcast_sound("join_spectator.ogg")
+
+    assert alice_user.get_sounds_played() == ["join_spectator.ogg"]
+    assert watcher_user.get_sounds_played() == ["join_spectator.ogg"]
+
+
+def test_crazyeights_spectator_toggle_plays_standard_sounds():
+    game = CrazyEightsGame()
+    alice_user = MockUser("Alice", uuid="p1")
+    watcher_user = MockUser("Watcher", uuid="p2")
+    game.add_player("Alice", alice_user)
+    watcher = game.add_player("Watcher", watcher_user)
+    alice_user.clear_messages()
+    watcher_user.clear_messages()
+
+    game._action_toggle_spectator(watcher, "toggle_spectator")
+
+    assert "join_spectator.ogg" in alice_user.get_sounds_played()
+    assert "join_spectator.ogg" in watcher_user.get_sounds_played()
+
+    alice_user.clear_messages()
+    watcher_user.clear_messages()
+
+    game._action_toggle_spectator(watcher, "toggle_spectator")
+
+    assert "leave_spectator.ogg" in alice_user.get_sounds_played()
+    assert "leave_spectator.ogg" in watcher_user.get_sounds_played()
+
+
+def test_crazyeights_spectator_leave_plays_standard_sound():
+    game = CrazyEightsGame()
+    alice_user = MockUser("Alice", uuid="p1")
+    watcher_user = MockUser("Watcher", uuid="p2")
+    game.add_player("Alice", alice_user)
+    watcher = game.add_spectator("Watcher", watcher_user)
+    alice_user.clear_messages()
+    watcher_user.clear_messages()
+
+    game._perform_leave_game(watcher)
+
+    assert alice_user.get_sounds_played() == ["leave_spectator.ogg"]
+    assert watcher_user.get_sounds_played() == []
+
+
 def test_playing_eight_locks_turn_until_turn_advance():
     game = CrazyEightsGame()
     game.setup_keybinds()
