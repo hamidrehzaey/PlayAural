@@ -47,6 +47,12 @@ def test_main_action_hidden_when_disabled() -> None:
     assert game._is_main_action_hidden(player, tax_id) == Visibility.VISIBLE
 
 
+def test_ageofheroes_uses_coup_background_music() -> None:
+    game = make_started_game()
+
+    assert game.current_music == "game_coup/music.ogg"
+
+
 def test_build_action_hidden_when_unaffordable() -> None:
     """Unaffordable buildings are hidden from the construction menu."""
     game = make_started_game()

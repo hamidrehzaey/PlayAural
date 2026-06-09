@@ -2040,7 +2040,7 @@ class AgeOfHeroesGame(Game):
                 user.speak_l("ageofheroes-setup-start", tribe=tribe_name, special=special_name, buffer="game")
 
         # Play music
-        self.play_music("game_ageofheroes/music.ogg")
+        self.play_music("game_coup/music.ogg")
 
         # Jolt bots to roll dice
         for p in self.get_active_players():

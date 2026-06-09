@@ -106,6 +106,31 @@ def test_hit_uses_first_and_third_person_draw_messages() -> None:
     assert any("Alice draws" in text for text in speech_texts(bob_user))
 
 
+def test_hit_blocked_by_draw_lock_speaks_effect_reason() -> None:
+    game, alice_user, bob_user = make_started_game(draw_modifier_chance_percent=0)
+    alice, bob = game.players
+    bob.table_modifiers = [MODIFIER_DRAW_SILENCE]
+    game.deck = Deck(cards=[Card(id=1, rank=5, suit=0)])
+    turn_set = game.create_turn_action_set(alice)
+    hit_action = turn_set.get_action("hit")
+    assert hit_action is not None
+
+    resolved = turn_set.resolve_action(game, alice, hit_action)
+
+    assert resolved.enabled
+
+    alice_user.messages.clear()
+    bob_user.messages.clear()
+    game.execute_action(alice, "hit")
+
+    assert alice.hand == []
+    alice_speech = " ".join(speech_texts(alice_user))
+    bob_speech = " ".join(speech_texts(bob_user))
+    assert "You cannot draw because no draw for you!" in alice_speech
+    assert "blocking number-card draws" in alice_speech
+    assert "Alice cannot draw because no draw for you!" in bob_speech
+
+
 def test_hit_is_disabled_when_deck_is_empty() -> None:
     game, _, _ = make_started_game()
     alice = game.players[0]
