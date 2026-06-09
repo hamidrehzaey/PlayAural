@@ -214,7 +214,7 @@ class LightTurretGame(Game):
         """Check if turn actions are hidden."""
         if self.status != "playing":
             return Visibility.HIDDEN
-        if self.current_player != player:
+        if player.is_spectator:
             return Visibility.HIDDEN
         lt_player: LightTurretPlayer = player  # type: ignore
         if not lt_player.alive:

@@ -83,6 +83,10 @@ class SorryGame(Game):
     winner_name: str = ""
     ended_due_to_empty_deck: bool = False
 
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self._pending_turn_menu_focus: dict[str, str] = {}
+
     @classmethod
     def get_name(cls) -> str:
         return "Sorry!"
@@ -264,21 +268,32 @@ class SorryGame(Game):
                 state=KeybindState.ACTIVE,
             )
 
-    def rebuild_player_menu(self, player: Player) -> None:
+    def rebuild_player_menu(self, player: Player, focus: str | None = None) -> None:
         self._sync_turn_actions(player)
         self._sync_standard_actions(player)
-        super().rebuild_player_menu(player)
+        super().rebuild_player_menu(player, focus=focus)
 
     def update_player_menu(self, player: Player, selection_id: str | None = None) -> None:
         self._sync_turn_actions(player)
         self._sync_standard_actions(player)
         super().update_player_menu(player, selection_id=selection_id)
 
-    def rebuild_all_menus(self) -> None:
+    def rebuild_all_menus(
+        self,
+        focus: str | None = None,
+        *,
+        focus_player: Player | None = None,
+    ) -> None:
         for player in self.players:
-            self._sync_turn_actions(player)
-            self._sync_standard_actions(player)
-        super().rebuild_all_menus()
+            player_focus = (
+                focus
+                if focus is not None and (focus_player is None or player == focus_player)
+                else None
+            )
+            pending_focus = self._pending_turn_menu_focus.pop(player.id, None)
+            if player_focus is None:
+                player_focus = pending_focus
+            self.rebuild_player_menu(player, focus=player_focus)
 
     def _sync_turn_actions(
         self,
@@ -388,11 +403,7 @@ class SorryGame(Game):
         return None
 
     def _is_draw_hidden(self, player: Player) -> Visibility:
-        if self.status != "playing" or self.current_player != player:
-            return Visibility.HIDDEN
-        if self.is_sequence_gameplay_locked():
-            return Visibility.HIDDEN
-        if self.game_state.turn_phase != "draw":
+        if self.status != "playing" or player.is_spectator:
             return Visibility.HIDDEN
         return Visibility.VISIBLE
 
@@ -1018,7 +1029,7 @@ class SorryGame(Game):
         captures = apply_move(self.game_state, player_state, move, self._get_rules_profile())
         self._sync_player_counts()
         self.game_state.turn_phase = "resolving"
-        self.rebuild_all_menus()
+        self.rebuild_all_menus(focus="draw_card", focus_player=player)
         self.start_sequence(
             "turn_flow",
             self._build_move_sequence(player, move, card_face, captures),
@@ -1058,10 +1069,16 @@ class SorryGame(Game):
         user = self.get_user(player)
         if user:
             user.speak_l("sorry-choose-split", buffer="game")
-        self.rebuild_all_menus()
+        self.rebuild_all_menus(focus_player=player, focus="move_slot_1")
         self._queue_current_bot()
 
-    def _enter_choose_move(self, player: Player, legal_moves: list[SorryMove]) -> None:
+    def _enter_choose_move(
+        self,
+        player: Player,
+        legal_moves: list[SorryMove],
+        *,
+        defer_menu_rebuild: bool = False,
+    ) -> None:
         if len(legal_moves) == 1 and self.options.auto_apply_single_move:
             only_move = legal_moves[0]
             if only_move.move_type == "split7_pick":
@@ -1073,7 +1090,10 @@ class SorryGame(Game):
         user = self.get_user(player)
         if user:
             user.speak_l("sorry-choose-move", buffer="game")
-        self.rebuild_all_menus()
+        if defer_menu_rebuild:
+            self._pending_turn_menu_focus[player.id] = "move_slot_1"
+        else:
+            self.rebuild_all_menus(focus_player=player, focus="move_slot_1")
         self._queue_current_bot()
 
     def _action_draw_card(self, player: Player, action_id: str) -> None:
@@ -1127,7 +1147,14 @@ class SorryGame(Game):
             self._end_turn_after_card(card_face)
             return
 
-        self._enter_choose_move(player, legal_moves)
+        defer_menu_rebuild = any(
+            sequence.tag == "turn_flow" for sequence in self.active_sequences
+        )
+        self._enter_choose_move(
+            player,
+            legal_moves,
+            defer_menu_rebuild=defer_menu_rebuild,
+        )
 
     def _action_choose_move(self, player: Player, action_id: str) -> None:
         if self._is_move_slot_enabled(player, action_id=action_id) is not None:

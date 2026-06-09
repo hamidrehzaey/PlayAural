@@ -266,8 +266,12 @@ class TestMidnightGameActions:
         p1_ids = [a.action.id for a in p1_actions]
         p2_ids = [a.action.id for a in p2_actions]
 
+        p2_by_id = {a.action.id: a for a in p2_actions}
+
         assert "roll" in p1_ids
-        assert "roll" not in p2_ids
+        assert "roll" in p2_ids
+        assert p2_by_id["roll"].enabled is False
+        assert p2_by_id["roll"].disabled_reason == "action-not-your-turn"
 
 
 class TestMidnightPlayTest:

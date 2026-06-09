@@ -266,8 +266,6 @@ class TradeoffGame(Game):
             return Visibility.HIDDEN
         if self.taking_index >= len(self.taking_order):
             return Visibility.HIDDEN
-        if self.taking_order[self.taking_index] != player.id:
-            return Visibility.HIDDEN
         tp: TradeoffPlayer = player  # type: ignore
         if tp.dice_taken_count >= tp.dice_traded_count:
             return Visibility.HIDDEN

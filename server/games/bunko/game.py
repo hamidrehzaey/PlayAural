@@ -302,10 +302,6 @@ class BunkoGame(Game):
             return Visibility.HIDDEN
         if player.is_spectator:
             return Visibility.HIDDEN
-        if self.current_player != player:
-            return Visibility.HIDDEN
-        if self.is_sequence_gameplay_locked():
-            return Visibility.HIDDEN
         return Visibility.VISIBLE
 
     def _is_check_status_enabled(self, player: Player) -> str | None:

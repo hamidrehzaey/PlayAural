@@ -395,7 +395,11 @@ class TwentyOneGame(ActionGuardMixin, Game):
         return None
 
     def _is_turn_action_hidden(self, player: Player) -> Visibility:
-        return self.turn_action_visibility(player, extra_condition=self.phase == "turns")
+        return self.turn_action_visibility(
+            player,
+            require_current_player=False,
+            extra_condition=self.phase == "turns",
+        )
 
     def _is_hit_enabled(self, player: Player) -> str | None:
         error = self._is_turn_action_enabled(player)

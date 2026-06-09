@@ -204,7 +204,8 @@ class FiveCardDrawGame(Game, TurnTimerMixin):
             return Visibility.HIDDEN
         if self._next_hand_wait_ticks > 0 or self.phase == "showdown":
             return Visibility.HIDDEN
-        if self.current_player != player:
+        p = player if isinstance(player, FiveCardDrawPlayer) else None
+        if not p or p.folded:
             return Visibility.HIDDEN
         return Visibility.VISIBLE
 
@@ -1145,6 +1146,9 @@ class FiveCardDrawGame(Game, TurnTimerMixin):
 
     def _is_bet_action_hidden(self, player: Player) -> Visibility:
         if self.phase == "draw":
+            return Visibility.HIDDEN
+        p = player if isinstance(player, FiveCardDrawPlayer) else None
+        if not p or p.all_in or p.chips <= 0:
             return Visibility.HIDDEN
         return self._is_turn_action_hidden(player)
 

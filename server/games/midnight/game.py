@@ -188,8 +188,6 @@ class MidnightGame(Game, DiceGameMixin):
             return Visibility.HIDDEN
         if player.is_spectator:
             return Visibility.HIDDEN
-        if self.current_player != player:
-            return Visibility.HIDDEN
         midnight_player: MidnightPlayer = player  # type: ignore
         if midnight_player.dice.unlocked_count == 0:
             return Visibility.HIDDEN

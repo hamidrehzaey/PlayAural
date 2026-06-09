@@ -223,7 +223,7 @@ class SnakesAndLaddersGame(Game):
     def _is_roll_hidden(self, player: Player) -> Visibility:
         if self.status != "playing":
              return Visibility.HIDDEN
-        if self.current_player != player:
+        if player.is_spectator:
              return Visibility.HIDDEN
         return Visibility.VISIBLE
         

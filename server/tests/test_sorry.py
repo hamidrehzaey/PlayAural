@@ -253,8 +253,22 @@ def test_web_turn_menu_orders_utility_actions_at_bottom() -> None:
     game.rebuild_player_menu(player)
 
     ids = [item.id for item in user.menus["turn_menu"]["items"]]
+    assert "draw_card" in ids
+    assert any(item_id and item_id.startswith("move_slot_") for item_id in ids)
     assert ids.index("check_scores") < ids.index("whose_turn") < ids.index("whos_at_table")
     assert ids[-2:] == ["web_actions_menu", "web_leave_table"]
+
+
+def test_draw_card_visible_but_disabled_out_of_turn() -> None:
+    game = make_game(start=True)
+    player = next(p for p in game.players if p != game.current_player)
+
+    visible = game.get_all_visible_actions(player)
+    actions = {resolved.action.id: resolved for resolved in visible}
+
+    assert "draw_card" in actions
+    assert actions["draw_card"].enabled is False
+    assert actions["draw_card"].disabled_reason == "action-not-your-turn"
 
 
 def test_turn_menu_contains_web_info_actions() -> None:
@@ -337,6 +351,90 @@ def test_draw_announcement_waits_for_audio_queue() -> None:
 
     assert advance_until(game, lambda: game.game_state.turn_phase == "choose_move", max_ticks=30)
     assert Localization.get("en", "sorry-you-draw-announcement", card="1") in user.get_spoken_messages()
+    assert user.menus["turn_menu"]["selection_id"] == "move_slot_1"
+
+
+def test_selecting_move_focuses_draw_card() -> None:
+    game = make_game(start=True)
+    player = game.players[0]
+    user = game.get_user(player)
+    assert user is not None
+
+    game.game_state.current_card = "1"
+    game.game_state.turn_phase = "choose_move"
+
+    game._action_choose_move(player, "move_slot_1")
+
+    assert user.menus["turn_menu"]["selection_id"] == "draw_card"
+
+
+def test_split_prompt_focuses_first_split_option() -> None:
+    game = make_game(start=True)
+    player = game.players[0]
+    user = game.get_user(player)
+    assert user is not None
+
+    player_state = game.game_state.player_states[player.id]
+    player_state.pawns[0].zone = "track"
+    player_state.pawns[0].track_position = 5
+    player_state.pawns[1].zone = "track"
+    player_state.pawns[1].track_position = 8
+    game.game_state.current_card = "7"
+    game.game_state.turn_phase = "choose_move"
+    legal_moves = game._get_current_legal_moves(player)
+    split_slot = next(
+        index
+        for index, move in enumerate(legal_moves, start=1)
+        if move.move_type == "split7_pick"
+    )
+
+    game._action_choose_move(player, f"move_slot_{split_slot}")
+
+    assert game.game_state.turn_phase == "choose_split"
+    assert user.menus["turn_menu"]["selection_id"] == "move_slot_1"
+
+
+def test_swap_prompt_focuses_first_choice_after_draw() -> None:
+    game = make_game(start=True)
+    player = game.players[0]
+    opponent = game.players[1]
+    user = game.get_user(player)
+    assert user is not None
+
+    player_state = game.game_state.player_states[player.id]
+    opponent_state = game.game_state.player_states[opponent.id]
+    player_state.pawns[0].zone = "track"
+    player_state.pawns[0].track_position = 10
+    opponent_state.pawns[0].zone = "track"
+    opponent_state.pawns[0].track_position = 16
+    game.game_state.draw_pile = ["11"]
+
+    game._action_draw_card(player, "draw_card")
+
+    assert advance_until(game, lambda: game.game_state.turn_phase == "choose_move", max_ticks=30)
+    legal_moves = game._get_current_legal_moves(player)
+    assert any(move.move_type == "swap" for move in legal_moves)
+    assert user.menus["turn_menu"]["selection_id"] == "move_slot_1"
+
+
+def test_sorry_card_prompt_focuses_first_choice_after_draw() -> None:
+    game = make_game(start=True)
+    player = game.players[0]
+    opponent = game.players[1]
+    user = game.get_user(player)
+    assert user is not None
+
+    opponent_state = game.game_state.player_states[opponent.id]
+    opponent_state.pawns[0].zone = "track"
+    opponent_state.pawns[0].track_position = 16
+    game.game_state.draw_pile = ["sorry"]
+
+    game._action_draw_card(player, "draw_card")
+
+    assert advance_until(game, lambda: game.game_state.turn_phase == "choose_move", max_ticks=30)
+    legal_moves = game._get_current_legal_moves(player)
+    assert any(move.move_type == "sorry" for move in legal_moves)
+    assert user.menus["turn_menu"]["selection_id"] == "move_slot_1"
 
 
 def test_info_actions_remain_available_during_draw_sequence() -> None:

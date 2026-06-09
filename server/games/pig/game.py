@@ -134,12 +134,10 @@ class PigGame(Game):
         return None
 
     def _is_roll_hidden(self, player: Player) -> Visibility:
-        """Roll is visible during play for current player."""
+        """Roll stays visible during play so touch focus remains anchored."""
         if self.status != "playing":
             return Visibility.HIDDEN
         if player.is_spectator:
-            return Visibility.HIDDEN
-        if self.current_player != player:
             return Visibility.HIDDEN
         return Visibility.VISIBLE
 

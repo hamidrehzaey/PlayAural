@@ -13,16 +13,25 @@ from ..games.ageofheroes.game import AgeOfHeroesGame
 from ..games.backgammon.game import BackgammonGame, BackgammonOptions
 from ..games.battleship.game import BattleshipGame, BattleshipOptions
 from ..games.chess.game import ChessGame, ChessOptions
+from ..games.bunko.game import BunkoGame
+from ..games.farkle.game import FarkleGame
 from ..games.humanitycards.game import HumanityCardsGame
+from ..games.leftrightcenter.game import LeftRightCenterGame
 from ..games.ludo.game import LudoGame
+from ..games.midnight.game import MidnightGame
 from ..games.milebymile.game import MileByMileGame
 from ..games.metalpipe.game import MetalPipeGame
 from ..games.nine.game import NineGame
+from ..games.pig.game import PigGame
 from ..games.pusoydos.game import PusoyDosGame
 from ..games.rollingballs.game import RollingBallsGame
 from ..games.senet.game import SenetGame
+from ..games.snakesandladders.game import SnakesAndLaddersGame
+from ..games.threes.game import ThreesGame
+from ..games.tossup.game import TossUpGame
 from ..games.twentyone.game import TwentyOneGame
 from ..games.uno.game import UnoGame
+from ..games.yahtzee.game import YahtzeeGame
 from ..messages.localization import Localization
 from ..users.test_user import MockUser
 
@@ -345,6 +354,71 @@ def test_rollingballs_shortcut_utilities_are_touch_only_turn_buttons() -> None:
     desktop_visible_ids = [resolved.action.id for resolved in game.get_all_visible_actions(player)]
     assert "view_pipe" not in desktop_visible_ids
     assert "reshuffle" not in desktop_visible_ids
+
+
+@pytest.mark.parametrize(
+    ("game_cls", "player_count", "roll_action_id"),
+    [
+        (BunkoGame, 2, "roll"),
+        (FarkleGame, 2, "roll"),
+        (LeftRightCenterGame, 2, "roll"),
+        (LudoGame, 2, "roll_dice"),
+        (MidnightGame, 2, "roll"),
+        (PigGame, 2, "roll"),
+        (SnakesAndLaddersGame, 2, "roll"),
+        (ThreesGame, 2, "roll"),
+        (TossUpGame, 2, "roll"),
+        (YahtzeeGame, 2, "roll"),
+    ],
+)
+def test_roll_actions_remain_visible_for_touch_clients_out_of_turn(
+    game_cls, player_count: int, roll_action_id: str
+) -> None:
+    game = game_cls()
+    game.setup_keybinds()
+    players = []
+    for index in range(player_count):
+        name = f"Player{index + 1}"
+        user = MockUser(name, uuid=f"roll-anchor-{game.get_type()}-{index + 1}")
+        user.client_type = "mobile"
+        players.append(game.add_player(name, user))
+    game.host = "Player1"
+    game.on_start()
+
+    player = next(p for p in players if p != game.current_player)
+    visible_ids = [resolved.action.id for resolved in game.get_all_visible_actions(player)]
+
+    assert roll_action_id in visible_ids
+
+
+def test_disabled_turn_menu_action_click_speaks_same_reason_as_keybind() -> None:
+    game = PigGame()
+    game.setup_keybinds()
+    alice = MockUser("Alice", uuid="pig-anchor-1")
+    bob = MockUser("Bob", uuid="pig-anchor-2")
+    bob.client_type = "mobile"
+    game.add_player("Alice", alice)
+    bob_player = game.add_player("Bob", bob)
+    game.host = "Alice"
+    game.on_start()
+    assert game.current_player != bob_player
+
+    game.rebuild_player_menu(bob_player)
+    visible_ids = [item.id for item in bob.menus["turn_menu"]["items"] if getattr(item, "id", None)]
+    assert "roll" in visible_ids
+
+    bob.clear_messages()
+    game.handle_event(bob_player, {"type": "keybind", "key": "r"})
+    keybind_message = bob.get_last_spoken()
+
+    bob.clear_messages()
+    game.handle_event(
+        bob_player,
+        {"type": "menu", "menu_id": "turn_menu", "selection_id": "roll"},
+    )
+    menu_message = bob.get_last_spoken()
+
+    assert menu_message == keybind_message == Localization.get("en", "action-not-your-turn")
 
 
 @pytest.mark.parametrize(

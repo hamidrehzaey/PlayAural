@@ -117,6 +117,11 @@ class EventHandlingMixin:
                     # Don't rebuild if action is waiting for input
                     if player.id not in self._pending_actions:
                         self.rebuild_all_menus()
+                elif resolved.disabled_reason:
+                    if resolved.disabled_reason != "action-not-available":
+                        user = self.get_user(player)
+                        if user:
+                            user.speak_l(resolved.disabled_reason, buffer="game")
             else:
                 # Fallback to index-based selection - use visible actions only
                 selection = event.get("selection", 1) - 1  # Convert to 0-based

@@ -98,3 +98,26 @@ def test_bot_think_bank_score(farkle_game):
     # Bot shouldn't bank yet, hasn't reached bank score
     action = farkle_game.bot_think(bot_player)
     assert action != "bank"
+
+
+def test_roll_focuses_first_scoring_action(farkle_game, monkeypatch):
+    player = farkle_game.current_player
+    user = farkle_game.get_user(player)
+    assert user is not None
+
+    def fixed_roll():
+        player.dice.values = [1, 2, 3, 4, 6, 6]
+        return player.dice.values
+
+    monkeypatch.setattr(player.dice, "roll", fixed_roll)
+
+    farkle_game._action_roll(player, "roll")
+
+    menu = user.menus["turn_menu"]
+    score_ids = [
+        item.id
+        for item in menu["items"]
+        if getattr(item, "id", "").startswith("score_")
+    ]
+    assert score_ids
+    assert menu["selection_id"] == score_ids[0]

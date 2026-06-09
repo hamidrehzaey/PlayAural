@@ -582,6 +582,15 @@ class FarkleGame(Game):
             if action_id in turn_set._actions:
                 turn_set._order.append(action_id)
 
+    def _first_scoring_action_id(self, player: FarklePlayer) -> str | None:
+        turn_set = self.get_action_set(player, "turn")
+        if not turn_set:
+            return None
+        return next(
+            (action_id for action_id in turn_set._order if action_id.startswith("score_")),
+            None,
+        )
+
     # ==========================================================================
     # Declarative Action Callbacks
     # ==========================================================================
@@ -604,11 +613,7 @@ class FarkleGame(Game):
         """Check if roll action is hidden."""
         if self.status != "playing":
             return Visibility.HIDDEN
-        if self.current_player != player:
-            return Visibility.HIDDEN
-        farkle_player: FarklePlayer = player  # type: ignore
-        can_roll = len(farkle_player.dice.values) == 0 or farkle_player.has_taken_combo
-        if not can_roll:
+        if player.is_spectator:
             return Visibility.HIDDEN
         return Visibility.VISIBLE
 
@@ -769,7 +774,10 @@ class FarkleGame(Game):
 
         # Update scoring actions based on new roll
         self.update_scoring_actions(farkle_player)
-        self.rebuild_player_menu(farkle_player)
+        self.rebuild_player_menu(
+            farkle_player,
+            focus=self._first_scoring_action_id(farkle_player),
+        )
 
     def _action_take_combo(self, player: Player, action_id: str) -> None:
         """Handle taking a scoring combination."""

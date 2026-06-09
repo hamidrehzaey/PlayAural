@@ -109,8 +109,6 @@ class LeftRightCenterGame(Game):
     def _is_roll_hidden(self, player: Player) -> Visibility:
         if self.status != "playing" or player.is_spectator:
             return Visibility.HIDDEN
-        if self.current_player != player:
-            return Visibility.HIDDEN
         if isinstance(player, LeftRightCenterPlayer) and player.chips == 0:
             return Visibility.HIDDEN
         return Visibility.VISIBLE

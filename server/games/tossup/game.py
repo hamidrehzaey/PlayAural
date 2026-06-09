@@ -145,8 +145,6 @@ class TossUpGame(Game):
             return Visibility.HIDDEN
         if player.is_spectator:
             return Visibility.HIDDEN
-        if self.current_player != player:
-            return Visibility.HIDDEN
         return Visibility.VISIBLE
 
     def _get_roll_label(self, player: Player, action_id: str) -> str:

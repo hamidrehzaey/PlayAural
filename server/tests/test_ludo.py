@@ -451,10 +451,12 @@ class TestLudoActions:
         visible_ids = [a.action.id for a in visible]
         assert "roll_dice" in visible_ids
 
-    def test_roll_hidden_for_other_player(self):
+    def test_roll_visible_but_disabled_for_other_player(self):
         visible = self.game.get_all_visible_actions(self.p2)
-        visible_ids = [a.action.id for a in visible]
-        assert "roll_dice" not in visible_ids
+        actions = {a.action.id: a for a in visible}
+        assert "roll_dice" in actions
+        assert actions["roll_dice"].enabled is False
+        assert actions["roll_dice"].disabled_reason == "action-not-your-turn"
 
     def test_move_tokens_hidden_before_roll(self):
         visible = self.game.get_all_visible_actions(self.p1)
@@ -475,11 +477,45 @@ class TestLudoActions:
         }
 
         visible = self.game.get_all_visible_actions(self.p1)
-        visible_ids = [a.action.id for a in visible]
-        assert "move_token_1" in visible_ids
-        assert "move_token_2" in visible_ids
-        assert "move_token_3" not in visible_ids
-        assert "roll_dice" not in visible_ids  # Should be hidden when move_options set
+        actions = {a.action.id: a for a in visible}
+        assert "move_token_1" in actions
+        assert "move_token_2" in actions
+        assert "move_token_3" not in actions
+        assert "roll_dice" in actions
+        assert actions["roll_dice"].enabled is False
+
+    def test_roll_focuses_first_move_token_after_multiple_options(self, monkeypatch):
+        self.p1.tokens[0].state = "track"
+        self.p1.tokens[0].position = 5
+        self.p1.tokens[1].state = "track"
+        self.p1.tokens[1].position = 10
+
+        def fixed_randint(start: int, end: int) -> int:
+            if (start, end) == (1, 6):
+                return 3
+            return start
+
+        monkeypatch.setattr("server.games.ludo.game.random.randint", fixed_randint)
+
+        self.game._action_roll_dice(self.p1, "roll_dice")
+
+        menu = self.u1.menus["turn_menu"]
+        menu_ids = [item.id for item in menu["items"]]
+        assert "move_token_1" in menu_ids
+        assert "move_token_2" in menu_ids
+        assert menu["selection_id"] == "move_token_1"
+        assert self.u2.menus["turn_menu"]["selection_id"] is None
+
+    def test_selecting_move_token_focuses_roll_button(self):
+        self.p1.tokens[0].state = "track"
+        self.p1.tokens[0].position = 5
+        self.game.last_roll = 3
+        self.p1.move_options = {0: "Token 1 (position 5)"}
+
+        self.game._action_move_token(self.p1, "move_token_1")
+
+        assert self.u1.menus["turn_menu"]["selection_id"] == "roll_dice"
+        assert self.u2.menus["turn_menu"]["selection_id"] is None
 
     def test_check_board_always_enabled(self):
         result = self.game._is_check_board_enabled(self.p1)

@@ -371,7 +371,7 @@ class PiratesGame(Game):
     def _is_move_hidden(self, player: Player) -> Visibility:
         if self.status != "playing":
             return Visibility.HIDDEN
-        if self.current_player != player:
+        if player.is_spectator:
             return Visibility.HIDDEN
         return Visibility.VISIBLE
 
@@ -388,7 +388,7 @@ class PiratesGame(Game):
     def _is_move_2_hidden(self, player: Player) -> Visibility:
         if self.status != "playing":
             return Visibility.HIDDEN
-        if self.current_player != player:
+        if player.is_spectator:
             return Visibility.HIDDEN
         p = player if isinstance(player, PiratesPlayer) else None
         if not p or p.level < 15:
@@ -408,7 +408,7 @@ class PiratesGame(Game):
     def _is_move_3_hidden(self, player: Player) -> Visibility:
         if self.status != "playing":
             return Visibility.HIDDEN
-        if self.current_player != player:
+        if player.is_spectator:
             return Visibility.HIDDEN
         p = player if isinstance(player, PiratesPlayer) else None
         if not p or p.level < 150:
@@ -425,7 +425,7 @@ class PiratesGame(Game):
     def _is_cannonball_hidden(self, player: Player) -> Visibility:
         if self.status != "playing":
             return Visibility.HIDDEN
-        if self.current_player != player:
+        if player.is_spectator:
             return Visibility.HIDDEN
         return Visibility.VISIBLE
 
@@ -439,7 +439,7 @@ class PiratesGame(Game):
     def _is_skill_hidden(self, player: Player) -> Visibility:
         if self.status != "playing":
             return Visibility.HIDDEN
-        if self.current_player != player:
+        if player.is_spectator:
             return Visibility.HIDDEN
         return Visibility.VISIBLE
 

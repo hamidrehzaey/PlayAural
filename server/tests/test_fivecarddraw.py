@@ -45,6 +45,12 @@ def test_draw_touch_info_actions_remain_available_outside_turn():
     game.on_start()
 
     player = next(p for p in game.get_active_players() if p != game.current_player)
+    visible_actions = {entry.action.id: entry for entry in game.get_all_visible_actions(player)}
+    for action_id in ("call", "fold", "raise", "all_in"):
+        assert action_id in visible_actions
+        assert visible_actions[action_id].enabled is False
+        assert visible_actions[action_id].disabled_reason == "action-not-your-turn"
+
     turn_set = game.create_turn_action_set(player)
     assert turn_set.get_action("speak_hand") is None
     assert turn_set.get_action("check_dealer") is None

@@ -321,7 +321,7 @@ class YahtzeeGame(Game, DiceGameMixin):
     def _is_roll_hidden(self, player: Player) -> Visibility:
         if self.status != "playing":
             return Visibility.HIDDEN
-        if self.current_player != player:
+        if player.is_spectator:
             return Visibility.HIDDEN
         ytz_player: YahtzeePlayer = player  # type: ignore
         if ytz_player.rolls_left <= 0:

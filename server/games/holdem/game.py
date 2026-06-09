@@ -1366,9 +1366,12 @@ class HoldemGame(Game, TurnTimerMixin):
     def _is_turn_action_hidden(self, player: Player) -> Visibility:
         if self.status != "playing" or player.is_spectator:
             return Visibility.HIDDEN
+        if self.phase not in ("preflop", "flop", "turn", "river"):
+            return Visibility.HIDDEN
         if self._next_hand_wait_ticks > 0 or self.pending_showdown or self.phase == "showdown":
             return Visibility.HIDDEN
-        if self.current_player != player:
+        p = player if isinstance(player, HoldemPlayer) else None
+        if not p or p.folded or p.all_in or p.chips <= 0:
             return Visibility.HIDDEN
         return Visibility.VISIBLE
 
