@@ -661,8 +661,9 @@ def test_normal_fold_first_decision_requires_coward_fold() -> None:
     assert game._is_fold_enabled(player) == "deadmanspoker-fold-first-decision-use-coward"
     assert game._is_coward_fold_enabled(player) is None
 
-    # A disabled fold hides itself so the coward's fold takes its place.
-    assert game._is_fold_hidden(player) == Visibility.HIDDEN
+    # Fold stays visible (but disabled) alongside the coward's fold; turn actions
+    # remain visible regardless of whether they are currently enabled.
+    assert game._is_fold_hidden(player) == Visibility.VISIBLE
     assert game._is_coward_fold_hidden(player) == Visibility.VISIBLE
 
 

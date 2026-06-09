@@ -891,39 +891,35 @@ class DeadMansPokerGame(Game):
         return None
 
     def _is_turn_action_visible(self, player: Player) -> Visibility:
+        """Turn actions stay visible for living players throughout a hand.
+
+        Visibility no longer depends on whose turn it is or whether the action is
+        currently enabled — off-turn players see the same disabled buttons so the
+        menu shape (and screen-reader focus anchor) stays stable across turns.
+        The only in-hand phase that hides them is the card-switch sub-phase, where
+        the choose-switch actions take over the menu.
+        """
         if self.status != "playing" or player.is_spectator:
             return Visibility.HIDDEN
-        if self.current_player != player:
+        if not isinstance(player, DeadMansPokerPlayer) or player.eliminated:
+            return Visibility.HIDDEN
+        if self.phase == PHASE_SWITCH:
             return Visibility.HIDDEN
         return Visibility.VISIBLE
 
     def _is_call_hidden(self, player: Player) -> Visibility:
-        if self.phase not in {PHASE_DECISION, PHASE_ALL_IN_RESPONSE}:
-            return Visibility.HIDDEN
-        if self._is_call_enabled(player) is not None:
-            return Visibility.HIDDEN
         return self._is_turn_action_visible(player)
 
     def _is_fold_hidden(self, player: Player) -> Visibility:
-        if self.phase not in {PHASE_DECISION, PHASE_ALL_IN_RESPONSE}:
-            return Visibility.HIDDEN
-        if self._is_fold_enabled(player) is not None:
-            return Visibility.HIDDEN
         return self._is_turn_action_visible(player)
 
     def _is_coward_fold_hidden(self, player: Player) -> Visibility:
-        if self._is_coward_fold_enabled(player) is not None:
-            return Visibility.HIDDEN
         return self._is_turn_action_visible(player)
 
     def _is_switch_card_hidden(self, player: Player) -> Visibility:
-        if self._is_switch_card_enabled(player) is not None:
-            return Visibility.HIDDEN
         return self._is_turn_action_visible(player)
 
     def _is_all_in_hidden(self, player: Player) -> Visibility:
-        if self._is_all_in_enabled(player) is not None:
-            return Visibility.HIDDEN
         return self._is_turn_action_visible(player)
 
     def _is_choose_switch_hidden(self, player: Player, *, action_id: str | None = None) -> Visibility:

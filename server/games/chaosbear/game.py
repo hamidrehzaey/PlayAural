@@ -237,16 +237,25 @@ class ChaosBearGame(Game):
             return "chaosbear-you-are-caught"
         return None
 
-    def _is_roll_dice_hidden(self, player: Player) -> Visibility:
-        """Check if roll dice is hidden."""
-        if self.status != "playing":
-            return Visibility.HIDDEN
-        if self.current_player != player:
+    def _is_turn_action_visible(self, player: Player) -> Visibility:
+        """Turn actions stay visible for living players throughout play.
+
+        Visibility no longer depends on whose turn it is or whether the action is
+        currently enabled — off-turn players see the same disabled buttons so the
+        menu shape (and screen-reader focus anchor) stays stable across turns.
+        Per-turn conditions (whose turn, is_rolling, draw eligibility) remain
+        enablement concerns handled by the matching `_is_*_enabled` methods.
+        """
+        if self.status != "playing" or player.is_spectator:
             return Visibility.HIDDEN
         cb_player: ChaosBearPlayer = player  # type: ignore
-        if not cb_player.alive:
+        if not isinstance(cb_player, ChaosBearPlayer) or not cb_player.alive:
             return Visibility.HIDDEN
         return Visibility.VISIBLE
+
+    def _is_roll_dice_hidden(self, player: Player) -> Visibility:
+        """Check if roll dice is hidden."""
+        return self._is_turn_action_visible(player)
 
     def _is_draw_card_enabled(self, player: Player) -> str | None:
         """Check if draw card action is enabled."""
@@ -266,17 +275,7 @@ class ChaosBearGame(Game):
 
     def _is_draw_card_hidden(self, player: Player) -> Visibility:
         """Check if draw card is hidden."""
-        if self.status != "playing":
-            return Visibility.HIDDEN
-        if self.current_player != player:
-            return Visibility.HIDDEN
-        cb_player: ChaosBearPlayer = player  # type: ignore
-        if not cb_player.alive:
-            return Visibility.HIDDEN
-        can_draw = cb_player.position % 5 == 0 and cb_player.position > 0
-        if not can_draw:
-            return Visibility.HIDDEN
-        return Visibility.VISIBLE
+        return self._is_turn_action_visible(player)
 
     def _is_check_status_enabled(self, player: Player) -> str | None:
         """Check if check status action is enabled."""
