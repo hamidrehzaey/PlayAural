@@ -656,6 +656,45 @@ def test_switch_replacement_flow_keeps_turn_available() -> None:
     assert any(card_name(discarded, "en") in text for text in speech_texts(other_user))
 
 
+def test_human_switch_choice_does_not_pull_other_player_focus_to_call() -> None:
+    game = make_game(2)
+    start_to_decision(game)
+    player = game.current_player
+    assert player is not None
+    player_user = game.get_user(player)
+    assert player_user is not None
+    other = next(table_player for table_player in game.players if table_player != player)
+    other_user = game.get_user(other)
+    assert other_user is not None
+
+    game.execute_action(player, "switch_card", input_value="0")
+    assert game.phase == PHASE_SWITCH
+    player_user.clear_messages()
+    other_user.clear_messages()
+
+    game.handle_event(
+        player,
+        {
+            "type": "menu",
+            "menu_id": "turn_menu",
+            "selection_id": "choose_switch_1",
+        },
+    )
+
+    other_updates = turn_menu_updates(other_user)
+    assert other_updates
+    assert {message.type for message in other_updates} == {"update_menu"}
+    assert all(message.data.get("selection_id") is None for message in other_updates)
+    assert player_user.menus["turn_menu"]["selection_id"] == "call"
+    assert advance_until(game, lambda: not game.active_sequences)
+
+    other_updates = turn_menu_updates(other_user)
+    assert other_updates
+    assert {message.type for message in other_updates} == {"update_menu"}
+    assert all(message.data.get("selection_id") is None for message in other_updates)
+    assert player_user.menus["turn_menu"]["selection_id"] == "call"
+
+
 def test_switch_card_resets_each_hand() -> None:
     game = make_game(2)
     start_to_decision(game)

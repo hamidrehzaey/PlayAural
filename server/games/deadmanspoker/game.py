@@ -224,16 +224,55 @@ class DeadMansPokerGame(Game):
         *,
         focus_player: Player | None = None,
     ) -> None:
+        if focus is None and focus_player is None and self._pending_turn_menu_focus:
+            pending_focus = dict(self._pending_turn_menu_focus)
+            self._pending_turn_menu_focus.clear()
+            for player in self.players:
+                self.update_player_menu(player, selection_id=pending_focus.get(player.id))
+            return
+
         for player in self.players:
             player_focus = (
                 focus
                 if focus is not None and (focus_player is None or player == focus_player)
                 else None
             )
-            pending_focus = self._pending_turn_menu_focus.pop(player.id, None)
-            if player_focus is None:
-                player_focus = pending_focus
             self.rebuild_player_menu(player, focus=player_focus)
+
+    def _handle_menu_event(self, player: Player, event: dict) -> None:
+        selection_id = str(event.get("selection_id", ""))
+        if event.get("menu_id") == "turn_menu" and selection_id.startswith("choose_switch_"):
+            self._handle_switch_choice_ui_event(player, selection_id)
+            return
+        super()._handle_menu_event(player, event)
+
+    def _handle_action_event(self, player: Player, event: dict) -> None:
+        action_id = str(event.get("action", ""))
+        if action_id.startswith("choose_switch_"):
+            self._handle_switch_choice_ui_event(player, action_id)
+            return
+        super()._handle_action_event(player, event)
+
+    def _handle_switch_choice_ui_event(self, player: Player, action_id: str) -> None:
+        self._actions_menu_open.discard(player.id)
+        action = self.find_action(player, action_id)
+        if not action:
+            return
+
+        resolved = self.resolve_action(player, action)
+        if resolved.enabled:
+            self.execute_action(player, action_id)
+            if player.id not in self._pending_actions:
+                self.update_player_menu(player, selection_id="call")
+                for other in self.players:
+                    if other != player:
+                        self.update_player_menu(other)
+            return
+
+        if resolved.disabled_reason and resolved.disabled_reason != "action-not-available":
+            user = self.get_user(player)
+            if user:
+                user.speak_l(resolved.disabled_reason, buffer="game")
 
     def supports_score_actions(self) -> bool:
         return False
