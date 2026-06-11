@@ -224,6 +224,33 @@ Rules:
 - `advance_turn()` immediately after `set_turn_players(...)` skips the first player and is almost always wrong
 - use `get_active_players()` for gameplay logic, results, and winner calculations
 
+#### Sealed Menu Orchestrators (Mandatory)
+The menu orchestrators on `MenuManagementMixin` — `rebuild_player_menu`,
+`update_player_menu`, `rebuild_all_menus`, `update_all_menus`, and
+`_is_menu_refresh_blocked` — are **sealed**. A game class that overrides one
+fails at import time with a `TypeError` (so the server will not start and
+pytest will not collect). They own the focus-steal guards (status boxes,
+actions menus, global system menus, pending inputs), bot skipping,
+finished-state end screens, and focus scoping; per-game copies of that logic
+were the root cause of a long line of focus-stealing bugs.
+
+Games customize menus only through the sanctioned hooks:
+- `before_menu_build(player)` — sync dynamic action sets (per-card play
+  actions, standard-action ordering) before any menu paint. Called for bots
+  too, so action sets stay valid for bot decisions. Must be idempotent.
+- `build_menu_items(player, user) -> MenuBuild` — supply a custom item list
+  and grid layout (`MenuBuild(items=..., grid_kwargs=...)`); this is how the
+  backgammon and senet boards arrange their grids.
+- `request_menu_focus(player, action_id)` — queue a per-player focus intent;
+  the next `rebuild_all_menus()` consumes it at most once (an explicit
+  `focus` argument supersedes and discards it), so delayed sequence-runner
+  repaints cannot double-jump the cursor.
+- `defer_next_rebuild_to_update()` — make the next no-focus
+  `rebuild_all_menus()` focus-preserving, for delayed flows whose interesting
+  focus change already happened.
+- `rebuild_all_menus(focus=..., focus_player=...)` — scope an explicit focus
+  to one player; everyone else keeps their anchor.
+
 #### Menu Focus on Refresh and Turn Transitions
 The client preserves the user's current focus across an `update_menu` but resets
 it to the first item on a `show_menu` (full re-show). `update_player_menu` /
