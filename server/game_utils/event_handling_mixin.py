@@ -79,7 +79,8 @@ class EventHandlingMixin:
         resolved = self.resolve_action(player, action)
         if resolved.enabled:
             self.execute_action(player, action_id, context=context)
-            self.refresh_menus()
+            if player.id not in self._pending_actions:
+                self.refresh_menus()
         elif resolved.disabled_reason:
             if resolved.disabled_reason != "action-not-available":
                 user = self.get_user(player)
@@ -114,7 +115,8 @@ class EventHandlingMixin:
                 resolved = self.resolve_action(player, action)
                 if resolved.enabled:
                     self.execute_action(player, selection_id)
-                    self.refresh_menus()
+                    if player.id not in self._pending_actions:
+                        self.refresh_menus()
                 elif resolved.disabled_reason:
                     if resolved.disabled_reason != "action-not-available":
                         user = self.get_user(player)
@@ -127,7 +129,8 @@ class EventHandlingMixin:
                 if 0 <= selection < len(visible):
                     resolved = visible[selection]
                     self.execute_action(player, resolved.action.id)
-                    self.refresh_menus()
+                    if player.id not in self._pending_actions:
+                        self.refresh_menus()
 
         elif menu_id == "actions_menu":
             # Actions menu - use selection_id directly
@@ -260,12 +263,14 @@ class EventHandlingMixin:
                             if user:
                                 user.speak_l(resolved.disabled_reason, buffer="game")
 
-        # Any executed action may have changed shared state; mark everyone.
-        # The flush guards (pending input, status box, actions menu, system
-        # overlays) protect each player individually at paint time, and a
-        # no-op repaint costs no packet.
+        # Any executed action may have changed shared state; mark everyone
+        # except when the action opened a pending input flow. Pending inputs
+        # already refresh the acting player explicitly, and the flush guards
+        # (status box, actions menu, system overlays) protect each player
+        # individually at paint time.
         if executed_any:
-            self.refresh_menus()
+            if player.id not in self._pending_actions:
+                self.refresh_menus()
 
     def _handle_actions_menu_selection(self, player: "Player", action_id: str) -> None:
         """Handle selection from the actions menu."""
