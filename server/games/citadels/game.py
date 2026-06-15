@@ -17,6 +17,7 @@ from ...game_utils.game_result import GameResult, PlayerResult
 from ...game_utils.sequence_runner_mixin import SequenceBeat, SequenceOperation
 from ...messages.localization import Localization
 from ...ui.keybinds import KeybindState
+from ...users.base import MenuItem
 
 from .bot import bot_think as citadels_bot_think
 
@@ -760,27 +761,39 @@ class CitadelsGame(Game):
 
         cit_player = self._as_citadels_player(player)
         build_ids: list[str] = []
-        if cit_player and self.turn_resource_taken and self._may_build_more():
+        blocked_build_ids: list[str] = []
+        if cit_player and self.turn_resource_taken:
             for card in cit_player.hand:
-                if self._can_attempt_build(cit_player, card):
-                    action_id = f"build_{card.id}"
-                    turn_set.add(
-                        Action(
-                            id=action_id,
+                action_id = f"build_{card.id}"
+                disabled_reason = self._build_card_unavailable_reason(
+                    cit_player, card, locale
+                )
+                label_key = (
+                    "citadels-build-card-line"
+                    if disabled_reason is None
+                    else "citadels-build-card-disabled-line"
+                )
+                turn_set.add(
+                    Action(
+                        id=action_id,
                         label=Localization.get(
                             locale,
-                            "citadels-build-card-line",
+                            label_key,
                             district=self._district_name(card, locale),
                             cost=self._effective_build_cost(cit_player, card),
                             description=self._district_effect_description(card, locale),
+                            reason=disabled_reason or "",
                         ),
-                            handler="_action_build_card",
-                            is_enabled="_is_build_card_enabled",
-                            is_hidden="_is_dynamic_turn_action_hidden",
-                            show_in_actions_menu=False,
-                        )
+                        handler="_action_build_card",
+                        is_enabled="_is_build_card_enabled",
+                        is_hidden="_is_dynamic_turn_action_hidden",
+                        show_in_actions_menu=False,
                     )
+                )
+                if disabled_reason is None:
                     build_ids.append(action_id)
+                else:
+                    blocked_build_ids.append(action_id)
 
         turn_set._order = build_ids + [
             "take_gold",
@@ -792,7 +805,7 @@ class CitadelsGame(Game):
             "use_smithy",
             "warlord_destroy_mode",
             "end_turn",
-        ]
+        ] + blocked_build_ids
 
     def on_start(self) -> None:
         self.status = "playing"
@@ -982,10 +995,10 @@ class CitadelsGame(Game):
 
             owner.revealed_character_rank = rank
             self.set_turn_players([owner])
-            self._broadcast_localized(
+            self._broadcast_actor_l(
+                owner,
+                "citadels-you-character-revealed",
                 "citadels-character-revealed",
-                buffer="game",
-                player=owner.name,
                 rank=rank,
                 character=lambda locale: self._character_name(rank, locale),
             )
@@ -1276,6 +1289,56 @@ class CitadelsGame(Game):
             localized_kwargs.setdefault("brief", self._brief_arm(user))
             user.speak_l(message_id, buffer=buffer, **localized_kwargs)
 
+    def _broadcast_actor_l(
+        self,
+        actor: Player,
+        personal_message_id: str,
+        public_message_id: str,
+        *,
+        buffer: str = "game",
+        **kwargs,
+    ) -> None:
+        """Broadcast actor-centric messages with per-recipient localization."""
+        for listener in self.players:
+            user = self.get_user(listener)
+            if not user:
+                continue
+            localized_kwargs = {
+                key: value(user.locale) if callable(value) else value
+                for key, value in kwargs.items()
+            }
+            localized_kwargs.setdefault("brief", self._brief_arm(user))
+            if listener is actor:
+                user.speak_l(personal_message_id, buffer=buffer, **localized_kwargs)
+            else:
+                user.speak_l(
+                    public_message_id,
+                    buffer=buffer,
+                    player=actor.name,
+                    **localized_kwargs,
+                )
+
+    def _speak_build_error(
+        self,
+        player: CitadelsPlayer,
+        card: DistrictCard | None,
+    ) -> None:
+        user = self.get_user(player)
+        if not user:
+            return
+        if card is None:
+            user.speak_l("citadels-build-error-card-missing", buffer="game")
+            return
+        reason = self._build_card_unavailable_reason(player, card, user.locale)
+        if reason is None:
+            return
+        user.speak_l(
+            "citadels-build-error",
+            buffer="game",
+            district=self._district_name(card, user.locale),
+            reason=reason,
+        )
+
     def _schedule_bot_turn(self, player: Player) -> None:
         BotHelper.jolt_bot(
             player,
@@ -1416,7 +1479,11 @@ class CitadelsGame(Game):
             self.initial_facedown_rank = None
             self.facedown_discarded_ranks.clear()
 
-        self.broadcast_l("citadels-character-chosen", buffer="game", player=cit_player.name)
+        self._broadcast_actor_l(
+            cit_player,
+            "citadels-you-chose-character",
+            "citadels-character-chosen",
+        )
         if self.selection_index >= len(self.selection_order_player_ids) - 1:
             self._finish_selection_phase()
             return
@@ -1442,9 +1509,10 @@ class CitadelsGame(Game):
             ],
             tag="citadels_turn_action",
         )
-        self._broadcast_localized(
+        self._broadcast_actor_l(
+            player,
+            "citadels-you-assassin-targeted",
             "citadels-assassin-targeted",
-            buffer="game",
             rank=rank,
             character=lambda locale: self._character_name(rank, locale),
         )
@@ -1457,15 +1525,13 @@ class CitadelsGame(Game):
         self.robbed_rank = rank
         self.robber_player_id = player.id
         self.turn_subphase = SUBPHASE_NORMAL
-        user = self.get_user(player)
-        if user:
-            user.speak_l(
-                "citadels-thief-targeted",
-                buffer="game",
-                brief=self._brief_arm(user),
-                rank=rank,
-                character=self._character_name(rank, user.locale),
-            )
+        self._broadcast_actor_l(
+            player,
+            "citadels-you-thief-targeted",
+            "citadels-thief-targeted",
+            rank=rank,
+            character=lambda locale: self._character_name(rank, locale),
+        )
         self._refresh_menus_for_focus(player)
 
     def _action_take_gold(self, player: Player, action_id: str) -> None:
@@ -1487,10 +1553,10 @@ class CitadelsGame(Game):
         self.turn_resource_taken = True
         if self._has_city_effect(cit_player, "library"):
             cit_player.hand.extend(drawn)
-            self.broadcast_l(
+            self._broadcast_actor_l(
+                cit_player,
+                "citadels-you-library-draw",
                 "citadels-library-draw",
-                buffer="game",
-                player=cit_player.name,
                 count=len(drawn),
             )
             self._after_turn_state_change(cit_player)
@@ -1498,10 +1564,10 @@ class CitadelsGame(Game):
         if drawn:
             self.pending_draw_choices = drawn
             self.turn_subphase = SUBPHASE_DRAW_KEEP
-            self.broadcast_l(
+            self._broadcast_actor_l(
+                cit_player,
+                "citadels-you-drew-options",
                 "citadels-player-drew-options",
-                buffer="game",
-                player=cit_player.name,
                 count=len(drawn),
             )
             self._refresh_menus_for_focus(
@@ -1530,14 +1596,12 @@ class CitadelsGame(Game):
         self.pending_draw_choices.clear()
         self.turn_subphase = SUBPHASE_NORMAL
         self.turn_resource_taken = True
-        self.broadcast_l("citadels-player-kept-card", buffer="game", player=cit_player.name)
-        user = self.get_user(cit_player)
-        if user:
-            user.speak_l(
-                "citadels-you-kept-card",
-                buffer="game",
-                district=self._district_name(keep, user.locale),
-            )
+        self._broadcast_actor_l(
+            cit_player,
+            "citadels-you-kept-card",
+            "citadels-player-kept-card",
+            district=lambda locale: self._district_name(keep, locale),
+        )
         self._refresh_menus_for_focus(cit_player)
         self._schedule_bot_turn(cit_player)
 
@@ -1649,6 +1713,10 @@ class CitadelsGame(Game):
             return
         card = self._find_hand_card(cit_player, card_id)
         if card is None:
+            self._speak_build_error(cit_player, None)
+            return
+        if not self._can_attempt_build(cit_player, card):
+            self._speak_build_error(cit_player, card)
             return
         if card.effect_key == "thieves_den":
             self.pending_build_card_id = card.id
@@ -1965,7 +2033,7 @@ class CitadelsGame(Game):
             return "action-not-available"
         card_id = self._parse_card_action(action_id or "", "build_")
         card = self._find_hand_card(cit_player, card_id)
-        if card is None or not self._can_attempt_build(cit_player, card):
+        if card is None:
             return "action-not-available"
         return self._gameplay_locked_reason()
 
@@ -2128,7 +2196,7 @@ class CitadelsGame(Game):
         self.live_status_box(
             player,
             "citadels_hand",
-            lambda viewer, live_user: self._hand_lines(viewer, live_user.locale),
+            lambda viewer, live_user: self._hand_items(viewer, live_user.locale),
         )
 
     def _hand_lines(self, player: Player, locale: str) -> list[str]:
@@ -2143,6 +2211,26 @@ class CitadelsGame(Game):
             lines.append(Localization.get(locale, "citadels-hand-empty"))
         return lines
 
+    def _hand_items(self, player: Player, locale: str) -> list[MenuItem]:
+        lines = self._hand_lines(player, locale)
+        items: list[MenuItem] = []
+        if not lines:
+            return items
+        items.append(MenuItem(text=lines[0], id="hand:header"))
+        cit_player = self._as_citadels_player(player)
+        if not cit_player or not cit_player.hand:
+            if len(lines) > 1:
+                items.append(MenuItem(text=lines[1], id="hand:empty"))
+            return items
+        for card in sorted(cit_player.hand, key=lambda c: (c.cost, c.name)):
+            items.append(
+                MenuItem(
+                    text=self._district_line(card, locale),
+                    id=f"hand:{card.id}",
+                )
+            )
+        return items
+
     def _action_read_cities(self, player: Player, action_id: str) -> None:
         _ = action_id
         user = self.get_user(player)
@@ -2151,7 +2239,7 @@ class CitadelsGame(Game):
         self.live_status_box(
             player,
             "citadels_cities",
-            lambda _viewer, live_user: self._city_lines(live_user.locale),
+            lambda _viewer, live_user: self._city_items(live_user.locale),
         )
 
     def _city_lines(self, locale: str) -> list[str]:
@@ -2173,6 +2261,33 @@ class CitadelsGame(Game):
                 )
             )
         return lines
+
+    def _city_items(self, locale: str) -> list[MenuItem]:
+        lines = self._city_lines(locale)
+        items: list[MenuItem] = []
+        if lines:
+            items.append(MenuItem(text=lines[0], id="cities:header"))
+        active = [p for p in self.get_active_players() if isinstance(p, CitadelsPlayer)]
+        for cit_player in active:
+            city_names = (
+                ", ".join(self._district_name(card, locale) for card in cit_player.city)
+                or Localization.get(locale, "citadels-city-empty")
+            )
+            items.append(
+                MenuItem(
+                    text=Localization.get(
+                        locale,
+                        "citadels-city-line",
+                        player=cit_player.name,
+                        count=len(cit_player.city),
+                        gold=cit_player.gold,
+                        score=self._score_city(cit_player),
+                        districts=city_names,
+                    ),
+                    id=f"city:{cit_player.id}",
+                )
+            )
+        return items
 
     def _action_read_character(self, player: Player, action_id: str) -> None:
         _ = action_id
@@ -2246,13 +2361,38 @@ class CitadelsGame(Game):
         self.live_status_box(
             player,
             "citadels_standings",
-            lambda _viewer, live_user: self._detailed_standings_lines(live_user.locale),
+            lambda _viewer, live_user: self._detailed_standings_items(live_user.locale),
         )
 
     def _detailed_standings_lines(self, locale: str) -> list[str]:
         lines = [Localization.get(locale, "citadels-standings-header")]
         lines.extend(self._standings_lines(locale))
         return lines
+
+    def _detailed_standings_items(self, locale: str) -> list[MenuItem]:
+        items = [
+            MenuItem(
+                text=Localization.get(locale, "citadels-standings-header"),
+                id="standings:header",
+            )
+        ]
+        for index, player in enumerate(self._ranked_players_for_results(), 1):
+            items.append(
+                MenuItem(
+                    text=Localization.get(
+                        locale,
+                        "citadels-standing-line",
+                        rank=index,
+                        player=player.name,
+                        score=self._score_city(player),
+                        gold=player.gold,
+                        districts=len(player.city),
+                        cards=len(player.hand),
+                    ),
+                    id=f"standings:{player.id}",
+                )
+            )
+        return items
 
     def on_sequence_callback(
         self, sequence_id: str, callback_id: str, payload: dict
@@ -2273,7 +2413,11 @@ class CitadelsGame(Game):
             player = self.get_player_by_id(payload.get("player_id", ""))
             if isinstance(player, CitadelsPlayer):
                 self.crown_holder_id = player.id
-                self.broadcast_l("citadels-crown-taken", buffer="game", player=player.name)
+                self._broadcast_actor_l(
+                    player,
+                    "citadels-you-took-crown",
+                    "citadels-crown-taken",
+                )
                 if player.revealed_character_rank is not None:
                     self._announce_turn_ready(player, player.revealed_character_rank)
             return
@@ -2281,7 +2425,12 @@ class CitadelsGame(Game):
             player = self.get_player_by_id(payload.get("player_id", ""))
             if isinstance(player, CitadelsPlayer):
                 self._draw_to_hand(player, 2)
-                self.broadcast_l("citadels-architect-bonus", buffer="game", player=player.name, count=2)
+                self._broadcast_actor_l(
+                    player,
+                    "citadels-you-architect-bonus",
+                    "citadels-architect-bonus",
+                    count=2,
+                )
                 if player.revealed_character_rank is not None:
                     self._announce_turn_ready(player, player.revealed_character_rank)
             return
@@ -2323,12 +2472,22 @@ class CitadelsGame(Game):
 
     def _handle_skipped_rank(self, payload: dict) -> None:
         rank = int(payload.get("rank", 0))
-        self._broadcast_localized(
-            "citadels-character-killed-skip",
-            buffer="game",
-            rank=rank,
-            character=lambda locale: self._character_name(rank, locale),
-        )
+        owner = self.get_player_by_id(payload.get("owner_id", ""))
+        if isinstance(owner, CitadelsPlayer):
+            self._broadcast_actor_l(
+                owner,
+                "citadels-you-character-killed-skip",
+                "citadels-character-killed-skip",
+                rank=rank,
+                character=lambda locale: self._character_name(rank, locale),
+            )
+        else:
+            self._broadcast_localized(
+                "citadels-character-killed-skip",
+                buffer="game",
+                rank=rank,
+                character=lambda locale: self._character_name(rank, locale),
+            )
         self.current_rank = rank + 1
         self._advance_rank_resolution()
 
@@ -2339,14 +2498,18 @@ class CitadelsGame(Game):
             return
         amount = min(target.gold, int(payload.get("amount", 0)))
         if amount <= 0:
-            self.broadcast_l("citadels-thief-found-nothing", buffer="game", player=robber.name)
+            self._broadcast_actor_l(
+                robber,
+                "citadels-you-thief-found-nothing",
+                "citadels-thief-found-nothing",
+            )
             return
         target.gold -= amount
         robber.gold += amount
-        self.broadcast_l(
+        self._broadcast_actor_l(
+            robber,
+            "citadels-you-thief-stole-gold",
             "citadels-thief-stole-gold",
-            buffer="game",
-            thief=robber.name,
             amount=amount,
         )
 
@@ -2356,7 +2519,12 @@ class CitadelsGame(Game):
             return
         player.gold += 2
         self.turn_resource_taken = True
-        self.broadcast_l("citadels-player-took-gold", buffer="game", player=player.name, amount=2)
+        self._broadcast_actor_l(
+            player,
+            "citadels-you-took-gold",
+            "citadels-player-took-gold",
+            amount=2,
+        )
         self._after_turn_state_change(player)
 
     def _apply_collect_income_callback(self, payload: dict) -> None:
@@ -2367,10 +2535,10 @@ class CitadelsGame(Game):
         rank = int(payload.get("rank", 0))
         player.gold += amount
         self.turn_income_used = True
-        self._broadcast_localized(
+        self._broadcast_actor_l(
+            player,
+            "citadels-you-income-collected",
             "citadels-income-collected",
-            buffer="game",
-            player=player.name,
             character=lambda locale: self._character_name(rank, locale),
             amount=amount,
         )
@@ -2384,7 +2552,12 @@ class CitadelsGame(Game):
         player.hand, target.hand = target.hand, player.hand
         self.turn_character_ability_used = True
         self.turn_subphase = SUBPHASE_NORMAL
-        self.broadcast_l("citadels-magician-swapped", buffer="game", player=player.name, target=target.name)
+        self._broadcast_actor_l(
+            player,
+            "citadels-you-magician-swapped",
+            "citadels-magician-swapped",
+            target=target.name,
+        )
         self._after_turn_state_change(player)
 
     def _apply_magician_redraw_callback(self, payload: dict) -> None:
@@ -2407,7 +2580,12 @@ class CitadelsGame(Game):
         self.turn_character_ability_used = True
         self.turn_subphase = SUBPHASE_NORMAL
         self.selected_card_ids.clear()
-        self.broadcast_l("citadels-magician-redrew", buffer="game", player=player.name, count=len(discarded))
+        self._broadcast_actor_l(
+            player,
+            "citadels-you-magician-redrew",
+            "citadels-magician-redrew",
+            count=len(discarded),
+        )
         self._after_turn_state_change(player)
 
     def _apply_laboratory_callback(self, payload: dict) -> None:
@@ -2421,10 +2599,10 @@ class CitadelsGame(Game):
         player.gold += 2
         self.turn_laboratory_used = True
         self.turn_subphase = SUBPHASE_NORMAL
-        self.broadcast_l(
+        self._broadcast_actor_l(
+            player,
+            "citadels-you-laboratory-used",
             "citadels-laboratory-used",
-            buffer="game",
-            player=player.name,
             amount=2,
         )
         self._after_turn_state_change(player)
@@ -2437,7 +2615,12 @@ class CitadelsGame(Game):
         drawn = self._draw_cards(3)
         player.hand.extend(drawn)
         self.turn_smithy_used = True
-        self.broadcast_l("citadels-smithy-used", buffer="game", player=player.name, count=len(drawn))
+        self._broadcast_actor_l(
+            player,
+            "citadels-you-smithy-used",
+            "citadels-smithy-used",
+            count=len(drawn),
+        )
         self._after_turn_state_change(player)
 
     def _apply_build_callback(self, payload: dict) -> None:
@@ -2465,10 +2648,10 @@ class CitadelsGame(Game):
         self.turn_subphase = SUBPHASE_NORMAL
         self.selected_card_ids.clear()
         self.pending_build_card_id = None
-        self._broadcast_localized(
+        self._broadcast_actor_l(
+            player,
+            "citadels-you-built-district",
             "citadels-district-built",
-            buffer="game",
-            player=player.name,
             district=lambda locale: self._district_name(card, locale),
             gold=gold_cost,
         )
@@ -2487,7 +2670,12 @@ class CitadelsGame(Game):
             self.city_completion_order.append(player.id)
             if self.first_completed_city_player_id is None:
                 self.first_completed_city_player_id = player.id
-            self.broadcast_l("citadels-city-completed", buffer="game", player=player.name, count=len(player.city))
+            self._broadcast_actor_l(
+                player,
+                "citadels-you-city-completed",
+                "citadels-city-completed",
+                count=len(player.city),
+            )
         self._after_turn_state_change(player)
 
     def _apply_warlord_destroy_callback(self, payload: dict) -> None:
@@ -2503,10 +2691,10 @@ class CitadelsGame(Game):
         self.district_deck.append(district)
         self.turn_character_ability_used = True
         self.turn_subphase = SUBPHASE_NORMAL
-        self._broadcast_localized(
+        self._broadcast_actor_l(
+            current,
+            "citadels-you-warlord-destroyed",
             "citadels-warlord-destroyed",
-            buffer="game",
-            player=current.name,
             target=owner.name,
             district=lambda locale: self._district_name(district, locale),
         )
@@ -2518,12 +2706,21 @@ class CitadelsGame(Game):
             return
         player.revealed_character_rank = CHARACTER_KING
         self.crown_holder_id = player.id
-        self.broadcast_l("citadels-king-heir", buffer="game", player=player.name)
+        self._broadcast_actor_l(
+            player,
+            "citadels-you-king-heir",
+            "citadels-king-heir",
+        )
         if self.pending_queen_bonus_player_id:
             queen = self.get_player_by_id(self.pending_queen_bonus_player_id)
             if isinstance(queen, CitadelsPlayer):
                 queen.gold += 3
-                self.broadcast_l("citadels-queen-bonus", buffer="game", player=queen.name, amount=3)
+                self._broadcast_actor_l(
+                    queen,
+                    "citadels-you-queen-bonus",
+                    "citadels-queen-bonus",
+                    amount=3,
+                )
             self.pending_queen_bonus_player_id = None
         self._complete_round_cleanup()
 
@@ -2661,6 +2858,43 @@ class CitadelsGame(Game):
         key = "citadels-toggle-selected" if selected else "citadels-toggle-not-selected"
         return Localization.get(locale, key, district=self._district_name(card, locale), cost=card.cost)
 
+    def _build_card_unavailable_reason(
+        self,
+        player: CitadelsPlayer,
+        card: DistrictCard,
+        locale: str,
+    ) -> str | None:
+        if not self.turn_resource_taken:
+            return Localization.get(locale, "citadels-build-reason-need-resource")
+        if not self._may_build_more():
+            return Localization.get(
+                locale,
+                "citadels-build-reason-limit",
+                limit=self.turn_build_limit,
+            )
+        if not self._can_build_duplicate(player, card):
+            return Localization.get(
+                locale,
+                "citadels-build-reason-duplicate",
+                district=self._district_name(card, locale),
+            )
+        cost = self._effective_build_cost(player, card)
+        if card.effect_key == "thieves_den":
+            available = player.gold + max(0, len(player.hand) - 1)
+            if available < cost:
+                return Localization.get(
+                    locale,
+                    "citadels-build-reason-thieves-den-payment",
+                    needed=cost - available,
+                )
+        elif player.gold < cost:
+            return Localization.get(
+                locale,
+                "citadels-build-reason-gold",
+                needed=cost - player.gold,
+            )
+        return None
+
     def _coin_sound(self, amount: int) -> str:
         if amount >= 5:
             return COIN_SOUNDS["large"]
@@ -2678,12 +2912,9 @@ class CitadelsGame(Game):
         return cost
 
     def _can_attempt_build(self, player: CitadelsPlayer, card: DistrictCard) -> bool:
-        if not self._may_build_more() or not self._can_build_duplicate(player, card):
+        if self._build_card_unavailable_reason(player, card, "en") is not None:
             return False
-        cost = self._effective_build_cost(player, card)
-        if card.effect_key == "thieves_den":
-            return player.gold + max(0, len(player.hand) - 1) >= cost
-        return player.gold >= cost
+        return True
 
     def _can_build_duplicate(self, player: CitadelsPlayer, card: DistrictCard) -> bool:
         if self._has_city_effect(player, "quarry"):
@@ -2842,7 +3073,12 @@ class CitadelsGame(Game):
             self.pending_queen_bonus_player_id = player.id
             return
         player.gold += 3
-        self.broadcast_l("citadels-queen-bonus", buffer="game", player=player.name, amount=3)
+        self._broadcast_actor_l(
+            player,
+            "citadels-you-queen-bonus",
+            "citadels-queen-bonus",
+            amount=3,
+        )
 
     def _players_are_adjacent(self, a: CitadelsPlayer, b: CitadelsPlayer) -> bool:
         seats = [p for p in self.get_active_players() if isinstance(p, CitadelsPlayer)]

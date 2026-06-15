@@ -51,6 +51,7 @@ citadels-district-wishing_well = Giếng ước nguyện
 citadels-game-start = Ván Thành Phố Trung Cổ đã bắt đầu.
 citadels-selection-start = Vòng { $round }. { $player } chọn nhân vật đầu tiên.
 citadels-selection-prompt = Hãy chọn một nhân vật ngay bây giờ.
+citadels-you-chose-character = Bạn đã chọn một nhân vật.
 citadels-character-chosen = { $player } đã chọn một nhân vật.
 citadels-select-character-line = { $brief ->
     [yes] { $character }
@@ -60,41 +61,74 @@ citadels-turn-phase-start = Bắt đầu gọi nhân vật.
 citadels-no-characters = Không có { $characters }.
 citadels-list-pair = { $first } hoặc { $last }
 citadels-list-series = { $head } hoặc { $last }
+citadels-you-character-revealed = { $brief ->
+    [yes] Bạn lật { $character }.
+   *[no] Bạn lật hạng { $rank }, { $character }.
+}
 citadels-character-revealed = { $brief ->
     [yes] { $player } lật { $character }.
    *[no] { $player } lật hạng { $rank }, { $character }.
 }
+citadels-you-took-crown = Bạn nhận vương miện và sẽ chọn đầu tiên ở vòng sau.
 citadels-crown-taken = { $player } nhận vương miện.
+citadels-you-king-heir = Bạn lật lá Nhà vua ở cuối vòng và nhận vương miện.
 citadels-king-heir = { $player } lật lá Nhà vua ở cuối vòng và nhận vương miện.
+citadels-you-assassin-targeted = { $brief ->
+    [yes] Bạn chỉ định { $character } để ám sát.
+   *[no] Bạn chỉ định hạng { $rank }, { $character }, để ám sát.
+}
 citadels-assassin-targeted = { $brief ->
-    [yes] Sát thủ chỉ định { $character }.
-   *[no] Sát thủ chỉ định hạng { $rank }, { $character }.
+    [yes] { $player }, Sát thủ, chỉ định { $character }.
+   *[no] { $player }, Sát thủ, chỉ định hạng { $rank }, { $character }.
 }
 citadels-character-killed-skip = { $brief ->
     [yes] { $character } đã bị ám sát và mất lượt.
    *[no] Hạng { $rank }, { $character }, đã bị ám sát và mất lượt.
 }
-citadels-thief-targeted = { $brief ->
-    [yes] Bạn sẽ cướp { $character }.
-   *[no] Bạn sẽ cướp hạng { $rank }, { $character }.
+citadels-you-character-killed-skip = { $brief ->
+    [yes] Bạn bị ám sát trong vai { $character } và mất lượt này.
+   *[no] Bạn bị ám sát trong vai hạng { $rank }, { $character }, và mất lượt này.
 }
-citadels-thief-found-nothing = { $player } không cướp được đồng nào.
-citadels-thief-stole-gold = Kẻ trộm cướp { $amount } vàng.
+citadels-you-thief-targeted = { $brief ->
+    [yes] Bạn sẽ cướp { $character } khi nhân vật đó được lật.
+   *[no] Bạn sẽ cướp hạng { $rank }, { $character }, khi nhân vật đó được lật.
+}
+citadels-thief-targeted = { $brief ->
+    [yes] { $player }, Kẻ trộm, đánh dấu { $character } để cướp.
+   *[no] { $player }, Kẻ trộm, đánh dấu hạng { $rank }, { $character }, để cướp.
+}
+citadels-you-thief-found-nothing = Vụ cướp của bạn không lấy được vàng nào.
+citadels-thief-found-nothing = { $player }, Kẻ trộm, không cướp được đồng nào.
+citadels-you-thief-stole-gold = Bạn cướp { $amount } vàng với vai Kẻ trộm.
+citadels-thief-stole-gold = { $player }, Kẻ trộm, cướp { $amount } vàng.
+citadels-you-took-gold = Bạn lấy { $amount } vàng.
 citadels-player-took-gold = { $player } lấy { $amount } vàng.
+citadels-you-drew-options = Bạn rút các lá công trình và phải giữ lại một lá.
 citadels-player-drew-options = { $player } rút các lá công trình và phải giữ lại một lá.
 citadels-player-kept-card = { $player } giữ lại một lá công trình.
 citadels-you-kept-card = Bạn giữ lại { $district }.
+citadels-you-income-collected = Bạn nhận { $amount } vàng từ vai { $character }.
 citadels-income-collected = { $player } nhận { $amount } vàng từ vai { $character }.
+citadels-you-architect-bonus = Bạn rút thêm { $count } lá với vai Kiến trúc sư.
 citadels-architect-bonus = { $player } rút thêm { $count } lá.
+citadels-you-magician-swapped = Bạn đổi toàn bộ bài với { $target }.
 citadels-magician-swapped = { $player } đổi toàn bộ bài với { $target }.
+citadels-you-magician-redrew = Bạn đổi lại { $count } lá.
 citadels-magician-redrew = { $player } đổi lại { $count } lá.
+citadels-you-laboratory-used = Bạn dùng Phòng thí nghiệm và nhận { $amount } vàng.
 citadels-laboratory-used = { $player } dùng Phòng thí nghiệm và nhận { $amount } vàng.
+citadels-you-smithy-used = Bạn dùng Lò rèn và rút { $count } lá.
 citadels-smithy-used = { $player } dùng Lò rèn và rút { $count } lá.
+citadels-you-library-draw = Bạn dùng Thư viện và giữ cả { $count } lá vừa rút.
 citadels-library-draw = { $player } dùng Thư viện và giữ cả { $count } lá vừa rút.
+citadels-you-built-district = Bạn xây { $district } và trả { $gold } vàng.
 citadels-district-built = { $player } xây { $district } và trả { $gold } vàng.
 citadels-thieves-den-payment = Bạn bỏ { $cards } để hỗ trợ thanh toán cho Hang trộm.
+citadels-you-city-completed = Bạn hoàn thành thành phố với { $count } công trình.
 citadels-city-completed = { $player } hoàn thành thành phố với { $count } công trình.
+citadels-you-queen-bonus = Bạn nhận { $amount } vàng thưởng từ Nữ hoàng.
 citadels-queen-bonus = { $player } nhận { $amount } vàng thưởng từ Nữ hoàng.
+citadels-you-warlord-destroyed = Bạn phá { $district } của { $target }.
 citadels-warlord-destroyed = { $player } phá { $district } của { $target }.
 
 citadels-take-gold = Lấy 2 vàng
@@ -126,9 +160,18 @@ citadels-thief-target-line = { $brief ->
 citadels-magician-swap-line = Đổi với { $player } ({ $cards } lá)
 citadels-warlord-target-line = Phá { $district } của { $player } với giá { $cost } vàng. { $description }
 citadels-build-card-line = Xây { $district } ({ $cost } vàng). { $description }
+citadels-build-card-disabled-line = Không thể xây { $district } ({ $cost } vàng): { $reason } { $description }
 citadels-district-line = { $district }, giá { $cost }, loại { $type }. { $description }
 citadels-toggle-selected = Đã chọn: { $district }, giá { $cost }
 citadels-toggle-not-selected = Chưa chọn: { $district }, giá { $cost }
+
+citadels-build-error = Bạn không thể xây { $district }: { $reason }
+citadels-build-error-card-missing = Lá công trình đó không còn trên tay bạn.
+citadels-build-reason-need-resource = Bạn phải lấy vàng hoặc rút lá công trình trước khi xây.
+citadels-build-reason-limit = Bạn đã xây đủ { $limit } công trình được phép trong lượt này.
+citadels-build-reason-duplicate = Thành phố của bạn đã có { $district }, và bạn chưa có Mỏ đá để được xây công trình trùng tên.
+citadels-build-reason-gold = Bạn còn thiếu { $needed } vàng.
+citadels-build-reason-thieves-den-payment = Kể cả khi bỏ toàn bộ các lá khác trên tay, bạn vẫn còn thiếu phần thanh toán tương đương { $needed } vàng.
 
 citadels-district-effect-none = Không có hiệu ứng đặc biệt.
 citadels-district-effect-dragon_gate = Cuối ván: nhận thêm 2 điểm.

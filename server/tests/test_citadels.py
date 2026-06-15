@@ -40,6 +40,7 @@ from ..games.citadels.game import (
 from ..games.registry import GameRegistry
 from ..messages.localization import Localization
 from ..users.bot import Bot
+from ..users.base import MenuItem
 from ..users.test_user import MockUser
 
 
@@ -859,6 +860,96 @@ def test_touch_standard_actions_follow_the_shared_touch_order() -> None:
     assert visible_ids.index("read_status_detailed") < visible_ids.index("check_scores")
     assert visible_ids.index("check_scores") < visible_ids.index("whose_turn")
     assert visible_ids.index("whose_turn") < visible_ids.index("whos_at_table")
+
+
+def test_unbuildable_cards_stay_visible_and_explain_why() -> None:
+    game = make_game(start=True)
+    player = game.players[0]
+    user = game.get_user(player)
+    assert user is not None
+
+    expensive = make_card(680, "Palace", 5, DISTRICT_NOBLE)
+    player.hand = [expensive]
+    player.gold = 1
+    begin_turn(game, player, CHARACTER_MERCHANT)
+    game.turn_resource_taken = True
+    game.refresh_menus(player)
+    game.flush_menus()
+
+    visible = game.get_all_visible_actions(player)
+    action = next(entry for entry in visible if entry.action.id == "build_680")
+    assert action.label.startswith("Cannot build Palace")
+    assert "You need 4 more gold" in action.label
+
+    user.clear_messages()
+    game.execute_action(player, "build_680")
+    assert user.get_last_spoken() == "You cannot build Palace: You need 4 more gold."
+    assert expensive in player.hand
+    assert expensive not in player.city
+
+    player.gold = 10
+    game.turn_builds_made = 1
+    game.refresh_menus(player)
+    game.flush_menus()
+    visible = game.get_all_visible_actions(player)
+    action = next(entry for entry in visible if entry.action.id == "build_680")
+    assert "already built the 1 district allowed this turn" in action.label
+
+    user.clear_messages()
+    game.execute_action(player, "build_680")
+    assert (
+        user.get_last_spoken()
+        == "You cannot build Palace: You have already built the 1 district allowed this turn."
+    )
+
+
+def test_actor_broadcasts_use_personal_and_public_forms() -> None:
+    game = make_game(start=True)
+    actor, observer = game.players[:2]
+    actor_user = game.get_user(actor)
+    observer_user = game.get_user(observer)
+    assert actor_user is not None
+    assert observer_user is not None
+
+    actor.gold = 0
+    begin_turn(game, actor, CHARACTER_MERCHANT)
+    actor_user.clear_messages()
+    observer_user.clear_messages()
+
+    game._apply_take_gold_callback({"player_id": actor.id})
+
+    assert actor_user.get_last_spoken() == "You take 2 gold."
+    assert observer_user.get_last_spoken() == "Player1 takes 2 gold."
+
+
+def test_live_status_boxes_use_stable_menu_item_ids() -> None:
+    game = make_game(start=True)
+    player = game.players[0]
+    user = game.get_user(player)
+    assert user is not None
+
+    player.hand = [
+        make_card(681, "Temple", 1, DISTRICT_RELIGIOUS),
+        make_card(682, "Palace", 5, DISTRICT_NOBLE),
+    ]
+    game.execute_action(player, "read_hand")
+    hand_items = user.menus["status_box"]["items"]
+    assert all(isinstance(item, MenuItem) for item in hand_items)
+    assert [item.id for item in hand_items] == ["hand:header", "hand:681", "hand:682"]
+
+    game.execute_action(player, "read_cities")
+    city_items = user.menus["status_box"]["items"]
+    assert isinstance(city_items[0], MenuItem)
+    assert city_items[0].id == "cities:header"
+    assert f"city:{player.id}" in [item.id for item in city_items if isinstance(item, MenuItem)]
+
+    game.execute_action(player, "check_scores_detailed")
+    standings_items = user.menus["status_box"]["items"]
+    assert isinstance(standings_items[0], MenuItem)
+    assert standings_items[0].id == "standings:header"
+    assert f"standings:{player.id}" in [
+        item.id for item in standings_items if isinstance(item, MenuItem)
+    ]
 
 
 def test_info_actions_remain_visible_while_gameplay_sequences_lock_the_turn() -> None:
