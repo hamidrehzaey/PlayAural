@@ -1496,7 +1496,7 @@ PlayAural Server
         self, user: NetworkUser, category_filter: str | None = None
     ) -> list[tuple[type, str]]:
         """Return registered games sorted by localized display name."""
-        selected_filter = category_filter or self._get_game_category_filter(user)
+        selected_filter = category_filter or CATEGORY_FILTER_ALL
         game_list = []
         for game_class in GameRegistry.get_all():
             if (

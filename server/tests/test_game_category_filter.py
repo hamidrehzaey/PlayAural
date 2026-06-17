@@ -37,6 +37,11 @@ def test_game_category_filter_preference_defaults_and_round_trips() -> None:
     )
 
 
+def _menu_ids(user: MockUser, menu_id: str) -> list[str]:
+    items = user.get_current_menu_items(menu_id) or []
+    return [item.id for item in items if hasattr(item, "id")]
+
+
 @pytest.mark.asyncio
 async def test_game_category_filter_toggle_and_selection(mock_server) -> None:
     from server import games as registered_games
@@ -66,6 +71,57 @@ async def test_game_category_filter_toggle_and_selection(mock_server) -> None:
     assert "game_holdem" in item_ids
     assert "game_pig" not in item_ids
     assert "Category: Poker Games" in item_text
+
+
+def test_play_category_filter_does_not_leak_into_documentation(mock_server) -> None:
+    user = MockUser("UserA")
+    mock_server._users[user.username] = user
+    user.preferences.game_category_filter = "poker"
+
+    mock_server._show_game_rules_menu(user)
+
+    item_ids = _menu_ids(user, "doc_games_menu")
+    assert "games/pig" in item_ids
+    assert "games/holdem" in item_ids
+
+
+def test_play_category_filter_does_not_leak_into_leaderboards(mock_server) -> None:
+    user = MockUser("UserA")
+    mock_server._users[user.username] = user
+    user.preferences.game_category_filter = "poker"
+
+    mock_server._show_leaderboards_menu(user)
+
+    item_ids = _menu_ids(user, "leaderboards_menu")
+    assert "lb_pig" in item_ids
+
+
+def test_play_category_filter_does_not_leak_into_personal_stats(mock_server) -> None:
+    user = MockUser("UserA")
+    mock_server._users[user.username] = user
+    user.preferences.game_category_filter = "poker"
+    cursor = mock_server._db._conn.cursor()
+    cursor.execute(
+        """
+        INSERT INTO player_game_stats (player_id, game_type, stat_key, stat_value)
+        VALUES (?, 'pig', 'games_played', 1)
+        """,
+        (user.uuid,),
+    )
+    cursor.execute(
+        """
+        INSERT INTO player_game_stats (player_id, game_type, stat_key, stat_value)
+        VALUES (?, 'holdem', 'games_played', 1)
+        """,
+        (user.uuid,),
+    )
+    mock_server._db._conn.commit()
+
+    mock_server._show_my_stats_menu(user)
+
+    item_ids = _menu_ids(user, "my_stats_menu")
+    assert "stats_pig" in item_ids
+    assert "stats_holdem" in item_ids
 
 
 @pytest.mark.asyncio
