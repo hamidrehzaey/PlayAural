@@ -8,6 +8,8 @@ Each side begins with sixteen pieces. White moves first, then the players altern
 
 The board is an 8 by 8 grid. On your turn, you choose one of your own pieces and then choose a legal destination square.
 
+You can also type a move directly. The input accepts common chess formats, including coordinate notation such as `e2e4`, algebraic notation such as `Nf3` or `Rae1`, castling as `O-O` or `O-O-O`, and promotion such as `e8=Q`.
+
 \* Pawns move forward, capture diagonally, and may advance two squares from their starting rank.
 \* Knights move in an L shape and can jump over other pieces.
 \* Bishops move diagonally across any number of open squares.
@@ -34,16 +36,18 @@ If a clock is enabled, only the active player's clock runs. After a legal move i
 Chess includes several ways for a game to end in a draw.
 
 \* \*\*Threefold repetition:\*\* If the same position occurs three times with the same side to move and the same rights, the game may be drawn.
-\* \*\*Fifty-move rule:\*\* If fifty full moves pass without any pawn move or capture, the game may be drawn.
-\* \*\*Draw offer:\*\* If draw offers are enabled for the table, a player may offer a draw and the opponent may accept or decline.
+\* \*\*Fivefold repetition:\*\* If the same position occurs five times, the game is drawn automatically.
+\* \*\*Fifty-move rule:\*\* If each player has made fifty consecutive moves without any pawn move or capture, the game may be drawn.
+\* \*\*Seventy-five-move rule:\*\* If each player has made seventy-five consecutive moves without any pawn move or capture, the game is drawn automatically unless the final move checkmated.
+\* \*\*Draw offer:\*\* If draw offers are enabled for the table, a player may offer a draw after both players have made at least one move, and the opponent may accept or decline.
 \* \*\*Undo request:\*\* If undo requests are enabled for the table, a player may ask to take back the most recent move and the opponent may accept or decline.
 
-The host decides whether threefold repetition and the fifty-move rule are handled automatically or must be claimed by the player whose turn it is.
+The host decides whether threefold repetition and the fifty-move rule are handled automatically or must be claimed by the player whose turn it is. Fivefold repetition and the seventy-five-move rule are always automatic.
 
 \*\*Customizable Options\*\*
 
 \* \*\*Time Control:\*\* Default `Untimed`. Choices: `Bullet 1+0`, `Bullet 2+1`, `Blitz 3+0`, `Blitz 3+2`, `Blitz 5+0`, `Rapid 10+0`, `Rapid 10+5`, `Classical 30+0`.
-\* \*\*Draw Handling:\*\* Default `Automatic`. Choices: `Automatic` or `Claim required` for threefold repetition and the fifty-move rule.
+\* \*\*Draw Handling:\*\* Default `Automatic`. Choices: `Automatic` or `Claim required` for threefold repetition and the fifty-move rule. Fivefold repetition and the seventy-five-move rule are always automatic.
 \* \*\*Allow Draw Offers:\*\* Default `On`.
 \* \*\*Allow Undo Requests:\*\* Default `Off`.
 
@@ -52,6 +56,7 @@ The host decides whether threefold repetition and the fifty-move rule are handle
 \* \*\*Enter:\*\* Select the highlighted square on the board.
 \* \*\*V:\*\* Read the board.
 \* \*\*C:\*\* Check the current game status.
+\* \*\*M:\*\* Type a move directly.
 \* \*\*F:\*\* Flip the board orientation.
 \* \*\*Shift+T:\*\* Check both clocks.
 \* \*\*Shift+C:\*\* Claim a draw when the current position qualifies.

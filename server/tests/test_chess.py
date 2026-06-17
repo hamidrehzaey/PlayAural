@@ -15,6 +15,7 @@ from ..games.chess.game import (
     index_to_notation,
     notation_to_index,
 )
+from ..games.chess.bot import find_best_move
 from ..games.registry import GameRegistry
 from ..messages.localization import Localization
 from ..users.bot import Bot
@@ -109,6 +110,15 @@ class TestRegistration:
         assert options.draw_handling == "automatic"
         assert options.allow_draw_offers is True
         assert options.allow_undo_requests is False
+        assert ChessGame.relevant_preferences == ["brief_announcements"]
+
+    def test_prestart_validation_rejects_invalid_option_values(self) -> None:
+        game = ChessGame(options=ChessOptions(time_control="speedrun", draw_handling="maybe"))
+
+        errors = game.prestart_validate()
+
+        assert ("chess-error-invalid-time-control", {"control": "speedrun"}) in errors
+        assert ("chess-error-invalid-draw-handling", {"mode": "maybe"}) in errors
 
 
 def test_on_start_sets_colors_music_and_turn_sound() -> None:
@@ -157,6 +167,110 @@ def test_basic_pawn_move_updates_board() -> None:
     assert game.current_color == COLOR_BLACK
     assert game.move_history[-1].from_square == notation_to_index("e2")
     assert game.move_history[-1].to_square == notation_to_index("e4")
+
+
+def test_typed_move_accepts_coordinate_and_san_notation() -> None:
+    game = make_game(start=True)
+    white = game.players[0]
+    black = game.players[1]
+
+    game.execute_action(white, "type_move", "e2e4")
+    game.flush_menus()
+    game.execute_action(black, "type_move", "Nf6")
+    game.flush_menus()
+
+    assert game.board[notation_to_index("e4")] is not None
+    knight = game.board[notation_to_index("f6")]
+    assert knight is not None
+    assert knight.kind == "knight"
+    assert knight.color == COLOR_BLACK
+    assert game._fullmove_count() == 1
+    assert len(game.move_history) == 2
+
+
+def test_move_count_uses_completed_full_moves_not_half_moves() -> None:
+    game = make_game(start=True)
+    white = game.players[0]
+    black = game.players[1]
+
+    game.execute_action(white, "type_move", "e4")
+    game.flush_menus()
+    assert game._fullmove_count() == 0
+
+    game.execute_action(black, "type_move", "e5")
+    game.flush_menus()
+    assert game._fullmove_count() == 1
+
+    status_lines = game._status_lines("en")
+    assert "Completed full moves: 1. Half-moves played: 2." in status_lines
+
+
+def test_typed_move_accepts_castling_and_promotion() -> None:
+    game = make_game(start=True)
+    white = game.players[0]
+    clear_board(game)
+    place_piece(game, "e1", "king", COLOR_WHITE)
+    place_piece(game, "h1", "rook", COLOR_WHITE)
+    place_piece(game, "e8", "king", COLOR_BLACK)
+    game.current_player = white
+    game.current_color = COLOR_WHITE
+    game.castle_white_kingside = True
+    game.castle_white_queenside = False
+    game.castle_black_kingside = False
+    game.castle_black_queenside = False
+
+    game.execute_action(white, "type_move", "O-O")
+    game.flush_menus()
+
+    assert game.board[notation_to_index("g1")].kind == "king"
+    assert game.board[notation_to_index("f1")].kind == "rook"
+
+    game = make_game(start=True)
+    white = game.players[0]
+    clear_board(game)
+    place_piece(game, "e1", "king", COLOR_WHITE)
+    place_piece(game, "h8", "king", COLOR_BLACK)
+    place_piece(game, "a7", "pawn", COLOR_WHITE, has_moved=True)
+    game.current_player = white
+    game.current_color = COLOR_WHITE
+
+    game.execute_action(white, "type_move", "a8=q")
+    game.flush_menus()
+
+    promoted = game.board[notation_to_index("a8")]
+    assert promoted is not None
+    assert promoted.kind == "queen"
+    assert game.promotion_pending is False
+
+
+def test_typed_move_invalid_input_speaks_and_reopens_editbox() -> None:
+    game = make_game(start=True)
+    white = game.players[0]
+    user = game.get_user(white)
+    user.clear_messages()
+
+    game.execute_action(white, "type_move", "not a move")
+    game.flush_menus()
+
+    assert "not a move" in user.get_last_spoken()
+    assert "action_input_editbox" in user.editboxes
+
+
+def test_brief_announcements_shortens_move_broadcast_per_listener() -> None:
+    game = make_game(start=True)
+    white = game.players[0]
+    black = game.players[1]
+    white_user = game.get_user(white)
+    black_user = game.get_user(black)
+    black_user.preferences.brief_announcements = True
+    white_user.clear_messages()
+    black_user.clear_messages()
+
+    game.execute_action(white, "type_move", "e2e4")
+    game.flush_menus()
+
+    assert "You move your pawn from e2 to e4." in white_user.get_spoken_messages()
+    assert "Alice e2 e4." in black_user.get_spoken_messages()
 
 
 def test_castling_kingside_moves_king_and_rook() -> None:
@@ -372,6 +486,34 @@ def test_web_standard_actions_are_ordered_and_visible_once() -> None:
         assert visible_ids.count(action_id) == 1
 
 
+def test_type_move_is_standard_action_not_desktop_turn_button() -> None:
+    game = make_game(start=True)
+    player = game.players[0]
+    user = game.get_user(player)
+
+    visible_ids = [item.id for item in user.menus["turn_menu"]["items"] if getattr(item, "id", None)]
+    assert "type_move" not in visible_ids
+
+    game._action_show_actions_menu(player, "show_actions")
+
+    action_ids = [item.id for item in user.menus["actions_menu"]["items"] if getattr(item, "id", None)]
+    assert "type_move" in action_ids
+
+
+def test_type_move_is_touch_visible_in_standard_utility_order() -> None:
+    game = make_game(start=True)
+    player = game.players[0]
+    user = game.get_user(player)
+    user.client_type = "web"
+
+    game.refresh_menus(player)
+    game.flush_menus()
+
+    visible_ids = [item.id for item in user.menus["turn_menu"]["items"] if getattr(item, "id", None)]
+    assert "type_move" in visible_ids
+    assert visible_ids.index("type_move") < visible_ids.index("read_board")
+
+
 def test_desktop_hides_web_only_utility_actions() -> None:
     game = make_game_with_options(
         start=True,
@@ -425,9 +567,12 @@ def test_master_bot_finishes_forced_mate_position() -> None:
     game.position_history = [game._get_position_hash()]
     game.refresh_menus()
     game.flush_menus()
-    game._queue_bot_turn()
 
-    assert advance_until(game, lambda: game.status == "finished", max_ticks=200)
+    move = find_best_move(game, white, time_limit=0.2, node_limit=20_000, max_depth=2)
+    assert move is not None
+    game._execute_move_full(white, move[0], move[1])
+
+    assert game.status == "finished"
     assert game.winner_color == COLOR_WHITE
 
 
@@ -450,8 +595,9 @@ def test_bot_returns_action_in_simple_position() -> None:
     game.current_color = COLOR_WHITE
     game.position_history = [game._get_position_hash()]
 
-    action_id = game.bot_think(white)
-    assert action_id is not None
+    move = find_best_move(game, white, time_limit=0.1, node_limit=20_000, max_depth=2)
+    assert move is not None
+    assert game._is_legal_move(move[0], move[1], white.color)[0] is True
 
 
 def test_time_control_initializes_and_increment_applies() -> None:
@@ -578,10 +724,58 @@ def test_automatic_fifty_move_draw_triggers_on_move() -> None:
     assert game.draw_reason == "fifty_move_rule"
 
 
+def test_mandatory_seventy_five_move_draw_ignores_claim_required_option() -> None:
+    game = make_game_with_options(start=True, draw_handling="claim_required")
+    white = game.players[0]
+    clear_board(game)
+    place_piece(game, "e1", "king", COLOR_WHITE)
+    place_piece(game, "e8", "king", COLOR_BLACK)
+    game.current_player = white
+    game.current_color = COLOR_WHITE
+    game.halfmove_clock = 149
+    game.position_history = [game._get_position_hash()]
+
+    select_square(game, white, "e1")
+    select_square(game, white, "e2")
+
+    assert game.status == "finished"
+    assert game.draw_reason == "seventy_five_move_rule"
+
+
+def test_mandatory_fivefold_repetition_ignores_claim_required_option() -> None:
+    game = make_game_with_options(start=True, draw_handling="claim_required")
+    white = game.players[0]
+    clear_board(game)
+    place_piece(game, "e1", "king", COLOR_WHITE)
+    place_piece(game, "e8", "king", COLOR_BLACK)
+    game.current_player = white
+    game.current_color = COLOR_WHITE
+
+    from_sq = notation_to_index("e1")
+    to_sq = notation_to_index("e2")
+    saved = game.save_position()
+    game._apply_move_core(from_sq, to_sq)
+    game.current_color = COLOR_BLACK
+    repeated_hash = game._get_position_hash()
+    game.restore_position(saved)
+    game.position_history = [repeated_hash] * 4
+
+    select_square(game, white, "e1")
+    select_square(game, white, "e2")
+
+    assert game.status == "finished"
+    assert game.draw_reason == "fivefold_repetition"
+
+
 def test_draw_offer_can_be_accepted() -> None:
     game = make_game_with_options(start=True, allow_draw_offers=True)
     white = game.players[0]
     black = game.players[1]
+
+    select_square(game, white, "g1")
+    select_square(game, white, "f3")
+    select_square(game, black, "g8")
+    select_square(game, black, "f6")
 
     game._action_offer_draw(white, "offer_draw")
     assert game.draw_offer_from == white.id
@@ -598,11 +792,32 @@ def test_draw_offer_can_be_declined() -> None:
     white = game.players[0]
     black = game.players[1]
 
+    select_square(game, white, "g1")
+    select_square(game, white, "f3")
+    select_square(game, black, "g8")
+    select_square(game, black, "f6")
+
     game._action_offer_draw(white, "offer_draw")
     game._action_decline_draw(black, "decline_draw")
 
     assert game.status == "playing"
     assert game.draw_offer_from == ""
+
+
+def test_draw_offer_requires_both_players_to_have_moved() -> None:
+    game = make_game_with_options(start=True, allow_draw_offers=True)
+    white = game.players[0]
+    black = game.players[1]
+
+    assert game._is_offer_draw_enabled(white) == "chess-draw-offer-too-early"
+
+    select_square(game, white, "g1")
+    select_square(game, white, "f3")
+    assert game._is_offer_draw_enabled(black) == "chess-draw-offer-too-early"
+
+    select_square(game, black, "g8")
+    select_square(game, black, "f6")
+    assert game._is_offer_draw_enabled(white) is None
 
 
 def test_undo_request_restores_previous_position() -> None:
@@ -688,6 +903,6 @@ def test_custom_keybinds_do_not_use_reserved_keys() -> None:
         "ctrl+i",
         "ctrl+f1",
     }
-    custom_keys = {"v", "c", "f", "shift+t", "shift+d", "shift+u", "shift+c", "y", "n"}
+    custom_keys = {"v", "c", "f", "shift+t", "shift+d", "shift+u", "shift+c", "y", "n", "m"}
     assert custom_keys.isdisjoint(reserved)
     assert all(key in game._keybinds for key in custom_keys)

@@ -5,13 +5,14 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 import random
+import re
 from typing import TYPE_CHECKING
 
 from mashumaro.mixins.json import DataClassJSONMixin
 
 from ..base import Game, GameOptions, Player
 from ..registry import register_game
-from ...game_utils.actions import Action, ActionSet, Visibility
+from ...game_utils.actions import Action, ActionSet, EditboxInput, Visibility
 from ...game_utils.bot_helper import BotHelper
 from ...game_utils.game_result import GameResult, PlayerResult
 from ...game_utils.grid_mixin import GridCursor, GridGameMixin, grid_cell_id
@@ -77,6 +78,23 @@ DRAW_HANDLING_CHOICES = ["automatic", "claim_required"]
 DRAW_HANDLING_LABELS = {
     "automatic": "chess-draw-handling-automatic",
     "claim_required": "chess-draw-handling-claim-required",
+}
+TYPED_MOVE_PROMOTIONS = {
+    "q": "queen",
+    "queen": "queen",
+    "r": "rook",
+    "rook": "rook",
+    "b": "bishop",
+    "bishop": "bishop",
+    "n": "knight",
+    "knight": "knight",
+}
+TYPED_MOVE_PIECES = {
+    "K": "king",
+    "Q": "queen",
+    "R": "rook",
+    "B": "bishop",
+    "N": "knight",
 }
 
 
@@ -188,6 +206,8 @@ class ChessOptions(GameOptions):
 @register_game
 @dataclass
 class ChessGame(GridGameMixin, Game):
+    relevant_preferences = ["brief_announcements"]
+
     players: list[ChessPlayer] = field(default_factory=list)
     options: ChessOptions = field(default_factory=ChessOptions)
 
@@ -231,6 +251,14 @@ class ChessGame(GridGameMixin, Game):
     grid_col_labels: list[str] = field(default_factory=lambda: list("ABCDEFGH"))
     grid_cursors: dict[str, GridCursor] = field(default_factory=dict)
 
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self._chess_bot_jobs = {}
+
+    def rebuild_runtime_state(self) -> None:
+        super().rebuild_runtime_state()
+        self._chess_bot_jobs = {}
+
     @classmethod
     def get_name(cls) -> str:
         return "Chess"
@@ -254,6 +282,14 @@ class ChessGame(GridGameMixin, Game):
     @classmethod
     def get_supported_leaderboards(cls) -> list[str]:
         return ["wins", "rating", "games_played"]
+
+    def prestart_validate(self) -> list[str | tuple[str, dict]]:
+        errors: list[str | tuple[str, dict]] = list(super().prestart_validate())
+        if self.options.time_control not in TIME_CONTROL_SETTINGS:
+            errors.append(("chess-error-invalid-time-control", {"control": self.options.time_control}))
+        if self.options.draw_handling not in DRAW_HANDLING_CHOICES:
+            errors.append(("chess-error-invalid-draw-handling", {"mode": self.options.draw_handling}))
+        return errors
 
     def create_player(self, player_id: str, name: str, is_bot: bool = False) -> ChessPlayer:
         return ChessPlayer(id=player_id, name=name, is_bot=is_bot)
@@ -285,6 +321,16 @@ class ChessGame(GridGameMixin, Game):
         action_set = super().create_standard_action_set(player)
         user = self.get_user(player)
         locale = user.locale if user else "en"
+        action_set.add(
+            Action(
+                id="type_move",
+                label=Localization.get(locale, "chess-type-move"),
+                handler="_action_type_move",
+                is_enabled="_is_type_move_enabled",
+                is_hidden="_is_type_move_hidden",
+                input_request=EditboxInput(prompt="chess-enter-move"),
+            )
+        )
         action_set.add(
             Action(
                 id="read_board",
@@ -393,6 +439,7 @@ class ChessGame(GridGameMixin, Game):
 
     def _apply_standard_action_order(self, action_set: ActionSet, user: "User | None") -> None:
         custom_ids = [
+            "type_move",
             "read_board",
             "check_status",
             "flip_board",
@@ -410,6 +457,7 @@ class ChessGame(GridGameMixin, Game):
         ] + [aid for aid in custom_ids if action_set.get_action(aid)]
         if self.is_touch_client(user):
             target_order = [
+                "type_move",
                 "read_board",
                 "check_status",
                 "flip_board",
@@ -485,6 +533,12 @@ class ChessGame(GridGameMixin, Game):
             "n",
             "Decline draw or undo",
             ["decline_draw", "decline_undo"],
+            state=KeybindState.ACTIVE,
+        )
+        self.define_keybind(
+            "m",
+            "Type a move",
+            ["type_move"],
             state=KeybindState.ACTIVE,
         )
 
@@ -784,7 +838,52 @@ class ChessGame(GridGameMixin, Game):
     def _piece_name(self, piece: ChessPiece, locale: str) -> str:
         color = Localization.get(locale, f"chess-color-{piece.color}")
         kind = Localization.get(locale, f"chess-piece-{piece.kind}")
-        return f"{color} {kind}"
+        return Localization.get(locale, "chess-piece-with-color", color=color, piece=kind)
+
+    def _brief_arm(self, user: "User | None") -> str:
+        if user and user.preferences.get_effective(
+            "brief_announcements", game_type=self.get_type()
+        ):
+            return "yes"
+        return "no"
+
+    def _fullmove_count(self) -> int:
+        """Return completed full moves shown to players.
+
+        A full move is a White move followed by a Black move.  Half-moves are
+        still stored individually for rules such as promotion, undo, and the
+        fifty-move counter.
+        """
+        return len(self.move_history) // 2
+
+    def _broadcast_move_l(
+        self,
+        player: ChessPlayer,
+        personal_key: str,
+        others_key: str,
+        brief_personal_key: str,
+        brief_others_key: str,
+        **kwargs,
+    ) -> None:
+        for listener in self.players:
+            user = self.get_user(listener)
+            if not user:
+                continue
+            is_self = listener.id == player.id
+            use_brief = self._brief_arm(user) == "yes"
+            key = personal_key if is_self else others_key
+            if use_brief:
+                key = brief_personal_key if is_self else brief_others_key
+            localized_kwargs = dict(kwargs)
+            for kwarg, value in list(localized_kwargs.items()):
+                if kwarg.endswith("_key"):
+                    localized_kwargs[kwarg[:-4]] = (
+                        Localization.get(user.locale, value) if value else ""
+                    )
+                    del localized_kwargs[kwarg]
+            if not is_self:
+                localized_kwargs["player"] = player.name
+            user.speak_l(key, buffer="game", **localized_kwargs)
 
     def _piece_on_square(self, square: int) -> ChessPiece | None:
         if 0 <= square < len(self.board):
@@ -987,6 +1086,224 @@ class ChessGame(GridGameMixin, Game):
             return
 
         self._execute_move_full(player, selected, square)
+
+    def _action_type_move(self, player: Player, input_value: str, action_id: str) -> None:
+        chess_player = self._as_chess_player(player)
+        user = self.get_user(player)
+        if chess_player is None or not user:
+            return
+        disabled_reason = self._is_type_move_enabled(player)
+        if disabled_reason:
+            if disabled_reason != "action-not-available":
+                user.speak_l(disabled_reason, buffer="game")
+            return
+
+        text = input_value.strip()
+        if not text:
+            user.speak_l("chess-typed-move-empty", buffer="game")
+            self._reopen_type_move_input(chess_player)
+            return
+
+        parsed, error_key, error_kwargs = self._parse_typed_move(text, chess_player.color)
+        if error_key or parsed is None:
+            user.speak_l(error_key or "chess-typed-move-parse-error", buffer="game", **error_kwargs)
+            self._reopen_type_move_input(chess_player)
+            return
+
+        from_sq, to_sq, promotion = parsed
+        if promotion and not self._move_reaches_promotion(from_sq, to_sq):
+            user.speak_l(
+                "chess-typed-move-bad-promotion",
+                buffer="game",
+                move=text,
+            )
+            self._reopen_type_move_input(chess_player)
+            return
+
+        self._execute_move_full(chess_player, from_sq, to_sq, promotion=promotion)
+
+    def _reopen_type_move_input(self, player: ChessPlayer) -> None:
+        action = self.find_action(player, "type_move")
+        if action is not None:
+            self._request_action_input(action, player)
+
+    def _normalise_typed_move_text(self, text: str) -> str:
+        value = text.strip()
+        value = re.sub(r"^\d+\s*\.(?:\.\.)?\s*", "", value)
+        value = value.replace("×", "x").replace("–", "-").replace("—", "-")
+        value = re.sub(r"\s+", " ", value)
+        return value.strip()
+
+    def _promotion_kind_from_text(self, value: str | None) -> str | None:
+        if not value:
+            return None
+        return TYPED_MOVE_PROMOTIONS.get(value.strip().lower())
+
+    def _parse_typed_move(
+        self,
+        text: str,
+        color: str,
+    ) -> tuple[tuple[int, int, str | None] | None, str | None, dict]:
+        value = self._normalise_typed_move_text(text)
+        for parser in (
+            self._parse_castle_typed_move,
+            self._parse_coordinate_typed_move,
+            self._parse_san_typed_move,
+        ):
+            parsed, error_key, error_kwargs = parser(value, color)
+            if parsed is not None or error_key is not None:
+                return parsed, error_key, error_kwargs
+        return None, "chess-typed-move-parse-error", {"move": text}
+
+    def _parse_castle_typed_move(
+        self,
+        text: str,
+        color: str,
+    ) -> tuple[tuple[int, int, str | None] | None, str | None, dict]:
+        normalized = text.upper().replace("0", "O")
+        normalized = re.sub(r"[+#?!]+$", "", normalized).strip()
+        compact = normalized.replace("-", "").replace(" ", "")
+        words = normalized.lower().replace("-", " ")
+        if compact not in {"OO", "OOO"} and words not in {
+            "castle kingside",
+            "kingside castle",
+            "castle queenside",
+            "queenside castle",
+        }:
+            return None, None, {}
+
+        kingside = compact == "OO" or "kingside" in words
+        from_sq = notation_to_index("e1" if color == COLOR_WHITE else "e8")
+        to_sq = notation_to_index(("g1" if color == COLOR_WHITE else "g8") if kingside else ("c1" if color == COLOR_WHITE else "c8"))
+        if from_sq is None or to_sq is None:
+            return None, "chess-typed-move-parse-error", {"move": text}
+        legal, reason = self._is_legal_move(from_sq, to_sq, color)
+        if not legal:
+            return None, reason or "chess-typed-move-illegal", {"move": text}
+        return (from_sq, to_sq, None), None, {}
+
+    def _parse_coordinate_typed_move(
+        self,
+        text: str,
+        color: str,
+    ) -> tuple[tuple[int, int, str | None] | None, str | None, dict]:
+        coordinate_text = text.lower()
+        coordinate_text = re.sub(r"\b(?:to|takes|captures)\b", " ", coordinate_text)
+        coordinate_text = coordinate_text.replace("x", " ")
+        match = re.match(
+            r"^(?P<piece>[kqrbn])?\s*(?P<from>[a-h][1-8])\s*(?:[-:\s])*\s*(?P<to>[a-h][1-8])\s*(?:=?\s*(?P<promotion>q|r|b|n|queen|rook|bishop|knight))?$",
+            coordinate_text,
+        )
+        if not match:
+            return None, None, {}
+
+        from_sq = notation_to_index(match.group("from"))
+        to_sq = notation_to_index(match.group("to"))
+        if from_sq is None or to_sq is None:
+            return None, "chess-typed-move-parse-error", {"move": text}
+
+        piece = self.board[from_sq]
+        prefix = match.group("piece")
+        if prefix:
+            expected_kind = TYPED_MOVE_PIECES.get(prefix.upper())
+            if piece is None or piece.kind != expected_kind:
+                return None, "chess-typed-move-illegal", {"move": text}
+
+        promotion = self._promotion_kind_from_text(match.group("promotion"))
+        if match.group("promotion") and promotion is None:
+            return None, "chess-typed-move-bad-promotion", {"move": text}
+
+        legal, reason = self._is_legal_move(from_sq, to_sq, color)
+        if not legal:
+            return None, reason or "chess-typed-move-illegal", {"move": text}
+        return (from_sq, to_sq, promotion), None, {}
+
+    def _parse_san_typed_move(
+        self,
+        text: str,
+        color: str,
+    ) -> tuple[tuple[int, int, str | None] | None, str | None, dict]:
+        san = self._normalise_typed_move_text(text)
+        san = re.sub(r"\s*(?:e\.?\s*p\.?|en\s+passant)$", "", san, flags=re.IGNORECASE).strip()
+        san = re.sub(r"[+#?!]+$", "", san).strip()
+        if not san:
+            return None, "chess-typed-move-parse-error", {"move": text}
+
+        promotion: str | None = None
+        promotion_match = re.search(r"(?:=)?([QRBN])$", san, flags=re.IGNORECASE)
+        if promotion_match and re.search(r"[a-h][18](?:=)?[QRBN]$", san, flags=re.IGNORECASE):
+            promotion = TYPED_MOVE_PROMOTIONS[promotion_match.group(1).lower()]
+            san = san[: promotion_match.start()].rstrip("=")
+
+        capture_required = "x" in san.lower()
+        body = san.replace("x", "").replace("X", "")
+        piece_kind = "pawn"
+        if body and body[0].upper() in TYPED_MOVE_PIECES:
+            piece_kind = TYPED_MOVE_PIECES[body[0].upper()]
+            body = body[1:]
+
+        destination_match = re.search(r"([a-h][1-8])$", body, flags=re.IGNORECASE)
+        if not destination_match:
+            return None, "chess-typed-move-parse-error", {"move": text}
+
+        to_sq = notation_to_index(destination_match.group(1).lower())
+        if to_sq is None:
+            return None, "chess-typed-move-parse-error", {"move": text}
+
+        disambiguator = body[: destination_match.start()]
+        if disambiguator and not re.fullmatch(r"[a-h]?[1-8]?", disambiguator, flags=re.IGNORECASE):
+            return None, "chess-typed-move-parse-error", {"move": text}
+
+        candidates: list[tuple[int, int, str | None]] = []
+        for from_sq, legal_to in self.get_legal_moves(color):
+            if legal_to != to_sq:
+                continue
+            piece = self.board[from_sq]
+            if piece is None or piece.kind != piece_kind:
+                continue
+            if capture_required and not self._move_is_capture(from_sq, to_sq, color):
+                continue
+            if promotion and not self._move_reaches_promotion(from_sq, to_sq):
+                continue
+            if disambiguator and not self._typed_disambiguator_matches(from_sq, disambiguator):
+                continue
+            candidates.append((from_sq, to_sq, promotion))
+
+        if len(candidates) == 1:
+            return candidates[0], None, {}
+        if len(candidates) > 1:
+            return None, "chess-typed-move-ambiguous", {"move": text}
+        return None, "chess-typed-move-illegal", {"move": text}
+
+    def _typed_disambiguator_matches(self, from_sq: int, disambiguator: str) -> bool:
+        from_notation = index_to_notation(from_sq)
+        if len(disambiguator) == 2:
+            return from_notation == disambiguator.lower()
+        if disambiguator.lower() in "abcdefgh":
+            return from_notation[0] == disambiguator.lower()
+        if disambiguator in "12345678":
+            return from_notation[1] == disambiguator
+        return not disambiguator
+
+    def _move_is_capture(self, from_sq: int, to_sq: int, color: str) -> bool:
+        target = self.board[to_sq]
+        if target is not None and target.color != color:
+            return True
+        piece = self.board[from_sq]
+        return (
+            piece is not None
+            and piece.kind == "pawn"
+            and target is None
+            and to_sq == self.en_passant_target
+            and (from_sq % 8) != (to_sq % 8)
+        )
+
+    def _move_reaches_promotion(self, from_sq: int, to_sq: int) -> bool:
+        piece = self.board[from_sq]
+        if piece is None or piece.kind != "pawn":
+            return False
+        back_rank = 7 if piece.color == COLOR_WHITE else 0
+        return (to_sq // 8) == back_rank
 
     def _play_piece_sound(self, piece_type: str) -> None:
         if piece_type == "pawn":
@@ -1506,6 +1823,16 @@ class ChessGame(GridGameMixin, Game):
             return
 
         current_hash = self.position_history[-1]
+        if self.position_history.count(current_hash) >= 5:
+            self.draw_reason = "fivefold_repetition"
+            self.broadcast_l("chess-draw-fivefold", buffer="game")
+            self.finish_game()
+            return
+        if self.halfmove_clock >= 150:
+            self.draw_reason = "seventy_five_move_rule"
+            self.broadcast_l("chess-draw-seventy-five-move", buffer="game")
+            self.finish_game()
+            return
         if self.options.draw_handling == "automatic":
             if self.halfmove_clock >= 100:
                 self.draw_reason = "fifty_move_rule"
@@ -1544,60 +1871,89 @@ class ChessGame(GridGameMixin, Game):
         self.refresh_menus()
         self._queue_bot_turn()
 
-    def _execute_move_full(self, player: ChessPlayer, from_sq: int, to_sq: int) -> None:
+    def _execute_move_full(
+        self,
+        player: ChessPlayer,
+        from_sq: int,
+        to_sq: int,
+        *,
+        promotion: str | None = None,
+    ) -> None:
         piece = self.board[from_sq]
         if piece is None:
             return
         snapshot = self._make_undo_snapshot()
         from_square = index_to_notation(from_sq)
         to_square = index_to_notation(to_sq)
-        outcome = self._apply_move_core(from_sq, to_sq)
+        moving_piece_key = f"chess-piece-{piece.kind}"
+        outcome = self._apply_move_core(from_sq, to_sq, promotion=promotion)
 
         if outcome.get("captured_kind"):
             self.play_sound(SOUND_CAPTURE.format(index=random.randint(1, 2)))
+            captured_kind = outcome.get("captured_kind", "")
             if outcome.get("special") == "en_passant":
-                self.broadcast_personal_l(
+                self._broadcast_move_l(
                     player,
                     "chess-you-en-passant",
                     "chess-player-en-passant",
-                    buffer="game",
+                    "chess-you-en-passant-brief",
+                    "chess-player-en-passant-brief",
+                    piece_key=moving_piece_key,
                     from_square=from_square,
                     to_square=to_square,
                 )
             else:
-                self.broadcast_personal_l(
+                self._broadcast_move_l(
                     player,
                     "chess-you-capture",
                     "chess-player-captures",
-                    buffer="game",
+                    "chess-you-capture-brief",
+                    "chess-player-captures-brief",
+                    piece_key=moving_piece_key,
+                    captured_piece_key=f"chess-piece-{captured_kind}",
                     from_square=from_square,
                     to_square=to_square,
                 )
         elif outcome.get("special") == "castle_kingside":
             self.play_sound(SOUND_KING)
-            self.broadcast_personal_l(
+            self._broadcast_move_l(
                 player,
                 "chess-you-castle-kingside",
                 "chess-player-castles-kingside",
-                buffer="game",
+                "chess-you-castle-kingside-brief",
+                "chess-player-castles-kingside-brief",
             )
         elif outcome.get("special") == "castle_queenside":
             self.play_sound(SOUND_KING)
-            self.broadcast_personal_l(
+            self._broadcast_move_l(
                 player,
                 "chess-you-castle-queenside",
                 "chess-player-castles-queenside",
-                buffer="game",
+                "chess-you-castle-queenside-brief",
+                "chess-player-castles-queenside-brief",
             )
         else:
             self._play_piece_sound(piece.kind)
-            self.broadcast_personal_l(
+            self._broadcast_move_l(
                 player,
                 "chess-you-move",
                 "chess-player-moves",
-                buffer="game",
+                "chess-you-move-brief",
+                "chess-player-moves-brief",
+                piece_key=moving_piece_key,
                 from_square=from_square,
                 to_square=to_square,
+            )
+        if outcome.get("promotion"):
+            promoted_key = f"chess-piece-{outcome['promotion']}"
+            self._broadcast_move_l(
+                player,
+                "chess-you-promote-to",
+                "chess-player-promotes-to",
+                "chess-you-promote-to-brief",
+                "chess-player-promotes-to-brief",
+                square=to_square,
+                piece_key=promoted_key,
             )
 
         self._complete_move(player, from_sq, to_sq, outcome, snapshot)
@@ -1616,12 +1972,14 @@ class ChessGame(GridGameMixin, Game):
             return
 
         self.board[self.promotion_square] = ChessPiece(piece_type, piece.color, has_moved=True)
-        self.broadcast_personal_l(
+        self._broadcast_move_l(
             chess_player,
-            "chess-you-promote",
-            "chess-player-promotes",
-            buffer="game",
+            "chess-you-promote-to",
+            "chess-player-promotes-to",
+            "chess-you-promote-to-brief",
+            "chess-player-promotes-to-brief",
             square=index_to_notation(self.promotion_square),
+            piece_key=f"chess-piece-{piece_type}",
         )
 
         from_sq = self.pending_promotion_from
@@ -1657,6 +2015,33 @@ class ChessGame(GridGameMixin, Game):
             return Visibility.HIDDEN
         return Visibility.VISIBLE
 
+    def _is_type_move_enabled(self, player: Player) -> str | None:
+        chess_player = self._as_chess_player(player)
+        if self.status != "playing":
+            return "action-not-playing"
+        if chess_player is None or player.is_spectator:
+            return "action-not-available"
+        if self._has_pending_response():
+            return "action-not-available"
+        if self.promotion_pending:
+            if player.id == self.promotion_player_id:
+                return "chess-promotion-pending"
+            return "action-not-available"
+        if chess_player != self.current_player or chess_player.color != self.current_color:
+            return "action-not-your-turn"
+        return None
+
+    def _is_type_move_hidden(self, player: Player) -> Visibility:
+        chess_player = self._as_chess_player(player)
+        if self.status != "playing" or chess_player is None or player.is_spectator:
+            return Visibility.HIDDEN
+        user = self.get_user(player)
+        if not self.is_touch_client(user):
+            return Visibility.HIDDEN
+        if self._is_type_move_enabled(player) is None:
+            return Visibility.VISIBLE
+        return Visibility.HIDDEN
+
     def _is_info_enabled(self, player: Player) -> str | None:
         if self.status != "playing":
             return "action-not-playing"
@@ -1670,6 +2055,10 @@ class ChessGame(GridGameMixin, Game):
         if self.position_history and self.position_history.count(self.position_history[-1]) >= 3:
             return "threefold_repetition"
         return None
+
+    def _both_players_have_moved(self) -> bool:
+        colors = {record.color for record in self.move_history}
+        return COLOR_WHITE in colors and COLOR_BLACK in colors
 
     def _announce_claim_available(self, player: ChessPlayer | None) -> None:
         if player is None:
@@ -1726,6 +2115,8 @@ class ChessGame(GridGameMixin, Game):
             return "action-not-available"
         if player != self.current_player:
             return "action-not-your-turn"
+        if not self._both_players_have_moved():
+            return "chess-draw-offer-too-early"
         return None
 
     def _is_offer_draw_hidden(self, player: Player) -> Visibility:
@@ -1874,7 +2265,12 @@ class ChessGame(GridGameMixin, Game):
                 color=Localization.get(locale, f"chess-color-{self.current_color}"),
                 player=current_player.name if current_player else "?",
             ),
-            Localization.get(locale, "chess-status-move-count", count=len(self.move_history)),
+            Localization.get(
+                locale,
+                "chess-status-move-count",
+                count=self._fullmove_count(),
+                plies=len(self.move_history),
+            ),
             self._get_clock_label(locale, COLOR_WHITE),
             self._get_clock_label(locale, COLOR_BLACK),
             Localization.get(
@@ -2064,7 +2460,8 @@ class ChessGame(GridGameMixin, Game):
                 "winner_name": winner.name if winner else None,
                 "winner_color": self.winner_color,
                 "draw_reason": self.draw_reason,
-                "move_count": len(self.move_history),
+                "move_count": self._fullmove_count(),
+                "ply_count": len(self.move_history),
                 "time_control": self.options.time_control,
             },
         )
@@ -2087,6 +2484,8 @@ class ChessGame(GridGameMixin, Game):
                 "stalemate": "chess-draw-stalemate",
                 "fifty_move_rule": "chess-draw-fifty-move",
                 "threefold_repetition": "chess-draw-threefold",
+                "fivefold_repetition": "chess-draw-fivefold",
+                "seventy_five_move_rule": "chess-draw-seventy-five-move",
                 "insufficient_material": "chess-draw-insufficient-material",
                 "agreement": "chess-draw-agreement",
                 "timeout_insufficient_material": "chess-draw-timeout-insufficient",
@@ -2097,6 +2496,7 @@ class ChessGame(GridGameMixin, Game):
                 locale,
                 "chess-end-move-count",
                 count=result.custom_data.get("move_count", 0),
+                plies=result.custom_data.get("ply_count", result.custom_data.get("move_count", 0)),
             )
         )
         return lines

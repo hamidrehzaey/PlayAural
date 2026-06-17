@@ -8,6 +8,8 @@ Mỗi bên bắt đầu với mười sáu quân. Trắng đi trước, sau đó
 
 Bàn cờ là một lưới 8 hàng 8 cột. Đến lượt mình, bạn chọn một quân của mình rồi chọn ô đích hợp lệ.
 
+Bạn cũng có thể nhập trực tiếp nước cờ. Ô nhập hỗ trợ các dạng phổ biến như tọa độ `e2e4`, ký pháp cờ vua `Nf3` hoặc `Rae1`, nhập thành `O-O` hoặc `O-O-O`, và phong cấp như `e8=Q`.
+
 \* Tốt đi thẳng, ăn chéo, và có thể đi hai ô ở nước đầu tiên.
 \* Mã đi theo hình chữ L và có thể nhảy qua quân khác.
 \* Tượng đi chéo qua nhiều ô trống.
@@ -33,17 +35,19 @@ Nếu bàn có dùng đồng hồ cờ, chỉ đồng hồ của bên đang tớ
 
 Trong cờ vua, một ván cờ có thể kết thúc hòa theo nhiều cách khác nhau.
 
-\* \*\*Thế cờ lặp lại:\*\* Nếu cùng một thế cờ xuất hiện ba lần với cùng bên tới lượt và cùng các quyền đi kèm, ván cờ có thể được xử hòa.
-\* \*\*Luật 50 nước:\*\* Nếu đã có năm mươi nước đi liên tiếp của mỗi bên mà không có nước đi tốt nào và không có quân nào bị bắt, ván cờ có thể được xử hòa.
-\* \*\*Đề nghị hòa:\*\* Nếu bàn cho phép, người chơi có thể đề nghị cờ hòa và đối thủ có thể chấp nhận hoặc từ chối.
+\* \*\*Thế cờ lặp lại ba lần:\*\* Nếu cùng một thế cờ xuất hiện ba lần với cùng bên tới lượt và cùng các quyền đi kèm, ván cờ có thể được xử hòa.
+\* \*\*Thế cờ lặp lại năm lần:\*\* Nếu cùng một thế cờ xuất hiện năm lần, ván cờ tự động hòa.
+\* \*\*Luật 50 nước:\*\* Nếu mỗi bên đã đi năm mươi nước liên tiếp mà không có nước đi tốt nào và không có quân nào bị bắt, ván cờ có thể được xử hòa.
+\* \*\*Luật 75 nước:\*\* Nếu mỗi bên đã đi bảy mươi lăm nước liên tiếp mà không có nước đi tốt nào và không có quân nào bị bắt, ván cờ tự động hòa, trừ khi nước cuối cùng là chiếu hết.
+\* \*\*Đề nghị hòa:\*\* Nếu bàn cho phép, người chơi có thể đề nghị cờ hòa sau khi cả hai bên đều đã đi ít nhất một nước, và đối thủ có thể chấp nhận hoặc từ chối.
 \* \*\*Xin đi lại:\*\* Nếu bàn cho phép, người chơi có thể xin hoàn lại nước vừa đi và đối thủ có thể chấp nhận hoặc từ chối.
 
-Chủ bàn sẽ quyết định xem thế cờ lặp lại và Luật 50 nước được xử tự động hay phải do chính người chơi đang tới lượt yêu cầu hòa.
+Chủ bàn sẽ quyết định xem thế cờ lặp lại ba lần và Luật 50 nước được xử tự động hay phải do chính người chơi đang tới lượt yêu cầu hòa. Thế cờ lặp lại năm lần và Luật 75 nước luôn được xử tự động.
 
 \*\*Tùy chọn có thể chỉnh\*\*
 
 \* \*\*Kiểm soát thời gian:\*\* Mặc định `Không giới hạn`. Các lựa chọn gồm `Bullet 1+0`, `Bullet 2+1`, `Blitz 3+0`, `Blitz 3+2`, `Blitz 5+0`, `Rapid 10+0`, `Rapid 10+5`, `Classical 30+0`.
-\* \*\*Xử lý cờ hòa:\*\* Mặc định `Tự động`. Có thể chọn `Phải yêu cầu` cho thế cờ lặp lại và Luật 50 nước.
+\* \*\*Xử lý cờ hòa:\*\* Mặc định `Tự động`. Có thể chọn `Phải yêu cầu` cho thế cờ lặp lại ba lần và Luật 50 nước. Thế cờ lặp lại năm lần và Luật 75 nước luôn tự động.
 \* \*\*Cho phép đề nghị hòa:\*\* Mặc định `Bật`.
 \* \*\*Cho phép xin đi lại:\*\* Mặc định `Tắt`.
 
@@ -52,6 +56,7 @@ Chủ bàn sẽ quyết định xem thế cờ lặp lại và Luật 50 nước
 \* \*\*Enter:\*\* Chọn ô đang được trỏ tới trên bàn cờ.
 \* \*\*V:\*\* Đọc bàn cờ.
 \* \*\*C:\*\* Xem tình trạng ván cờ.
+\* \*\*M:\*\* Nhập trực tiếp một nước cờ.
 \* \*\*F:\*\* Lật hướng nhìn bàn cờ.
 \* \*\*Shift+T:\*\* Xem đồng hồ của hai bên.
 \* \*\*Shift+C:\*\* Yêu cầu cờ hòa khi thế cờ hiện tại đủ điều kiện.
