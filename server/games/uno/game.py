@@ -1076,14 +1076,19 @@ class UnoGame(Game):
             self._advance_turn()
             return
         # Terminal draw effects still apply when a draw card is the last card.
+        # Any obligation the winner inherited and is now passing along (e.g. a
+        # pending Draw Two they responded to with this card) must carry over, so
+        # the victim draws the full accumulated stack plus this card's own value.
         if card.type == cards.DRAW_TWO:
             nxt = self._next_player()
             if nxt:
-                self._draw_for_player(nxt, 2)
+                self._draw_for_player(nxt, self.cards_to_draw + 2)
         elif card.type == cards.WILD_DRAW_FOUR:
             nxt = self._next_player()
             if nxt:
-                self._draw_for_player(nxt, 4)
+                self._draw_for_player(nxt, self.cards_to_draw + 4)
+        self.cards_to_draw = 0
+        self.draw_type = ""
         self._end_round(player)
 
     def _apply_card_effects(self, card: UnoCard) -> None:

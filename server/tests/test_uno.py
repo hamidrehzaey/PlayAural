@@ -572,6 +572,30 @@ def test_draw_two_stacking_accumulates():
     assert game.cards_to_draw == 0
 
 
+def test_winning_draw_card_carries_pending_stack():
+    # A pending draw obligation the winner inherited must carry over when they
+    # respond with their final draw card: d2 (obligation 2) -> B answers with a
+    # winning Wild Draw Four -> C draws the full 2 + 4 = 6, not just 4.
+    game, (a, b, c) = _n_player_game(
+        ["A", "B", "C"],
+        UnoOptions(responses=True, bluff=False, wait_for_draw_responses=False),
+    )
+    a.hand = [_card(1, cards.RED, cards.DRAW_TWO), _card(2, cards.BLUE, cards.NUMBER, 9)]
+    b.hand = [_card(3, cards.WILD, cards.WILD_DRAW_FOUR)]  # last card
+    c.hand = [_card(4, cards.YELLOW, cards.NUMBER, 3)]
+    game.refresh_menus()
+    game.flush_menus()
+
+    game.execute_action(a, "play_card_1")  # obligation 2 -> B
+    assert game.cards_to_draw == 2
+    assert game.current_player is b
+
+    game.execute_action(b, "play_card_3")  # winning Wild Draw Four
+    assert len(b.hand) == 0  # B emptied their hand and won the round
+    assert len(c.hand) == 1 + 6  # original card + (pending 2 + this card's 4)
+    assert game.cards_to_draw == 0
+
+
 def test_draw_two_auto_accept_when_no_response():
     game, (a, b, c) = _n_player_game(
         ["A", "B", "C"], UnoOptions(responses=True, bluff=False, skip_after_draw=False)
