@@ -511,6 +511,27 @@ reachable state. This is part of the feature work, not optional cleanup.
   important success, failure, edge, and validation branches introduced or
   changed by the work.
 
+### Documentation
+
+When writing or updating documentation, agents must first reference existing
+polished project manuals for similar games and match their structure,
+formatting, and player-facing style. Documentation is part of the accessible
+game experience, not a developer changelog.
+
+- Write for beginners. Use plain, concrete vocabulary, introduce game terms
+  before relying on them, and explain what the player does, hears, chooses, and
+  wins.
+- Cover the practical player manual shape: overview, goal, turn flow, special
+  mechanics, scoring or win condition, customizable options with defaults and
+  ranges, useful information actions, and game-specific shortcuts where
+  relevant.
+- Never write manuals like changelogs, patch notes, design notes, or
+  implementation summaries. Do not include unnecessary technical development
+  details, justifications, or rationale that do not help someone play.
+- Keep EN and VI documentation synchronized in structure, meaning, terminology,
+  and attribution. Vietnamese manuals should be natural, friendly, and aligned
+  with the matching `.ftl` terminology.
+
 ### Desktop Client Architecture
 - **`client/ui/main_window.py`** — primary desktop UI and gameplay interaction
 - **`client/network_manager.py`** — WebSocket client and packet dispatch

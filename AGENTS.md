@@ -245,6 +245,24 @@ string changes, perform a complete string and broadcast-context audit.
   listener-dependent values per recipient, and add tests for both actor and
   observer wording plus important contextual and error branches.
 
+## Documentation
+
+When writing or updating documentation, first read existing polished project
+manuals for similar games and follow their standard structure, formatting, and
+player-facing tone.
+
+- Manuals must be beginner-friendly, accessible, and focused on how to play:
+  overview, goal, turn flow, special mechanics, scoring, options, information
+  actions, and shortcuts where relevant.
+- Do not write manuals like changelogs, patch notes, design notes, or developer
+  justifications. Leave out unnecessary implementation details and rationale
+  that do not help a player understand the game.
+- Keep vocabulary plain and concrete. Explain game terms before relying on
+  them, especially for custom games or mechanics that may be unfamiliar.
+- Keep EN/VI documentation synchronized in structure, meaning, terminology, and
+  attribution. Vietnamese docs should be natural and friendly, with terminology
+  aligned to the matching `.ftl` strings.
+
 ## Scores, Leaderboards, and Teams
 
 - Only games with real leaderboard support should expose
@@ -311,9 +329,9 @@ Files normally required:
 
 Also register the game in `server/games/__init__.py`.
 
-Documentation must follow established game docs: escaped markdown bold,
-overview, gameplay, special mechanics, scoring, customizable options with
-defaults/ranges, and game-specific keyboard shortcuts.
+Documentation must follow the Documentation rules above and established game
+docs: escaped markdown bold, overview, gameplay, special mechanics, scoring,
+customizable options with defaults/ranges, and game-specific keyboard shortcuts.
 
 Tests should cover registration/default options, pre-start validation, core
 mechanics, scoring/scoreless behavior, bot completion, touch visibility/order,

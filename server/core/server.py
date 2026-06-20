@@ -255,8 +255,9 @@ PlayAural Server
 """
         print(f"Starting PlayAural v{VERSION} server...")
 
-        # Connect to database
-        self._db.connect()
+        # Connect to database. Server startup owns guarded corruption recovery:
+        # a malformed SQLite file is quarantined before a fresh schema is built.
+        self._db.connect(recover_corrupt=True)
         self._db.prune_unregistered_game_data(
             {game_class.get_type() for game_class in GameRegistry.get_all()}
         )
