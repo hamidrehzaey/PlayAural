@@ -1,98 +1,77 @@
 \*\*Yahtzee\*\*
 
+Yahtzee is a classic dice game about making the best use of five dice. On each turn, you may roll up to three times, keep the dice you like, and then write one score on your scorecard. Each scoring category can be used only once.
 
-
-Yahtzee is a classic dice game beloved since 1956, combining strategy, probability, and luck. Over 13 rounds, you roll five dice up to three times per turn to fill in scoring categories on your scorecard. Each category can only be used once, so choosing where to score — or which category to sacrifice with a zero — is the heart of the game.
-
-The player with the highest total score after all 13 categories are filled wins.
-
-
+The player with the highest total after every player fills all 13 categories wins.
 
 \*\*Gameplay\*\*
 
+Yahtzee supports 1 to 4 players. Solo games are available for practice and do not count toward competitive leaderboards or multiplayer stats.
 
+1\. \*\*Roll:\*\* Press Roll dice to roll all five dice.
 
-The game supports 2 to 4 players. On your turn you have up to three rolls.
+2\. \*\*Keep dice:\*\* After a roll, keep any dice you want to save. Kept dice stay as they are when you roll again.
 
-1\. \*\*First roll:\*\* All five dice are rolled automatically when you press Roll.
+3\. \*\*Reroll:\*\* You may roll up to two more times. Only dice that are not kept are rolled again.
 
-2\. \*\*Keep dice:\*\* Press 1–5 to toggle individual dice between "keep" and "reroll". Kept dice are not rolled again.
+4\. \*\*Score:\*\* Choose one open category on your scorecard. If the dice do not match that category, you score 0 in it.
 
-3\. \*\*Reroll:\*\* Press Roll again to reroll only the unkept dice. You may reroll up to two more times.
-
-4\. \*\*Score:\*\* After your final roll (or whenever you are satisfied), select a scoring category from the menu. If your dice don't qualify, you take a zero in that category.
-
-You must score in exactly one category every turn — there is no passing.
-
-
-
-\*\*Scoring Categories\*\*
-
-
+You must score once each turn. There is no pass.
 
 \*\*Upper Section\*\*
 
-Each category scores the sum of all dice matching that face value.
+The upper section scores only dice showing the matching number.
 
-\* \*\*Ones:\*\* Sum of all ones rolled.
-\* \*\*Twos:\*\* Sum of all twos rolled.
-\* \*\*Threes:\*\* Sum of all threes rolled.
-\* \*\*Fours:\*\* Sum of all fours rolled.
-\* \*\*Fives:\*\* Sum of all fives rolled.
-\* \*\*Sixes:\*\* Sum of all sixes rolled.
+\* \*\*Ones:\*\* Total of all 1s.
+\* \*\*Twos:\*\* Total of all 2s.
+\* \*\*Threes:\*\* Total of all 3s.
+\* \*\*Fours:\*\* Total of all 4s.
+\* \*\*Fives:\*\* Total of all 5s.
+\* \*\*Sixes:\*\* Total of all 6s.
 
-\*\*Upper Section Bonus:\*\* If your upper section total reaches 63 or more, you earn a \*\*35-point bonus\*\*. The target of 63 assumes three of each face value (e.g. three threes = 9, three fours = 12, and so on).
-
-
+If your upper section total reaches 63 or more, you receive a 35-point bonus.
 
 \*\*Lower Section\*\*
 
-\* \*\*Three of a Kind:\*\* At least three dice showing the same value. Scores the sum of all five dice.
-\* \*\*Four of a Kind:\*\* At least four dice showing the same value. Scores the sum of all five dice.
-\* \*\*Full House:\*\* Three of one value and two of another. Worth \*\*25 points\*\*. Five of a kind also qualifies (Yahtzee joker rule).
-\* \*\*Small Straight:\*\* Four consecutive values (1-2-3-4, 2-3-4-5, or 3-4-5-6). Worth \*\*30 points\*\*.
-\* \*\*Large Straight:\*\* Five consecutive values (1-2-3-4-5 or 2-3-4-5-6). Worth \*\*40 points\*\*.
-\* \*\*Yahtzee:\*\* All five dice showing the same value. Worth \*\*50 points\*\*.
-\* \*\*Chance:\*\* Any combination. Scores the sum of all five dice. Use this as a safety net for a bad roll.
+\* \*\*Three of a Kind:\*\* At least three dice show the same number. Scores the total of all five dice.
+\* \*\*Four of a Kind:\*\* At least four dice show the same number. Scores the total of all five dice.
+\* \*\*Full House:\*\* Three dice show one number and two dice show another number. Scores 25.
+\* \*\*Small Straight:\*\* Four numbers in a row: 1-2-3-4, 2-3-4-5, or 3-4-5-6. Scores 30.
+\* \*\*Large Straight:\*\* Five numbers in a row: 1-2-3-4-5 or 2-3-4-5-6. Scores 40.
+\* \*\*Yahtzee:\*\* All five dice show the same number. Scores 50.
+\* \*\*Chance:\*\* Any dice. Scores the total of all five dice.
 
+\*\*Yahtzee Bonus and Joker Rule\*\*
 
+If you already scored 50 in Yahtzee and roll another Yahtzee, you receive a 100-point bonus.
 
-\*\*Yahtzee Bonus\*\*
+After any later Yahtzee when the Yahtzee box is already filled, the Joker rule decides where you may score:
 
+\* If the matching upper-section box is still open, you must score there first. For example, five 6s must go in Sixes.
+\* If that matching upper box is already filled, choose any open lower-section category. Full House, Small Straight, and Large Straight score their fixed values under the Joker rule.
+\* If the matching upper box and all lower-section categories are filled, choose any open upper-section category and score 0 there.
 
+\*\*Scorecards\*\*
 
-If you have already scored 50 in the Yahtzee category and roll another Yahtzee, you earn a \*\*100-point bonus\*\* regardless of which other category you score in that turn. The bonus is announced immediately and stacks — multiple Yahtzee bonuses in one game are possible.
-
-
-
-\*\*Scoring Zero\*\*
-
-
-
-If none of your open categories fit your dice, you must take a zero in one of them. The scoring menu shows the point value each category would award with your current dice, including a zero when nothing qualifies. Choose carefully — some categories (such as Chance) are easier to salvage later than others (such as Large Straight).
-
-
+\* \*\*Check scorecard:\*\* Opens your own scorecard.
+\* \*\*Check scorecard for all players:\*\* Opens a player list, then shows the selected player's scorecard. Spectators can use this action too.
 
 \*\*Game Options\*\*
 
-\* \*\*Number of Games:\*\* How many full 13-round games to play in a session (default 1).
-
+\* \*\*Number of Games:\*\* How many full 13-turn games to play in one session. The default is 1.
 
 \*\*Personal Options\*\*
 
-\* \*\*Dice keeping style:\*\* With Dice indexes, press 1-5 to toggle dice by position. With Dice values, every result begins kept unless Clear kept dice when rolling is enabled; press 1-6 to release one matching die for the next roll, or Shift+1-6 to keep one matching released die.
-
-\* \*\*Clear kept dice when rolling:\*\* When enabled, every die is released after each roll. The next roll rerolls all five dice unless you keep some again. In Dice values mode, use Shift+1-6 after the roll to keep matching dice.
-
-
+\* \*\*Brief announcements:\*\* Shortens roll, scoring, and bonus messages.
+\* \*\*Dice keeping style:\*\* With Dice indexes, press 1-5 to toggle dice by position. With Dice values, press 1-6 to release one kept die with that value, or Shift+1-6 to keep one released die with that value.
+\* \*\*Clear kept dice when rolling:\*\* When enabled, dice are released after each roll, so you choose what to keep again from the new result.
 
 \*\*Keyboard Shortcuts\*\*
 
-
-
-\* \*\*R:\*\* Roll the dice (or reroll unkept dice).
-\* \*\*1–5:\*\* In Dice indexes mode, toggle keeping or rerolling each die by position (1 = leftmost).
-\* \*\*1–6:\*\* In Dice values mode, release one kept die showing that value so it will reroll.
-\* \*\*Shift+1–6:\*\* In Dice values mode, keep one released die showing that value.
-\* \*\*D:\*\* Read out the current dice values and which are being kept.
-\* \*\*C:\*\* Read your full scorecard, including remaining categories and current totals.
+\* \*\*R:\*\* Roll dice.
+\* \*\*1-5:\*\* In Dice indexes mode, toggle dice by position.
+\* \*\*1-6:\*\* In Dice values mode, release one kept die showing that value.
+\* \*\*Shift+1-6:\*\* In Dice values mode, keep one released die showing that value.
+\* \*\*D:\*\* Check the current dice.
+\* \*\*C:\*\* Check your scorecard.
+\* \*\*Shift+C:\*\* Check scorecard for all players.

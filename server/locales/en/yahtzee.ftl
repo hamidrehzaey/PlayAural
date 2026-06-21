@@ -65,12 +65,14 @@ yahtzee-you-rolled = You rolled: { $dice }. { $remaining ->
     } left.
 }
 yahtzee-player-rolled = { $player } rolled: { $dice }. { $remaining ->
-    [0] No rolls remaining.
+    [0] They must choose a scoring category.
    *[other] { $remaining } { $remaining ->
         [one] roll
        *[other] rolls
     } left.
 }
+yahtzee-you-rolled-brief = You rolled: { $dice }.
+yahtzee-player-rolled-brief = { $player } rolled: { $dice }.
 
 yahtzee-you-scored = You scored { $points } { $points ->
     [one] point
@@ -80,16 +82,28 @@ yahtzee-player-scored = { $player } scored { $points } { $points ->
     [one] point
    *[other] points
 } in { $category }.
+yahtzee-you-scored-brief = { $points } in { $category }.
+yahtzee-player-scored-brief = { $player }: { $points } in { $category }.
 
 yahtzee-you-bonus = Yahtzee bonus! +100 points
 yahtzee-player-bonus = { $player } got a Yahtzee bonus! +100 points
+yahtzee-you-bonus-brief = Yahtzee bonus, +100.
+yahtzee-player-bonus-brief = { $player }: Yahtzee bonus, +100.
 
 yahtzee-you-upper-bonus = Upper section bonus! +35 points ({ $total } in upper section)
-yahtzee-player-upper-bonus = { $player } earned the upper section bonus! +35 points
-yahtzee-you-upper-bonus-missed = Upper section missed. You scored { $total }, needed 63.
-yahtzee-player-upper-bonus-missed = { $player } missed the upper section bonus.
+yahtzee-player-upper-bonus = { $player } earned the upper section bonus! +35 points ({ $total } in upper section)
+yahtzee-you-upper-bonus-brief = Upper bonus, +35.
+yahtzee-player-upper-bonus-brief = { $player }: upper bonus, +35.
+yahtzee-you-upper-bonus-missed = Upper section bonus missed. You scored { $total }; you needed { $needed } more.
+yahtzee-player-upper-bonus-missed = { $player } missed the upper section bonus with { $total } in the upper section, { $needed } short.
+yahtzee-you-upper-bonus-missed-brief = Upper bonus missed; { $needed } short.
+yahtzee-player-upper-bonus-missed-brief = { $player }: upper bonus missed, { $needed } short.
 
 yahtzee-check-scoresheet = Check scorecard
+yahtzee-check-all-scorecards = Check scorecard for all players
+yahtzee-select-scorecard-player = Choose a player's scorecard.
+yahtzee-scorecard-no-players = No active players have scorecards in this game yet.
+yahtzee-scorecard-player-unavailable = That player is no longer available to view. Open the scorecard list again and choose an active player.
 yahtzee-view-dice = Check hand
 yahtzee-your-dice = Your dice: { $dice }.
 yahtzee-your-dice-kept = Your dice: { $dice }. Keeping: { $kept }.
@@ -119,7 +133,11 @@ yahtzee-category-large-straight = Large Straight
 yahtzee-category-yahtzee = Yahtzee
 yahtzee-category-chance = Chance
 
-yahtzee-winner = { $player } wins with { $score } { $score ->
+yahtzee-you-win = You win with { $score } { $score ->
+    [one] point
+   *[other] points
+}!
+yahtzee-player-wins = { $player } wins with { $score } { $score ->
     [one] point
    *[other] points
 }!
@@ -129,6 +147,8 @@ yahtzee-set-rounds = Number of games: { $rounds }
 yahtzee-enter-rounds = Enter number of games (1-10):
 yahtzee-option-changed-rounds = Number of games set to { $rounds }.
 
-yahtzee-no-rolls-left = You have no rolls left.
-yahtzee-roll-first = You need to roll first.
-yahtzee-category-filled = That category is already filled.
+yahtzee-no-rolls-left = You have no rolls left; choose an open scoring category to finish your turn.
+yahtzee-roll-first = Roll the dice before choosing a scoring category.
+yahtzee-category-filled = That category already has a score. Choose a category that is still open on your scorecard.
+yahtzee-joker-upper-required = Joker rule: because this Yahtzee shows { $face }, you must score the upper-section box for { $face } before any other category.
+yahtzee-joker-lower-required = Joker rule: the upper-section box for { $face } is already filled, so you must choose an open lower-section category before using another upper-section box.

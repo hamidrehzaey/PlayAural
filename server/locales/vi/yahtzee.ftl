@@ -19,26 +19,40 @@ yahtzee-score-yahtzee = Yahtzee được { $points } điểm
 yahtzee-score-chance = Cơ hội được { $points } điểm
 
 yahtzee-you-rolled = Bạn gieo được: { $dice }. { $remaining ->
-    [0] Chọn mục để ghi điểm.
+    [0] Chọn một mục ghi điểm.
    *[other] Còn { $remaining } lần gieo.
 }
 yahtzee-player-rolled = { $player } gieo được: { $dice }. { $remaining ->
-    [0] Hết lượt gieo.
+    [0] Họ phải chọn một mục ghi điểm.
    *[other] Còn { $remaining } lần gieo.
 }
+yahtzee-you-rolled-brief = Bạn gieo: { $dice }.
+yahtzee-player-rolled-brief = { $player } gieo: { $dice }.
 
 yahtzee-you-scored = Bạn ghi được { $points } điểm vào mục { $category }.
 yahtzee-player-scored = { $player } ghi được { $points } điểm vào mục { $category }.
+yahtzee-you-scored-brief = { $points } điểm vào { $category }.
+yahtzee-player-scored-brief = { $player }: { $points } điểm vào { $category }.
 
 yahtzee-you-bonus = Thưởng Yahtzee! +100 điểm
-yahtzee-player-bonus = { $player } nhận được thưởng Yahtzee! +100 điểm
+yahtzee-player-bonus = { $player } nhận thưởng Yahtzee! +100 điểm
+yahtzee-you-bonus-brief = Thưởng Yahtzee, +100.
+yahtzee-player-bonus-brief = { $player }: thưởng Yahtzee, +100.
 
-yahtzee-you-upper-bonus = Thưởng phần trên! +35 điểm ({ $total } điểm ở phần trên)
-yahtzee-player-upper-bonus = { $player } nhận được thưởng phần trên! +35 điểm
-yahtzee-you-upper-bonus-missed = Bỏ lỡ thưởng phần trên. Bạn đạt { $total } điểm, cần 63.
-yahtzee-player-upper-bonus-missed = { $player } đã bỏ lỡ thưởng phần trên.
+yahtzee-you-upper-bonus = Thưởng Phần trên! +35 điểm ({ $total } điểm ở Phần trên)
+yahtzee-player-upper-bonus = { $player } nhận thưởng Phần trên! +35 điểm ({ $total } điểm ở Phần trên)
+yahtzee-you-upper-bonus-brief = Thưởng Phần trên, +35.
+yahtzee-player-upper-bonus-brief = { $player }: thưởng Phần trên, +35.
+yahtzee-you-upper-bonus-missed = Không đạt thưởng Phần trên. Bạn có { $total } điểm; còn thiếu { $needed } điểm.
+yahtzee-player-upper-bonus-missed = { $player } không đạt thưởng Phần trên với { $total } điểm, còn thiếu { $needed } điểm.
+yahtzee-you-upper-bonus-missed-brief = Trượt thưởng Phần trên; thiếu { $needed } điểm.
+yahtzee-player-upper-bonus-missed-brief = { $player }: trượt thưởng Phần trên, thiếu { $needed } điểm.
 
-yahtzee-check-scoresheet = Kiểm tra bảng điểm
+yahtzee-check-scoresheet = Xem bảng điểm
+yahtzee-check-all-scorecards = Xem bảng điểm của mọi người chơi
+yahtzee-select-scorecard-player = Chọn bảng điểm của người chơi.
+yahtzee-scorecard-no-players = Chưa có người chơi đang hoạt động nào có bảng điểm trong ván này.
+yahtzee-scorecard-player-unavailable = Người chơi đó không còn khả dụng để xem. Hãy mở lại danh sách bảng điểm và chọn một người chơi đang hoạt động.
 yahtzee-view-dice = Kiểm tra xúc xắc trên tay
 yahtzee-your-dice = Xúc xắc của bạn: { $dice }.
 yahtzee-your-dice-kept = Xúc xắc của bạn: { $dice }. Đang giữ: { $kept }.
@@ -47,10 +61,10 @@ yahtzee-current-dice-kept = Xúc xắc của { $player }: { $dice }. Đang giữ
 yahtzee-not-rolled = Người chơi hiện tại chưa gieo xúc xắc.
 
 yahtzee-scoresheet-header = Bảng điểm của { $player }
-yahtzee-scoresheet-upper = Phần Trên:
-yahtzee-scoresheet-lower = Phần Dưới:
-yahtzee-scoresheet-upper-total-bonus = Tổng phần trên: { $total } (đã nhận thưởng +35)
-yahtzee-scoresheet-upper-total-needed = Tổng phần trên: { $total } (cần thêm { $needed } điểm để nhận thưởng)
+yahtzee-scoresheet-upper = Phần trên:
+yahtzee-scoresheet-lower = Phần dưới:
+yahtzee-scoresheet-upper-total-bonus = Tổng Phần trên: { $total } (đã nhận thưởng +35)
+yahtzee-scoresheet-upper-total-needed = Tổng Phần trên: { $total } (cần thêm { $needed } điểm để nhận thưởng)
 yahtzee-scoresheet-yahtzee-bonus = Thưởng Yahtzee: { $count } x 100 = { $total } điểm
 yahtzee-scoresheet-grand-total = Tổng điểm: { $total }
 
@@ -68,13 +82,16 @@ yahtzee-category-large-straight = Sảnh lớn
 yahtzee-category-yahtzee = Yahtzee
 yahtzee-category-chance = Cơ hội
 
-yahtzee-winner = { $player } thắng với { $score } điểm!
+yahtzee-you-win = Bạn thắng với { $score } điểm!
+yahtzee-player-wins = { $player } thắng với { $score } điểm!
 yahtzee-winners-tie = Hòa nhau! { $players } đều ghi được { $score } điểm!
 
 yahtzee-set-rounds = Số ván chơi: { $rounds }
 yahtzee-enter-rounds = Nhập số ván chơi (1-10):
 yahtzee-option-changed-rounds = Số ván chơi đã được đặt là { $rounds }.
 
-yahtzee-no-rolls-left = Bạn không còn lượt gieo nào.
-yahtzee-roll-first = Bạn cần gieo xúc xắc trước.
-yahtzee-category-filled = Mục đó đã được ghi điểm rồi.
+yahtzee-no-rolls-left = Bạn không còn lần gieo nào; hãy chọn một mục ghi điểm còn trống để kết thúc lượt.
+yahtzee-roll-first = Hãy gieo xúc xắc trước khi chọn mục ghi điểm.
+yahtzee-category-filled = Mục đó đã có điểm. Hãy chọn một mục còn trống trên bảng điểm của bạn.
+yahtzee-joker-upper-required = Quy tắc Joker: vì Yahtzee này ra mặt { $face }, bạn phải ghi vào ô Phần trên cho số { $face } trước mọi mục khác.
+yahtzee-joker-lower-required = Quy tắc Joker: ô Phần trên cho số { $face } đã được ghi rồi, nên bạn phải chọn một mục còn trống ở Phần dưới trước khi dùng ô Phần trên khác.

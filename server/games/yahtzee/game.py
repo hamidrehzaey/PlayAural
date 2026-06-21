@@ -12,7 +12,7 @@ import random
 from ..base import Game, Player, GameOptions
 from ..registry import register_game
 from .bot import bot_think as yahtzee_bot_think
-from ...game_utils.actions import Action, ActionSet, Visibility
+from ...game_utils.actions import Action, ActionSet, MenuInput, Visibility
 from ...game_utils.bot_helper import BotHelper
 from ...game_utils.dice import DiceSet
 from ...game_utils.dice_game_mixin import DiceGameMixin
@@ -34,6 +34,11 @@ LOWER_CATEGORIES = [
     "chance",
 ]
 ALL_CATEGORIES = UPPER_CATEGORIES + LOWER_CATEGORIES
+JOKER_FIXED_SCORES = {
+    "full_house": 25,
+    "small_straight": 30,
+    "large_straight": 40,
+}
 
 # Category display names (for localization keys)
 CATEGORY_NAMES = {
@@ -96,13 +101,13 @@ def calculate_score(dice: list[int], category: str) -> int:
             return dice_sum
         return 0
 
-    # Full House — 3 of one kind + 2 of another = 25 points
-    # Five of a kind also qualifies (bonus Yahtzee joker rule)
+    # Full House — 3 of one kind + 2 of another = 25 points.
+    # A five-of-a-kind only scores here through the official Joker rule,
+    # which depends on the player's scorecard and is handled by the game.
     if category == "full_house":
         has_three = any(c == 3 for c in counts.values())
         has_two = any(c == 2 for c in counts.values())
-        has_five = any(c == 5 for c in counts.values())
-        if (has_three and has_two) or has_five:
+        if has_three and has_two:
             return 25
         return 0
 
@@ -139,6 +144,13 @@ def is_yahtzee(dice: list[int]) -> bool:
     if len(dice) != 5:
         return False
     return len(set(dice)) == 1
+
+
+def yahtzee_face(dice: list[int]) -> int | None:
+    """Return the die face for a five-of-a-kind roll, otherwise None."""
+    if not is_yahtzee(dice):
+        return None
+    return dice[0]
 
 
 def _default_scores() -> dict[str, int | None]:
@@ -215,7 +227,11 @@ class YahtzeeGame(Game, DiceGameMixin):
     Highest total score wins.
     """
 
-    relevant_preferences = ["clear_kept_on_roll", "dice_keeping_style"]
+    relevant_preferences = [
+        "brief_announcements",
+        "clear_kept_on_roll",
+        "dice_keeping_style",
+    ]
 
     players: list[YahtzeePlayer] = field(default_factory=list)
     options: YahtzeeOptions = field(default_factory=YahtzeeOptions)
@@ -238,7 +254,7 @@ class YahtzeeGame(Game, DiceGameMixin):
 
     @classmethod
     def get_min_players(cls) -> int:
-        return 2
+        return 1
 
     @classmethod
     def get_max_players(cls) -> int:
@@ -252,6 +268,135 @@ class YahtzeeGame(Game, DiceGameMixin):
         self, player_id: str, name: str, is_bot: bool = False
     ) -> YahtzeePlayer:
         return YahtzeePlayer(id=player_id, name=name, is_bot=is_bot)
+
+    def _wants_brief(self, user) -> bool:
+        return bool(
+            user
+            and user.preferences.get_effective(
+                "brief_announcements", game_type=self.get_type()
+            )
+        )
+
+    def _broadcast_actor_l(
+        self,
+        actor: YahtzeePlayer,
+        personal_key: str,
+        others_key: str,
+        *,
+        brief_personal_key: str | None = None,
+        brief_others_key: str | None = None,
+        **kwargs,
+    ) -> None:
+        """Broadcast with listener-specific perspective and verbosity."""
+        for listener in self.players:
+            user = self.get_user(listener)
+            if not user:
+                continue
+
+            is_actor = listener.id == actor.id
+            key = personal_key if is_actor else others_key
+            if self._wants_brief(user):
+                if is_actor and brief_personal_key:
+                    key = brief_personal_key
+                elif not is_actor and brief_others_key:
+                    key = brief_others_key
+
+            payload = dict(kwargs)
+            if not is_actor:
+                payload["player"] = actor.name
+            user.speak_l(key, buffer="game", **payload)
+
+    def _scorecard_players(self) -> list[YahtzeePlayer]:
+        return [
+            player
+            for player in self.get_active_players()
+            if isinstance(player, YahtzeePlayer)
+        ]
+
+    def _is_competitive_result(self) -> bool:
+        return len(self._scorecard_players()) >= 2
+
+    def _sync_team_scores(self) -> None:
+        """Mirror authoritative scorecard totals into the shared scoreboard."""
+        for team in self._team_manager.teams:
+            team.total_score = 0
+            team.round_score = 0
+
+        for player in self._scorecard_players():
+            team = self._team_manager.get_team(player.name)
+            if team:
+                team.total_score = player.get_total_score()
+
+    def _sync_score_display_names(self) -> None:
+        super()._sync_score_display_names()
+        self._sync_team_scores()
+
+    def _focus_roll_after_action(self, player: YahtzeePlayer) -> None:
+        """Return touch users to the stable Roll anchor after a turn-ending score."""
+        if self.is_touch_client(self.get_user(player)):
+            self.request_menu_focus(player, "roll")
+
+    def _joker_face(self, player: YahtzeePlayer) -> int | None:
+        """Return the Yahtzee face when the official Joker rule applies."""
+        face = yahtzee_face(player.dice.values)
+        if face is None:
+            return None
+        if player.scores.get("yahtzee") is None:
+            return None
+        return face
+
+    def _matching_upper_category(self, face: int) -> str:
+        return UPPER_CATEGORIES[face - 1]
+
+    def _score_category_disabled_reason(
+        self, player: YahtzeePlayer, category: str
+    ) -> str | tuple[str, dict] | None:
+        joker_face_value = self._joker_face(player)
+        if joker_face_value is None:
+            return None
+
+        matching_upper = self._matching_upper_category(joker_face_value)
+        if player.scores.get(matching_upper) is None:
+            if category != matching_upper:
+                return ("yahtzee-joker-upper-required", {"face": joker_face_value})
+            return None
+
+        lower_open = any(player.scores.get(cat) is None for cat in LOWER_CATEGORIES)
+        if lower_open and category in UPPER_CATEGORIES:
+            return ("yahtzee-joker-lower-required", {"face": joker_face_value})
+        return None
+
+    def _get_scoreable_categories(self, player: YahtzeePlayer) -> list[str]:
+        return [
+            category
+            for category in player.get_open_categories()
+            if self._score_category_disabled_reason(player, category) is None
+        ]
+
+    def _calculate_score_for_player(
+        self, player: YahtzeePlayer, category: str
+    ) -> int:
+        joker_face_value = self._joker_face(player)
+        if joker_face_value is None:
+            return calculate_score(player.dice.values, category)
+
+        matching_upper = self._matching_upper_category(joker_face_value)
+        matching_upper_open = player.scores.get(matching_upper) is None
+        lower_open = any(player.scores.get(cat) is None for cat in LOWER_CATEGORIES)
+
+        if matching_upper_open:
+            if category == matching_upper:
+                return calculate_score(player.dice.values, category)
+            return calculate_score(player.dice.values, category)
+
+        if lower_open:
+            if category in JOKER_FIXED_SCORES:
+                return JOKER_FIXED_SCORES[category]
+            return calculate_score(player.dice.values, category)
+
+        if category in UPPER_CATEGORIES:
+            return 0
+        return calculate_score(player.dice.values, category)
 
     def create_turn_action_set(self, player: YahtzeePlayer) -> ActionSet:
         """Create the turn action set for a player."""
@@ -302,6 +447,13 @@ class YahtzeeGame(Game, DiceGameMixin):
         self.define_keybind(
             "c", "View scoresheet", ["view_scoresheet"], state=KeybindState.ACTIVE
         )
+        self.define_keybind(
+            "shift+c",
+            "View all scorecards",
+            ["view_all_scorecards"],
+            state=KeybindState.ACTIVE,
+            include_spectators=True,
+        )
 
     # ==========================================================================
     # Action guards
@@ -327,6 +479,8 @@ class YahtzeeGame(Game, DiceGameMixin):
             return Visibility.HIDDEN
         if player.is_spectator:
             return Visibility.HIDDEN
+        if self.is_touch_client(self.get_user(player)):
+            return Visibility.VISIBLE
         ytz_player: YahtzeePlayer = player  # type: ignore
         if ytz_player.rolls_left <= 0:
             return Visibility.HIDDEN
@@ -397,6 +551,19 @@ class YahtzeeGame(Game, DiceGameMixin):
                 return Visibility.VISIBLE
         return Visibility.HIDDEN
 
+    def _is_view_all_scorecards_enabled(self, player: Player) -> str | None:
+        if self.status != "playing":
+            return "action-not-playing"
+        if not self._scorecard_players():
+            return "yahtzee-scorecard-no-players"
+        return None
+
+    def _is_view_all_scorecards_hidden(self, player: Player) -> Visibility:
+        user = self.get_user(player)
+        if self.is_touch_client(user) and self.status == "playing":
+            return Visibility.VISIBLE
+        return Visibility.HIDDEN
+
     # ==========================================================================
     # Action handlers
     # ==========================================================================
@@ -435,10 +602,12 @@ class YahtzeeGame(Game, DiceGameMixin):
         # Announce only the dice that were actually rerolled.
         # On first roll that's all five; on subsequent rolls only the unkept ones.
         dice_str = ", ".join(str(ytz_player.dice.values[i]) for i in rolled_indices)
-        self.broadcast_personal_l(
-            player,
+        self._broadcast_actor_l(
+            ytz_player,
             "yahtzee-you-rolled",
             "yahtzee-player-rolled",
+            brief_personal_key="yahtzee-you-rolled-brief",
+            brief_others_key="yahtzee-player-rolled-brief",
             dice=dice_str,
             remaining=ytz_player.rolls_left,
         )
@@ -461,7 +630,10 @@ class YahtzeeGame(Game, DiceGameMixin):
         if ytz_player.scores.get(category) is not None:
             return
 
-        points = calculate_score(ytz_player.dice.values, category)
+        if self._score_category_disabled_reason(ytz_player, category):
+            return
+
+        points = self._calculate_score_for_player(ytz_player, category)
 
         # Yahtzee bonus: scoring a second (or further) Yahtzee awards +100
         yahtzee_bonus = False
@@ -474,30 +646,44 @@ class YahtzeeGame(Game, DiceGameMixin):
         self.play_sound("game_pig/bank.ogg")
 
         # Announce with category name localized per recipient
-        for recipient in self.get_active_players():
+        for recipient in self.players:
             user = self.get_user(recipient)
             if not user:
                 continue
             cat_name = Localization.get(user.locale, CATEGORY_NAMES[category])
-            if recipient == player:
-                user.speak_l("yahtzee-you-scored", buffer="game", points=points, category=cat_name)
+            is_actor = recipient.id == player.id
+            key = "yahtzee-you-scored" if is_actor else "yahtzee-player-scored"
+            if self._wants_brief(user):
+                key = (
+                    "yahtzee-you-scored-brief"
+                    if is_actor
+                    else "yahtzee-player-scored-brief"
+                )
+            if is_actor:
+                user.speak_l(
+                    key,
+                    buffer="game",
+                    points=points,
+                    category=cat_name,
+                )
             else:
                 user.speak_l(
-                    "yahtzee-player-scored",
+                    key,
                     buffer="game",
                     player=player.name,
                     points=points,
                     category=cat_name,
                 )
 
-        self._team_manager.add_to_team_round_score(player.name, points)
-
         if yahtzee_bonus:
             self.play_sound("game_farkle/6kind.ogg")
-            self.broadcast_personal_l(
-                player, "yahtzee-you-bonus", "yahtzee-player-bonus"
+            self._broadcast_actor_l(
+                ytz_player,
+                "yahtzee-you-bonus",
+                "yahtzee-player-bonus",
+                brief_personal_key="yahtzee-you-bonus-brief",
+                brief_others_key="yahtzee-player-bonus-brief",
             )
-            self._team_manager.add_to_team_round_score(player.name, 100)
 
         # Check for upper section bonus when upper section first becomes complete
         if not ytz_player.upper_bonus_awarded:
@@ -506,21 +692,28 @@ class YahtzeeGame(Game, DiceGameMixin):
                 if upper_total >= 63:
                     ytz_player.upper_bonus_awarded = True
                     self.play_sound("game_pig/win.ogg")
-                    self.broadcast_personal_l(
-                        player,
+                    self._broadcast_actor_l(
+                        ytz_player,
                         "yahtzee-you-upper-bonus",
                         "yahtzee-player-upper-bonus",
+                        brief_personal_key="yahtzee-you-upper-bonus-brief",
+                        brief_others_key="yahtzee-player-upper-bonus-brief",
                         total=upper_total,
                     )
-                    self._team_manager.add_to_team_round_score(player.name, 35)
                 else:
-                    self.broadcast_personal_l(
-                        player,
+                    needed = 63 - upper_total
+                    self._broadcast_actor_l(
+                        ytz_player,
                         "yahtzee-you-upper-bonus-missed",
                         "yahtzee-player-upper-bonus-missed",
+                        brief_personal_key="yahtzee-you-upper-bonus-missed-brief",
+                        brief_others_key="yahtzee-player-upper-bonus-missed-brief",
                         total=upper_total,
+                        needed=needed,
                     )
 
+        self._sync_team_scores()
+        self._focus_roll_after_action(ytz_player)
         self._end_turn()
 
     def _action_view_dice(self, player: Player, action_id: str) -> None:
@@ -562,37 +755,75 @@ class YahtzeeGame(Game, DiceGameMixin):
 
     def _action_view_scoresheet(self, player: Player, action_id: str) -> None:
         """Show a formatted scorecard to the requesting player."""
-        user = self.get_user(player)
-        if not user:
+        if not isinstance(player, YahtzeePlayer) or player.is_spectator:
             return
+        self._show_player_scoresheet(player, player)
 
+    def _scorecard_player_options(self, player: Player) -> list[str]:
+        return [target.id for target in self._scorecard_players()]
+
+    def _scorecard_player_option_label(self, player: Player, option: str) -> str:
+        target = self.get_player_by_id(option)
+        if isinstance(target, YahtzeePlayer) and not target.is_spectator:
+            return target.name
+        return option
+
+    def _scorecard_initial_selection(
+        self, player: Player, options: list[str]
+    ) -> str | None:
+        if not options:
+            return None
+        if not player.is_spectator and player.id in options:
+            return player.id
+        if self.current_player and self.current_player.id in options:
+            return self.current_player.id
+        return options[0]
+
+    def _action_view_all_scorecards(
+        self, player: Player, target_id: str, action_id: str
+    ) -> None:
+        """Show the selected player's scorecard to the requester."""
+        target = self.get_player_by_id(target_id)
+        if not isinstance(target, YahtzeePlayer) or target.is_spectator:
+            user = self.get_user(player)
+            if user:
+                user.speak_l(
+                    "yahtzee-scorecard-player-unavailable",
+                    buffer="game",
+                )
+            return
+        self._show_player_scoresheet(player, target)
+
+    def _show_player_scoresheet(self, viewer: Player, target: YahtzeePlayer) -> None:
+        target_id = target.id
         self.live_status_box(
-            player,
-            "yahtzee_scoresheet",
-            lambda _player, live_user: self._scoresheet_lines(live_user.locale),
+            viewer,
+            f"yahtzee_scoresheet_{target_id}",
+            lambda _player, live_user: self._scoresheet_lines_for_player(
+                target_id, live_user.locale
+            ),
         )
 
-    def _scoresheet_lines(self, locale: str) -> list[str]:
-        # Show the current player's scoresheet (always the active turn player)
-        current = self.current_player
-        if not current:
-            return []
+    def _scoresheet_lines_for_player(self, player_id: str, locale: str) -> list[str]:
+        target = self.get_player_by_id(player_id)
+        if not isinstance(target, YahtzeePlayer) or target.is_spectator:
+            return [Localization.get(locale, "yahtzee-scorecard-player-unavailable")]
+        return self._scoresheet_lines(target, locale)
 
-        ytz_current: YahtzeePlayer = current  # type: ignore
-
-        lines = [Localization.get(locale, "yahtzee-scoresheet-header", player=current.name)]
+    def _scoresheet_lines(self, target: YahtzeePlayer, locale: str) -> list[str]:
+        lines = [Localization.get(locale, "yahtzee-scoresheet-header", player=target.name)]
         lines.append(Localization.get(locale, "yahtzee-scoresheet-upper"))
 
         for cat in UPPER_CATEGORIES:
             cat_name = Localization.get(locale, CATEGORY_NAMES[cat])
-            score = ytz_current.scores.get(cat)
+            score = target.scores.get(cat)
             if score is not None:
                 lines.append(f"  {cat_name}: {score}")
             else:
                 lines.append(f"  {cat_name}: -")
 
-        upper_total = ytz_current.get_upper_total()
-        if ytz_current.upper_bonus_awarded:
+        upper_total = target.get_upper_total()
+        if target.upper_bonus_awarded:
             lines.append(
                 Localization.get(
                     locale, "yahtzee-scoresheet-upper-total-bonus", total=upper_total
@@ -613,18 +844,18 @@ class YahtzeeGame(Game, DiceGameMixin):
 
         for cat in LOWER_CATEGORIES:
             cat_name = Localization.get(locale, CATEGORY_NAMES[cat])
-            score = ytz_current.scores.get(cat)
+            score = target.scores.get(cat)
             if score is not None:
                 lines.append(f"  {cat_name}: {score}")
             else:
                 lines.append(f"  {cat_name}: -")
 
-        yahtzee_bonus_total = ytz_current.yahtzee_bonus_count * 100
+        yahtzee_bonus_total = target.yahtzee_bonus_count * 100
         lines.append(
             Localization.get(
                 locale,
                 "yahtzee-scoresheet-yahtzee-bonus",
-                count=ytz_current.yahtzee_bonus_count,
+                count=target.yahtzee_bonus_count,
                 total=yahtzee_bonus_total,
             )
         )
@@ -633,7 +864,7 @@ class YahtzeeGame(Game, DiceGameMixin):
             Localization.get(
                 locale,
                 "yahtzee-scoresheet-grand-total",
-                total=ytz_current.get_total_score(),
+                total=target.get_total_score(),
             )
         )
 
@@ -658,6 +889,7 @@ class YahtzeeGame(Game, DiceGameMixin):
 
         for p in active_players:
             self._reset_player(p)
+        self._sync_team_scores()
 
         self.play_music("game_pig/mus.ogg")
         self._start_game()
@@ -732,7 +964,12 @@ class YahtzeeGame(Game, DiceGameMixin):
         self.play_sound("game_pig/win.ogg")
 
         if len(winners) == 1:
-            self.broadcast_l("yahtzee-winner", buffer="game", player=winners[0].name, score=high_score)
+            self._broadcast_actor_l(
+                winners[0],
+                "yahtzee-you-win",
+                "yahtzee-player-wins",
+                score=high_score,
+            )
         else:
             winner_names = [w.name for w in winners]
             for p in self.players:
@@ -746,15 +983,18 @@ class YahtzeeGame(Game, DiceGameMixin):
                         buffer="game",
                     )
 
-        self._team_manager.commit_round_scores()
-
         if self.games_played < self.options.num_games:
             for p in active_players:
                 self._reset_player(p)
-            self._team_manager.reset_round_scores()
+            self._sync_team_scores()
             self._start_game()
         else:
             self.finish_game()
+
+    def _persist_result(self, result: GameResult) -> None:
+        if result.custom_data.get("competitive") is False:
+            return
+        super()._persist_result(result)
 
     # ==========================================================================
     # Action set
@@ -783,9 +1023,32 @@ class YahtzeeGame(Game, DiceGameMixin):
                 is_hidden="_is_view_scoresheet_hidden",
             )
         )
+        action_set.add(
+            Action(
+                id="view_all_scorecards",
+                label=Localization.get(locale, "yahtzee-check-all-scorecards"),
+                handler="_action_view_all_scorecards",
+                is_enabled="_is_view_all_scorecards_enabled",
+                is_hidden="_is_view_all_scorecards_hidden",
+                input_request=MenuInput(
+                    prompt="yahtzee-select-scorecard-player",
+                    options="_scorecard_player_options",
+                    option_label="_scorecard_player_option_label",
+                    initial_selection="_scorecard_initial_selection",
+                ),
+                include_spectators=True,
+            )
+        )
 
         if self.is_touch_client(user):
-            info_actions = ["check_scores", "whose_turn", "whos_at_table"]
+            info_actions = [
+                "view_dice",
+                "view_scoresheet",
+                "view_all_scorecards",
+                "check_scores",
+                "whose_turn",
+                "whos_at_table",
+            ]
             self._order_touch_standard_actions(action_set, info_actions)
         return action_set
 
@@ -828,6 +1091,7 @@ class YahtzeeGame(Game, DiceGameMixin):
 
         final_scores = {p.name: p.get_total_score() for p in sorted_players}
         winner = sorted_players[0] if sorted_players else None
+        competitive = self._is_competitive_result()
 
         return GameResult(
             game_type=self.get_type(),
@@ -847,6 +1111,8 @@ class YahtzeeGame(Game, DiceGameMixin):
                 "final_scores": final_scores,
                 "games_played": self.games_played,
                 "num_games": self.options.num_games,
+                "competitive": competitive,
+                "solo_mode": not competitive,
             },
         )
 
@@ -872,7 +1138,10 @@ class YahtzeeGame(Game, DiceGameMixin):
         return yahtzee_bot_think(
             self,
             player,
-            calculate_score=calculate_score,
+            calculate_score=lambda _dice, category: self._calculate_score_for_player(
+                player, category
+            ),
+            scoreable_categories=self._get_scoreable_categories,
             all_categories=ALL_CATEGORIES,
             upper_categories=UPPER_CATEGORIES,
         )
@@ -895,7 +1164,9 @@ def _make_score_enabled(cat: str):
             return "yahtzee-roll-first"
         if cat not in player.get_open_categories():
             return "yahtzee-category-filled"
-        return None
+        if not isinstance(player, YahtzeePlayer):
+            return "action-not-available"
+        return self._score_category_disabled_reason(player, cat)
     return method
 
 
@@ -919,7 +1190,11 @@ def _make_score_label(cat: str):
         locale = user.locale if user else "en"
         cat_name = Localization.get(locale, CATEGORY_NAMES[cat])
         if player.dice.has_rolled:
-            points = calculate_score(player.dice.values, cat)
+            points = (
+                self._calculate_score_for_player(player, cat)
+                if isinstance(player, YahtzeePlayer)
+                else calculate_score(player.dice.values, cat)
+            )
             key = f"yahtzee-score-{cat.replace('_', '-')}"
             return Localization.get(locale, key, points=points)
         return cat_name

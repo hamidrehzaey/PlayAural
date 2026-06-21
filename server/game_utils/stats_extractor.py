@@ -12,6 +12,8 @@ class StatsExtractor:
         Returns dict: player_id -> {stat_key: value_to_add_or_max}
         """
         updates: dict[str, dict[str, float]] = {}
+        if result.custom_data.get("competitive") is False:
+            return updates
 
         # Built-in stats extraction
         winner_name = result.custom_data.get("winner_name")

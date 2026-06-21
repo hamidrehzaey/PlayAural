@@ -20,6 +20,7 @@ def bot_think(
     player: "YahtzeePlayer",
     *,
     calculate_score: Callable[[list[int], str], int],
+    scoreable_categories: Callable[["YahtzeePlayer"], list[str]] | None = None,
     all_categories: list[str],
     upper_categories: list[str],
 ) -> str | None:
@@ -30,7 +31,11 @@ def bot_think(
     if not player.dice.has_rolled:
         return "roll"
 
-    open_categories = player.get_open_categories()
+    open_categories = (
+        scoreable_categories(player)
+        if scoreable_categories is not None
+        else player.get_open_categories()
+    )
     if not open_categories:
         return None
 
@@ -69,6 +74,7 @@ def bot_think(
         calculate_score=calculate_score,
         all_categories=all_categories,
         upper_categories=upper_categories,
+        open_categories=open_categories,
     )
 
 
@@ -206,9 +212,11 @@ def _pick_best_category_action(
     calculate_score: Callable[[list[int], str], int],
     all_categories: list[str],
     upper_categories: list[str],
+    open_categories: list[str] | None = None,
 ) -> str:
     """Choose the best category to score now."""
-    open_categories = player.get_open_categories()
+    if open_categories is None:
+        open_categories = player.get_open_categories()
     scores = {cat: calculate_score(player.dice.values, cat) for cat in open_categories}
 
     # Yahtzee bonus: if dice are 5-of-a-kind and yahtzee already scored as 50,
