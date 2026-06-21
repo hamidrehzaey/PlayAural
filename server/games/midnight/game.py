@@ -537,6 +537,10 @@ class MidnightGame(Game, DiceGameMixin):
         # Jolt all bots to pause for the turn change
         BotHelper.jolt_bots(self, ticks=random.randint(20, 30))
 
+        user = self.get_user(player)
+        if self.is_touch_client(user):
+            self.request_menu_focus(player, "roll")
+
         self._on_turn_end()
 
     # ==========================================================================

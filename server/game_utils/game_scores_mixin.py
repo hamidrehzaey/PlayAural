@@ -37,6 +37,10 @@ class GameScoresMixin:
             return self.options.winning_score
         return None
 
+    def get_score_sort_descending(self) -> bool:
+        """Return whether shared score displays should sort high scores first."""
+        return getattr(self, "score_sort_descending", True)
+
     def supports_score_actions(self) -> bool:
         """Return whether the shared score actions have score lines to report."""
         return bool(self.team_manager.teams)
@@ -136,6 +140,7 @@ class GameScoresMixin:
                 user.locale,
                 self.get_score_target(),
                 score_unit_key=self.get_score_unit_key(),
+                descending=self.get_score_sort_descending(),
             )
             for line in lines:
                 user.speak(line, buffer="game")
@@ -167,6 +172,7 @@ class GameScoresMixin:
             locale,
             self.get_score_target(),
             score_unit_key=self.get_score_unit_key(),
+            descending=self.get_score_sort_descending(),
         )
 
     def _action_game_info(self, player: "Player", action_id: str) -> None:

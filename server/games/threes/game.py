@@ -16,9 +16,13 @@ from ...game_utils.bot_helper import BotHelper
 from ...game_utils.dice import DiceSet
 from ...game_utils.dice_game_mixin import DiceGameMixin
 from ...game_utils.game_result import GameResult, PlayerResult
-from ...game_utils.options import IntOption, option_field, GameOptions
+from ...game_utils.options import GameOptions, IntOption, option_field
 from ...messages.localization import Localization
 from ...ui.keybinds import KeybindState
+
+
+MIN_ROUNDS = 1
+MAX_ROUNDS = 20
 
 
 @dataclass
@@ -37,12 +41,13 @@ class ThreesOptions(GameOptions):
     total_rounds: int = option_field(
         IntOption(
             default=10,
-            min_val=1,
-            max_val=20,
+            min_val=MIN_ROUNDS,
+            max_val=MAX_ROUNDS,
             value_key="rounds",
             label="threes-set-rounds",
             prompt="threes-enter-rounds",
             change_msg="threes-option-changed-rounds",
+            description="threes-desc-rounds",
         )
     )
 
@@ -65,7 +70,8 @@ class ThreesGame(Game, DiceGameMixin):
     Lowest score wins after all rounds.
     """
 
-    relevant_preferences = ["dice_keeping_style"]
+    relevant_preferences = ["brief_announcements", "dice_keeping_style"]
+    score_sort_descending = False
 
     players: list[ThreesPlayer] = field(default_factory=list)
     options: ThreesOptions = field(default_factory=ThreesOptions)
@@ -101,107 +107,235 @@ class ThreesGame(Game, DiceGameMixin):
         """Create a new player with Threes-specific state."""
         return ThreesPlayer(id=player_id, name=name, is_bot=is_bot)
 
+    def _player_locale(self, player: Player) -> str:
+        user = self.get_user(player)
+        return user.locale if user else "en"
+
+    def _active_threes_players(self) -> list[ThreesPlayer]:
+        return [
+            player
+            for player in self.get_active_players()
+            if isinstance(player, ThreesPlayer)
+        ]
+
+    def _wants_brief(self, user) -> bool:
+        return bool(
+            user
+            and user.preferences.get_effective(
+                "brief_announcements", game_type=self.get_type()
+            )
+        )
+
+    def _broadcast_actor_l(
+        self,
+        actor: ThreesPlayer,
+        personal_key: str,
+        others_key: str,
+        *,
+        brief_personal_key: str | None = None,
+        brief_others_key: str | None = None,
+        **kwargs,
+    ) -> None:
+        """Broadcast an actor event with listener-specific perspective."""
+        for listener in self.players:
+            user = self.get_user(listener)
+            if not user:
+                continue
+
+            is_actor = listener.id == actor.id
+            key = personal_key if is_actor else others_key
+            if self._wants_brief(user):
+                if is_actor and brief_personal_key:
+                    key = brief_personal_key
+                elif not is_actor and brief_others_key:
+                    key = brief_others_key
+
+            payload = dict(kwargs)
+            if not is_actor:
+                payload["player"] = actor.name
+            user.speak_l(key, buffer="game", **payload)
+
+    def _broadcast_global_l(
+        self,
+        full_key: str,
+        brief_key: str | None = None,
+        **kwargs,
+    ) -> None:
+        """Broadcast a global event with optional brief wording per listener."""
+        for listener in self.players:
+            user = self.get_user(listener)
+            if not user:
+                continue
+            key = brief_key if brief_key and self._wants_brief(user) else full_key
+            user.speak_l(key, buffer="game", **kwargs)
+
+    def _format_dice_values(self, values: list[int], locale: str) -> str:
+        return Localization.format_list(locale, [str(value) for value in values])
+
+    def _turn_score_for_values(self, values: list[int]) -> int:
+        return sum(value for value in values if value != 3)
+
+    def _focus_first_enabled_turn_action(self, player: ThreesPlayer) -> None:
+        """Focus the first visible enabled item after an in-turn repaint."""
+        for resolved in self.get_all_visible_actions(player):
+            if resolved.enabled:
+                self.request_menu_focus(player, resolved.action.id)
+                return
+
+    def _focus_touch_roll_anchor(self, player: ThreesPlayer) -> None:
+        user = self.get_user(player)
+        if self.is_touch_client(user):
+            self.request_menu_focus(player, "roll")
+
+    def _sync_team_scores(self) -> None:
+        """Keep shared score actions aligned with Threes' low-score totals."""
+        for player in self._active_threes_players():
+            team = self.team_manager.get_team(player.name)
+            if team:
+                team.total_score = player.total_score
+
+    def _ensure_score_teams(self) -> None:
+        """Create individual score rows for starts and older restored games."""
+        active_players = self._active_threes_players()
+        active_names = [player.name for player in active_players]
+        if (
+            self.team_manager.team_mode != "individual"
+            or not self.team_manager.validate_assignments(active_names)
+        ):
+            self.team_manager.team_mode = "individual"
+            self.team_manager.setup_teams(active_names)
+        else:
+            self.team_manager.rebuild_player_index()
+        self._sync_team_scores()
+
+    def supports_score_actions(self) -> bool:
+        if self.status == "playing" and not self.team_manager.teams:
+            self._ensure_score_teams()
+        return super().supports_score_actions()
+
+    def prestart_validate(self) -> list[str | tuple[str, dict]]:
+        errors: list[str | tuple[str, dict]] = list(super().prestart_validate())
+        if not MIN_ROUNDS <= self.options.total_rounds <= MAX_ROUNDS:
+            errors.append(
+                (
+                    "threes-error-rounds-out-of-range",
+                    {
+                        "rounds": self.options.total_rounds,
+                        "min": MIN_ROUNDS,
+                        "max": MAX_ROUNDS,
+                    },
+                )
+            )
+        return errors
+
+    def rebuild_runtime_state(self) -> None:
+        super().rebuild_runtime_state()
+        if self.status == "playing":
+            self._ensure_score_teams()
+
     # ==========================================================================
     # Declarative is_enabled / is_hidden / get_label for turn actions
     # ==========================================================================
 
-    def _is_roll_enabled(self, player: Player) -> str | None:
+    def _is_roll_enabled(self, player: Player) -> str | tuple[str, dict] | None:
         """Check if roll action is enabled."""
         if self.status != "playing":
-            return "action-not-playing"
-        
-        # WEB-SPECIFIC: Identify client type
-        user = self.get_user(player)
-        is_touch = self.is_touch_client(user)
-        
-        # For web, return None (enabled) so button is 'always light', validation moves to handler
-        if is_touch:
-             if self.current_player != player:
-                 # Still disable if not turn
-                 return "action-not-your-turn"
-             return None
-
+            return "threes-error-roll-not-playing"
+        if player.is_spectator:
+            return "action-spectator"
+        if not isinstance(player, ThreesPlayer):
+            return "action-not-available"
+        current = self.current_player
+        if current is None:
+            return "threes-error-roll-no-turn"
         if self.current_player != player:
-            return "action-not-your-turn"
-        threes_player: ThreesPlayer = player  # type: ignore
-        if not threes_player.dice.has_rolled:
-            # First roll is always allowed
+            return (
+                "threes-error-roll-not-your-turn",
+                {"player": current.name},
+            )
+        if not player.dice.has_rolled:
             return None
-        if threes_player.dice.unlocked_count <= 1:
-            # Only 1 die left, can't roll (must bank)
-            return "threes-must-bank"
-        if threes_player.dice.kept_unlocked_count == 0:
-            # Must keep at least one die
-            return "threes-must-keep"
+        if player.dice.unlocked_count <= 1:
+            return "threes-error-roll-last-die"
+        if player.dice.kept_unlocked_count == 0:
+            return "threes-error-roll-must-keep"
         return None
 
     def _is_roll_hidden(self, player: Player) -> Visibility:
-        """Roll is visible during play for current player."""
+        """Roll stays visible as a touch anchor during play."""
         if self.status != "playing":
             return Visibility.HIDDEN
-        
-        # WEB-SPECIFIC: Always visible for web
+        if player.is_spectator or not isinstance(player, ThreesPlayer):
+            return Visibility.HIDDEN
         user = self.get_user(player)
         if self.is_touch_client(user):
-             return Visibility.VISIBLE
+            return Visibility.VISIBLE
 
         if self.current_player != player:
             return Visibility.HIDDEN
         return Visibility.VISIBLE
 
-    def _is_bank_enabled(self, player: Player) -> str | None:
+    def _is_bank_enabled(self, player: Player) -> str | tuple[str, dict] | None:
         """Check if bank action is enabled."""
         if self.status != "playing":
-            return "action-not-playing"
-        
-        # WEB-SPECIFIC: Identify client type
-        user = self.get_user(player)
-        is_touch = self.is_touch_client(user)
-        
-        # For web, return None (enabled) so button is 'always light', validation moves to handler
-        if is_touch:
-             if self.current_player != player:
-                 # Still disable if not turn
-                 return "action-not-your-turn"
-             return None
-
+            return "threes-error-bank-not-playing"
+        if player.is_spectator:
+            return "action-spectator"
+        if not isinstance(player, ThreesPlayer):
+            return "action-not-available"
+        current = self.current_player
+        if current is None:
+            return "threes-error-bank-no-turn"
         if self.current_player != player:
-            return "action-not-your-turn"
-        threes_player: ThreesPlayer = player  # type: ignore
-        if not threes_player.dice.has_rolled:
-            return "threes-roll-first"
-        if not threes_player.dice.all_decided:
-            return "threes-keep-all-first"
+            return (
+                "threes-error-bank-not-your-turn",
+                {"player": current.name},
+            )
+        if not player.dice.has_rolled:
+            return "threes-error-bank-roll-first"
+        if not player.dice.all_decided:
+            return "threes-error-bank-keep-all"
         return None
 
     def _is_bank_hidden(self, player: Player) -> Visibility:
-        """Bank is hidden until dice are rolled."""
+        """Bank stays visible for active touch players as a stable control."""
         if self.status != "playing":
             return Visibility.HIDDEN
-        
-        # WEB-SPECIFIC: Always visible for web
+        if player.is_spectator or not isinstance(player, ThreesPlayer):
+            return Visibility.HIDDEN
         user = self.get_user(player)
         if self.is_touch_client(user):
-             return Visibility.VISIBLE
+            return Visibility.VISIBLE
 
         if self.current_player != player:
             return Visibility.HIDDEN
-        threes_player: ThreesPlayer = player  # type: ignore
-        if not threes_player.dice.has_rolled:
+        if not player.dice.has_rolled:
             return Visibility.HIDDEN
         return Visibility.VISIBLE
 
-    def _is_check_hand_enabled(self, player: Player) -> str | None:
+    def _is_check_hand_enabled(self, player: Player) -> str | tuple[str, dict] | None:
         """Check if check_hand action is enabled."""
         if self.status != "playing":
-            return "action-not-playing"
-        threes_player: ThreesPlayer = player  # type: ignore
-        if not threes_player.dice.has_rolled:
-            return "threes-no-dice-yet"
+            return "threes-error-check-not-playing"
+        current = self.current_player
+        if not isinstance(current, ThreesPlayer):
+            return "threes-error-check-no-turn"
+        if not current.dice.has_rolled:
+            if current is player:
+                return "threes-error-check-your-dice-not-rolled"
+            return (
+                "threes-error-check-player-dice-not-rolled",
+                {"player": current.name},
+            )
         return None
 
     def _is_check_hand_hidden(self, player: Player) -> Visibility:
-        """Check hand is always hidden (keybind only)."""
+        """Check dice is touch-visible and keybind-only elsewhere."""
+        if self.status != "playing":
+            return Visibility.HIDDEN
+        user = self.get_user(player)
+        if self.is_touch_client(user):
+            return Visibility.VISIBLE
         return Visibility.HIDDEN
 
     # Override dice toggle methods from DiceGameMixin for Threes-specific logic
@@ -209,28 +343,54 @@ class ThreesGame(Game, DiceGameMixin):
         """Check if toggling die at index is enabled in Threes."""
         if self.status != "playing":
             return "action-not-playing"
+        if player.is_spectator:
+            return "action-spectator"
         if self.current_player != player:
             return "action-not-your-turn"
-        threes_player: ThreesPlayer = player  # type: ignore
-        if not threes_player.dice.has_rolled:
+        if not isinstance(player, ThreesPlayer):
+            return "action-not-available"
+        if die_index < 0 or die_index >= player.dice.num_dice:
+            return "action-not-available"
+        if not player.dice.has_rolled:
             return "dice-not-rolled"
-        if threes_player.dice.is_locked(die_index):
+        if player.dice.is_locked(die_index):
             return "dice-locked"
-        if threes_player.dice.unlocked_count <= 1:
-            # Only 1 unlocked die left - can't toggle
-            return "threes-last-die"
+        if player.dice.unlocked_count <= 1:
+            return "threes-error-toggle-last-die"
         return None
 
     def _is_dice_toggle_hidden(self, player: Player, die_index: int) -> Visibility:
         """Check if die toggle action is hidden."""
         if self.status != "playing":
             return Visibility.HIDDEN
+        if player.is_spectator:
+            return Visibility.HIDDEN
         if self.current_player != player:
             return Visibility.HIDDEN
-        threes_player: ThreesPlayer = player  # type: ignore
-        if not threes_player.dice.has_rolled:
+        if not isinstance(player, ThreesPlayer):
+            return Visibility.HIDDEN
+        if die_index < 0 or die_index >= player.dice.num_dice:
+            return Visibility.HIDDEN
+        if not player.dice.has_rolled:
+            return Visibility.HIDDEN
+        if player.dice.is_locked(die_index):
             return Visibility.HIDDEN
         return Visibility.VISIBLE
+
+    def _get_dice_toggle_label(self, player: Player, die_index: int) -> str:
+        """Return localized labels for visible dice controls."""
+        locale = self._player_locale(player)
+        if not isinstance(player, ThreesPlayer) or not player.dice.has_rolled:
+            return Localization.get(locale, "threes-die-index", index=die_index + 1)
+
+        value = player.dice.get_value(die_index)
+        if value is None:
+            return Localization.get(locale, "threes-die-index", index=die_index + 1)
+        if player.dice.is_locked(die_index):
+            return Localization.get(locale, "threes-die-locked-label", value=value)
+        if player.dice.is_kept(die_index):
+            return Localization.get(locale, "threes-die-kept-label", value=value)
+        return Localization.get(locale, "threes-die-value", value=value)
 
     # ==========================================================================
     # Action set creation
@@ -268,28 +428,10 @@ class ThreesGame(Game, DiceGameMixin):
             )
         )
 
-        # WEB-SPECIFIC: Reorder for Web Clients to put Roll/Bank at the top
-        if self.is_touch_client(user):
-            # Desired order: Roll, Bank, Dice Toggles...
-            top_actions = ["roll", "bank"]
-            final_order = []
-            
-            # Add top actions if they exist in the set
-            for aid in top_actions:
-                if action_set.get_action(aid):
-                    final_order.append(aid)
-            
-            # Add remaining actions (dice toggles, check hand, etc)
-            for aid in action_set._order:
-                if aid not in top_actions:
-                    final_order.append(aid)
-            
-            action_set._order = final_order
-
         return action_set
 
     # WEB-SPECIFIC: Target order for Standard Actions
-    web_target_order = ["check_scores", "whose_turn", "whos_at_table"]
+    web_target_order = ["check_hand", "check_scores", "whose_turn", "whos_at_table"]
 
     def create_standard_action_set(self, player: Player) -> ActionSet:
         action_set = super().create_standard_action_set(player)
@@ -303,6 +445,7 @@ class ThreesGame(Game, DiceGameMixin):
                 handler="_action_check_hand",
                 is_enabled="_is_check_hand_enabled",
                 is_hidden="_is_check_hand_hidden",
+                include_spectators=True,
             )
         )
 
@@ -343,10 +486,25 @@ class ThreesGame(Game, DiceGameMixin):
         """Define all keybinds for the game."""
         super().setup_keybinds()
 
+        user = None
+        if hasattr(self, "host_username") and self.host_username:
+            host = self.get_player_by_name(self.host_username)
+            if host:
+                user = self.get_user(host)
+        locale = user.locale if user else "en"
+
         # Turn action keybinds - r/b like Pig
-        self.define_keybind("r", "Roll dice", ["roll"], state=KeybindState.ACTIVE)
         self.define_keybind(
-            "b", "Bank and end turn", ["bank"], state=KeybindState.ACTIVE
+            "r",
+            Localization.get(locale, "threes-roll"),
+            ["roll"],
+            state=KeybindState.ACTIVE,
+        )
+        self.define_keybind(
+            "b",
+            Localization.get(locale, "threes-bank"),
+            ["bank"],
+            state=KeybindState.ACTIVE,
         )
 
         # Dice toggle keybinds (1-5) - from DiceGameMixin
@@ -354,7 +512,11 @@ class ThreesGame(Game, DiceGameMixin):
 
         # Check hand
         self.define_keybind(
-            "h", "Check hand", ["check_hand"], state=KeybindState.ACTIVE
+            "h",
+            Localization.get(locale, "threes-check-hand"),
+            ["check_hand"],
+            state=KeybindState.ACTIVE,
+            include_spectators=True,
         )
 
     def _action_roll(self, player: Player, action_id: str) -> None:
@@ -362,47 +524,37 @@ class ThreesGame(Game, DiceGameMixin):
         if not isinstance(player, ThreesPlayer):
             return
 
-        # Explicit validation (moved from is_enabled for web clients)
-        # Note: If not player's turn, handler won't be called normally, but safe to check
-        if self.current_player != player:
-             return
-
-        # If not first roll, must keep at least one unlocked die
-        if player.dice.has_rolled:
-            if player.dice.unlocked_count <= 1:
-                # Should bank instead
-                user = self.get_user(player)
-                if user:
-                    user.speak_l("threes-must-bank", buffer="game")
-                return
-
-            if player.dice.kept_unlocked_count == 0:
-                user = self.get_user(player)
-                if user:
-                    user.speak_l("threes-must-keep", buffer="game")
-                return
+        disabled_reason = self._is_roll_enabled(player)
+        if disabled_reason:
+            self._speak_action_disabled_reason(player, disabled_reason)
+            return
 
         # Roll dice (locks kept dice and rerolls unlocked)
         self.play_sound("game_pig/roll.ogg")
         player.dice.roll()
         self._apply_dice_values_defaults(player)
 
-        # Announce roll
-        # dice_str = player.dice.format_values_only()
-        # Use localized list format for values
-        for p in self.get_active_players():
-            user = self.get_user(p)
+        for listener in self.players:
+            user = self.get_user(listener)
             if not user:
                 continue
-            
-            # Simple list of numbers
-            parts = [str(v) for v in player.dice.values]
-            dice_str = Localization.format_list(user.locale, parts)
-
-            if p == player:
-                user.speak_l("threes-you-rolled", buffer="game", dice=dice_str)
+            dice_str = self._format_dice_values(player.dice.values, user.locale)
+            if listener.id == player.id:
+                key = (
+                    "threes-you-rolled-brief"
+                    if self._wants_brief(user)
+                    else "threes-you-rolled"
+                )
+                user.speak_l(key, buffer="game", dice=dice_str)
             else:
-                user.speak_l("threes-player-rolled", buffer="game", player=player.name, dice=dice_str)
+                key = (
+                    "threes-player-rolled-brief"
+                    if self._wants_brief(user)
+                    else "threes-player-rolled"
+                )
+                user.speak_l(
+                    key, buffer="game", player=player.name, dice=dice_str
+                )
 
         # Check if auto-score needed (all locked or only 1 unlocked)
         if player.dice.unlocked_count <= 1:
@@ -411,74 +563,143 @@ class ThreesGame(Game, DiceGameMixin):
 
         # Give bot time to think about next action
         if player.is_bot:
-            import random
-
             BotHelper.jolt_bot(player, ticks=random.randint(15, 30))
 
-        self.refresh_menus()
+        self._focus_first_enabled_turn_action(player)
+        self.refresh_menus(player)
 
-    # Dice toggle handlers provided by DiceGameMixin
+    def _toggle_die(self, player: Player, die_index: int) -> None:
+        """Toggle a die and broadcast the keep state with actor perspective."""
+        if not isinstance(player, ThreesPlayer):
+            return
+
+        user = self.get_user(player)
+        if die_index < 0 or die_index >= player.dice.num_dice:
+            if user:
+                user.speak_l("threes-invalid-die-index", buffer="game")
+            return
+
+        disabled_reason = self._is_dice_toggle_enabled(player, die_index)
+        if disabled_reason:
+            self._speak_action_disabled_reason(player, disabled_reason)
+            return
+
+        result = player.dice.toggle_keep(die_index)
+        if result is None:
+            if user:
+                user.speak_l("dice-locked", buffer="game")
+            return
+
+        die_value = player.dice.get_value(die_index)
+        kwargs = {"die": die_value, "index": die_index + 1}
+        if result:
+            self._broadcast_actor_l(
+                player,
+                "threes-you-keep",
+                "threes-player-keeps",
+                brief_personal_key="threes-you-keep-brief",
+                brief_others_key="threes-player-keeps-brief",
+                **kwargs,
+            )
+        else:
+            self._broadcast_actor_l(
+                player,
+                "threes-you-unkeep",
+                "threes-player-unkeeps",
+                brief_personal_key="threes-you-unkeep-brief",
+                brief_others_key="threes-player-unkeeps-brief",
+                **kwargs,
+            )
+
+        self.refresh_menus(player)
 
     def _action_bank(self, player: Player, action_id: str) -> None:
         """Bank score and end turn."""
         if not isinstance(player, ThreesPlayer):
             return
-        
-        # Explicit validation (for web clients)
-        if self.current_player != player:
-             return
-             
-        if not player.dice.has_rolled:
-            user = self.get_user(player)
-            if user:
-                user.speak_l("threes-roll-first", buffer="game")
-            return
 
-        if not player.dice.all_decided:
-             # In Threes, you must select everything before banking
-             user = self.get_user(player)
-             if user:
-                 user.speak_l("threes-keep-all-first", buffer="game")
-             return
+        disabled_reason = self._is_bank_enabled(player)
+        if disabled_reason:
+            self._speak_action_disabled_reason(player, disabled_reason)
+            return
 
         self._score_turn(player)
 
     def _action_check_hand(self, player: Player, action_id: str) -> None:
         """Check current dice."""
-        if not isinstance(player, ThreesPlayer):
-            return
-
         user = self.get_user(player)
         if not user:
             return
 
-        if not player.dice.has_rolled:
-            user.speak_l("threes-no-dice-yet", buffer="game")
+        disabled_reason = self._is_check_hand_enabled(player)
+        if disabled_reason:
+            self._speak_action_disabled_reason(player, disabled_reason)
             return
 
-        dice_str = self._format_dice_l(player.dice, user.locale)
-        user.speak_l("threes-your-dice", buffer="game", dice=dice_str)
+        current = self.current_player
+        if not isinstance(current, ThreesPlayer):
+            user.speak_l("threes-error-check-no-turn", buffer="game")
+            return
+
+        dice_str = self._format_dice_l(current.dice, user.locale)
+        score = self._turn_score_for_values(current.dice.values)
+        remaining = current.dice.unlocked_count
+        if current.id == player.id:
+            user.speak_l(
+                "threes-your-dice",
+                buffer="game",
+                dice=dice_str,
+                score=score,
+                remaining=remaining,
+            )
+        else:
+            user.speak_l(
+                "threes-player-dice",
+                buffer="game",
+                player=current.name,
+                dice=dice_str,
+                score=score,
+                remaining=remaining,
+            )
 
     def _score_turn(self, player: ThreesPlayer) -> None:
         """Calculate and apply turn score."""
         # Threes = 0 points, so sum all values excluding 3s
         score = player.dice.sum_values(exclude_value=3)
         six_count = player.dice.count_value(6)
+        new_total = player.total_score + score
 
         # Check for shooting the moon (5 sixes)
         if six_count == 5:
             score = -30
+            new_total = player.total_score + score
             self.play_sound("game_pig/win.ogg")
-            self.broadcast_personal_l(player, "threes-you-shot-moon", "threes-shot-moon")
+            self._broadcast_actor_l(
+                player,
+                "threes-you-shot-moon",
+                "threes-shot-moon",
+                brief_personal_key="threes-you-shot-moon-brief",
+                brief_others_key="threes-shot-moon-brief",
+                score=score,
+                total=new_total,
+            )
         else:
             self.play_sound("game_pig/bank.ogg")
-            self.broadcast_personal_l(
-                player, "threes-you-scored", "threes-scored", score=score
+            self._broadcast_actor_l(
+                player,
+                "threes-you-scored",
+                "threes-scored",
+                brief_personal_key="threes-you-scored-brief",
+                brief_others_key="threes-scored-brief",
+                score=score,
+                total=new_total,
             )
 
         player.turn_score = score
-        player.total_score += score
+        player.total_score = new_total
+        self._sync_team_scores()
 
+        self._focus_touch_roll_anchor(player)
         self._end_turn()
 
     def _end_turn(self) -> None:
@@ -494,14 +715,19 @@ class ThreesGame(Game, DiceGameMixin):
         """End the current round."""
         # Announce round scores
         scores = [
-            (p.name, p.total_score) for p in self.players if isinstance(p, ThreesPlayer)
+            (p.name, p.total_score) for p in self._active_threes_players()
         ]
         scores.sort(key=lambda x: x[1])  # Sort by score (lowest first)
 
         for player in self.players:
             user = self.get_user(player)
             if user:
-                user.speak_l("threes-round-scores-header", buffer="game", round=self.current_round)
+                header_key = (
+                    "threes-round-scores-header-brief"
+                    if self._wants_brief(user)
+                    else "threes-round-scores-header"
+                )
+                user.speak_l(header_key, buffer="game", round=self.current_round)
                 for name, score in scores:
                     user.speak_l("threes-score-pair", buffer="game", player=name, score=score)
 
@@ -515,14 +741,15 @@ class ThreesGame(Game, DiceGameMixin):
     def _start_round(self) -> None:
         """Start a new round."""
         self.current_round += 1
-        self.broadcast_l(
-            "threes-round-start", buffer="game",
+        self._broadcast_global_l(
+            "threes-round-start",
+            "threes-round-start-brief",
             round=self.current_round,
             total=self.options.total_rounds,
         )
 
         # Reset turn order to start of player list
-        self.set_turn_players(self.get_active_players())
+        self.set_turn_players(self._active_threes_players())
 
         self._start_turn()
 
@@ -536,12 +763,21 @@ class ThreesGame(Game, DiceGameMixin):
         player.dice.reset()
         player.turn_score = 0
 
-        # Announce turn (plays sound and broadcasts message)
-        self.announce_turn(turn_sound="game_3cardpoker/turn.ogg")
+        user = self.get_user(player)
+        if user and user.preferences.play_turn_sound:
+            user.play_sound("game_3cardpoker/turn.ogg")
+        self._broadcast_actor_l(
+            player,
+            "threes-turn-you",
+            "threes-turn-other",
+            brief_personal_key="threes-turn-you-brief",
+            brief_others_key="threes-turn-other-brief",
+            round=self.current_round,
+            total=self.options.total_rounds,
+            score=player.total_score,
+        )
 
         if player.is_bot:
-            import random
-
             BotHelper.jolt_bot(player, ticks=random.randint(20, 40))
 
         self.refresh_menus()
@@ -549,11 +785,7 @@ class ThreesGame(Game, DiceGameMixin):
     def _end_game(self) -> None:
         """End the game and announce winner."""
         # Find winner(s) (lowest score)
-        players_with_scores = [
-            (p, p.total_score)
-            for p in self.players
-            if isinstance(p, ThreesPlayer) and not p.is_spectator
-        ]
+        players_with_scores = [(p, p.total_score) for p in self._active_threes_players()]
         players_with_scores.sort(key=lambda x: x[1])
 
         lowest_score = players_with_scores[0][1]
@@ -561,18 +793,40 @@ class ThreesGame(Game, DiceGameMixin):
 
         if len(winners) == 1:
             self.play_sound("game_pig/win.ogg")
-            self.broadcast_l(
-                "threes-winner", buffer="game", player=winners[0].name, score=lowest_score
+            self._broadcast_actor_l(
+                winners[0],
+                "threes-winner-you",
+                "threes-winner-other",
+                brief_personal_key="threes-winner-you-brief",
+                brief_others_key="threes-winner-other-brief",
+                score=lowest_score,
             )
         else:
-            # winner_names = " and ".join(w.name for w in winners)
             winner_names_list = [w.name for w in winners]
-            
+            winner_ids = {winner.id for winner in winners}
+
             for player in self.players:
                 user = self.get_user(player)
                 if user:
-                    winner_names = Localization.format_list_and(user.locale, winner_names_list)
-                    user.speak_l("threes-tie", buffer="game", players=winner_names, score=lowest_score)
+                    other_names = [
+                        name for name in winner_names_list if name != player.name
+                    ]
+                    key = (
+                        "threes-tie-you"
+                        if player.id in winner_ids and other_names
+                        else "threes-tie"
+                    )
+                    if self._wants_brief(user):
+                        key = (
+                            "threes-tie-you-brief"
+                            if key == "threes-tie-you"
+                            else "threes-tie-brief"
+                        )
+                    names = other_names if key.startswith("threes-tie-you") else winner_names_list
+                    winner_names = Localization.format_list_and(user.locale, names)
+                    user.speak_l(
+                        key, buffer="game", players=winner_names, score=lowest_score
+                    )
 
         self.finish_game()
 
@@ -580,7 +834,7 @@ class ThreesGame(Game, DiceGameMixin):
         """Build the game result with Threes-specific data."""
         # Sorted by score ascending (lowest wins)
         sorted_players = sorted(
-            [p for p in self.players if isinstance(p, ThreesPlayer) and not p.is_spectator],
+            self._active_threes_players(),
             key=lambda p: p.total_score,
         )
 
@@ -590,6 +844,11 @@ class ThreesGame(Game, DiceGameMixin):
             final_scores[p.name] = p.total_score
 
         winner = sorted_players[0] if sorted_players else None
+        winner_score = winner.total_score if winner else 0
+        tied_winners = [
+            p for p in sorted_players if winner and p.total_score == winner_score
+        ]
+        single_winner = winner if len(tied_winners) == 1 else None
 
         return GameResult(
             game_type=self.get_type(),
@@ -604,8 +863,10 @@ class ThreesGame(Game, DiceGameMixin):
                 for p in sorted_players
             ],
             custom_data={
-                "winner_name": winner.name if winner else None,
-                "winner_score": winner.total_score if winner else 0,
+                "winner_name": single_winner.name if single_winner else None,
+                "winner_score": winner_score,
+                "winner_ids": [p.id for p in tied_winners],
+                "is_tie": len(tied_winners) > 1,
                 "final_scores": final_scores,
                 "rounds_played": self.current_round,
                 "total_rounds": self.options.total_rounds,
@@ -625,7 +886,7 @@ class ThreesGame(Game, DiceGameMixin):
             )
 
         return lines
-        
+
     def _format_dice_l(self, dice: DiceSet, locale: str) -> str:
         """Format dice with localized status."""
         parts = []
@@ -650,13 +911,15 @@ class ThreesGame(Game, DiceGameMixin):
         self.current_round = 0
 
         # Reset player scores
-        for player in self.players:
-            if isinstance(player, ThreesPlayer):
-                player.total_score = 0
-                player.dice.reset()
+        for player in self._active_threes_players():
+            player.total_score = 0
+            player.turn_score = 0
+            player.dice.reset()
 
         # Initialize turn order
-        self.set_turn_players(self.get_active_players())
+        active_players = self._active_threes_players()
+        self.set_turn_players(active_players)
+        self._ensure_score_teams()
 
         # Play music
         self.play_music("game_pig/mus.ogg")
@@ -720,12 +983,11 @@ class ThreesGame(Game, DiceGameMixin):
         locked_sixes = sum(1 for i in dice.locked if dice.get_value(i) == 6)
         available_sixes = available.get(6, [])
 
-        # Strategy 1: Go for moon shot if 3+ sixes locked or 4+ total sixes
-        if locked_sixes >= 3 or (len(available_sixes) + locked_sixes >= 4):
+        # Strategy 1: finish the moon shot when every die can become a six.
+        if available_sixes and locked_sixes + len(available_sixes) == dice.num_dice:
             for i in available_sixes:
                 dice.keep(i)
-            if available_sixes:
-                return
+            return
 
         # Strategy 2: Keep threes (0 points!)
         if 3 in available:
@@ -745,7 +1007,13 @@ class ThreesGame(Game, DiceGameMixin):
                 dice.keep(i)
             return
 
-        # Strategy 5: Keep lowest available
+        # Strategy 5: keep a six only when the moon shot is realistic.
+        if locked_sixes >= 4 and available_sixes:
+            for i in available_sixes:
+                dice.keep(i)
+            return
+
+        # Strategy 6: Keep lowest available
         for value in [4, 5, 6]:
             if value in available:
                 dice.keep(available[value][0])

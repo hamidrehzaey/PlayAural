@@ -1,82 +1,71 @@
 \*\*Threes\*\*
 
+Threes is a low-score dice game, also known in some places as Threes Away or Threes Are Free. Your goal is simple: finish the game with the fewest total points.
 
+Each player rolls five dice. Threes are special because they are worth 0 points. Every other die counts as its face value, so low numbers are good and high numbers are risky.
 
-Threes is a classic low-score dice game where the goal is to accumulate the fewest points possible. It is a beautifully simple game that rewards careful decision-making and risk management.
+\*\*Goal\*\*
 
-
-
-You roll five dice and must keep at least one after each roll. In this game, Threes are your best friends because they are worth zero points. Everything else counts at face value, and your mission is to avoid being stuck with high numbers like fives and sixes. The player with the lowest total score after all rounds wins.
-
-
-
-\*\*Gameplay\*\*
-
-
-
-A game of Threes is played over a set number of rounds (default is 10). Every player takes one turn per round. At the end of all rounds, the player with the lowest cumulative score is the winner.
-
-
+At the end of the chosen number of rounds, the player with the lowest total score wins.
 
 \*\*Your Turn\*\*
 
+1\. Roll all five dice.
 
+2\. Keep at least one die.
 
-On your turn, you start with five fresh dice.
+3\. Roll the remaining unlocked dice.
 
-1\. \*\*Roll:\*\* Press \*\*R\*\* to roll the dice.
+4\. Keep at least one more die after each roll.
 
-2\. \*\*Keep:\*\* After each roll, you \*\*must\*\* keep at least one die. Once a die is kept, it is locked and cannot be rerolled for the rest of the turn.
+5\. Continue until the turn is fully decided.
 
-3\. \*\*Repeat:\*\* Continue rolling the remaining dice and keeping at least one until all five dice are locked.
+Once a die is kept and you roll again, that die becomes locked for the rest of the turn. Locked dice cannot be changed.
 
-
-
-Your turn ends automatically once all five dice are decided. If you have only one unlocked die remaining, it is automatically scored. You can also press \*\*B\*\* to bank and end your turn immediately if all your dice are either kept or locked.
-
-
+If only one die remains unlocked, the turn is scored automatically. You can also use \*\*Bank and end turn\*\* when every die has been kept or locked.
 
 \*\*Scoring\*\*
 
+\* Each 3 is worth 0 points.
 
+\* Each 1, 2, 4, 5, or 6 is worth its face value.
 
-\* \*\*Threes (3s):\*\* 0 points. Always keep your threes!
+\* Lower scores are better.
 
-\* \*\*Other Dice:\*\* Face value (1=1 pt, 2=2 pts, 4=4 pts, 5=5 pts, 6=6 pts).
-
-\* \*\*Shooting the Moon:\*\* If you end your turn with five sixes (6-6-6-6-6), you score \*\*-30 points\*\*. This special bonus subtracts from your total score but is very difficult to achieve.
-
-
+\* If you finish with five 6s, you \*\*shoot the moon\*\* and score -30 points for that turn.
 
 \*\*Example Turn\*\*
 
+You roll 3, 5, 2, 6, and 3. You keep both 3s because they score 0.
 
+You roll the other three dice and get 4, 1, and 6. You keep the 1.
 
-1\. You roll: \*\*3, 5, 2, 6, 3\*\*. You keep the two \*\*3s\*\* (0 points).
+You roll the last two dice and get 3 and 5. You keep the 3. The final 5 is then scored automatically.
 
-2\. You roll the remaining three dice: \*\*4, 1, 6\*\*. You keep the \*\*1\*\* (1 point).
+Your turn score is 0 + 0 + 1 + 0 + 5 = 6 points.
 
-3\. You roll the last two dice: \*\*3, 5\*\*. You keep the \*\*3\*\* (0 points). 
+\*\*Options\*\*
 
-4\. The last die (\*\*5\*\*) is scored automatically. 
+\* \*\*Rounds:\*\* Choose how many rounds to play. The default is 10.
 
-\*\*Final Score:\*\* 0 + 0 + 1 + 0 + 5 = \*\*6 points\*\*.
+\*\*Personal Options\*\*
 
+\* \*\*Brief announcements:\*\* Shortens repeated turn, roll, keep, and scoring announcements.
 
+\* \*\*Dice keeping style:\*\* Choose whether number keys refer to die positions or die values.
 
-\*\*Game Options\*\*
+\*\*Information Actions\*\*
 
-\* \*\*Total Rounds:\*\* The number of rounds to play (default 10).
+\* \*\*Check dice:\*\* Hear the current turn's dice, kept or locked status, possible turn score, and how many dice remain unlocked.
 
-
+\* \*\*Check scores:\*\* Hear the current standings.
 
 \*\*Keyboard Shortcuts\*\*
 
-
-
 \* \*\*R:\*\* Roll the dice.
 
-\* \*\*B:\*\* Bank your score and end your turn.
+\* \*\*B:\*\* Bank your turn score.
 
-\* \*\*1-5:\*\* Toggle keeping/rerolling a die.
+\* \*\*1-5:\*\* Keep or release dice when using position-based dice controls.
 
+\* \*\*H:\*\* Check the current dice.

@@ -19,6 +19,17 @@ from ..users.test_user import MockUser
 from ..users.bot import Bot
 
 
+def latest_turn_selection(user: MockUser) -> str | None:
+    """Return the last explicit turn-menu focus directive sent to a mock user."""
+    for message in reversed(user.messages):
+        if (
+            message.type in {"show_menu", "update_menu"}
+            and message.data.get("menu_id") == "turn_menu"
+        ):
+            return message.data.get("selection_id")
+    return None
+
+
 class TestMidnightGameUnit:
     """Unit tests for Midnight game functions."""
 
@@ -270,6 +281,20 @@ class TestMidnightGameActions:
 
         # Should not reach here
         assert False, "Autobank should have triggered"
+
+    def test_auto_score_after_roll_focuses_roll_anchor_for_touch(self, monkeypatch):
+        """Touch focus should return to Roll when rolling triggers auto-score."""
+        self.user1.client_type = "mobile"
+        self.player1.dice.values = [1, 4, 6, 5, 3, 2]
+        self.player1.dice.locked = [0, 1, 2, 3]
+        self.player1.dice.kept = [0, 1, 2, 3, 4]
+        monkeypatch.setattr(dice_utils.random, "randint", lambda _low, _high: 6)
+
+        self.game.execute_action(self.player1, "roll")
+        self.game.flush_menus()
+
+        assert self.game.current_player == self.player2
+        assert latest_turn_selection(self.user1) == "roll"
 
     def test_dice_toggle_hidden_before_roll(self):
         """Test that dice toggle actions are hidden before first roll."""

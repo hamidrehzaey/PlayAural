@@ -1,82 +1,71 @@
-\*\*Ba điểm (Threes)\*\*
+\*\*Ba điểm\*\*
 
+Ba điểm là một trò chơi xúc xắc tính điểm thấp. Ở một số nơi, trò này còn được gọi là Threes Away hoặc Threes Are Free. Mục tiêu rất đơn giản: kết thúc ván với tổng điểm càng thấp càng tốt.
 
+Mỗi người chơi gieo năm viên xúc xắc. Mặt 3 rất đặc biệt vì được tính 0 điểm. Các mặt còn lại tính đúng theo số trên mặt xúc xắc, nên số thấp thì có lợi, còn số cao thì rủi ro hơn.
 
-Threes là một trò chơi xúc xắc tính điểm thấp cổ điển, nơi mục tiêu của bạn là tích lũy càng ít điểm càng tốt. Đây là một trò chơi đơn giản nhưng đầy thú vị, đòi hỏi người chơi phải đưa ra những quyết định cẩn thận trong từng lần gieo.
+\*\*Mục tiêu\*\*
 
-
-
-Bạn gieo năm viên xúc xắc và phải giữ lại ít nhất một viên sau mỗi lần gieo. Trong trò chơi này, những con 3 là người bạn tốt nhất của bạn vì chúng có giá trị bằng 0 điểm. Tất cả các con số khác đều được tính theo giá trị mặt của chúng — và chắc chắn bạn sẽ không muốn bị kẹt lại với những con 5 hay con 6.
-
-
-
-\*\*Cách chơi\*\*
-
-
-
-Một ván Threes diễn ra trong một số vòng nhất định (mặc định là 10 vòng). Mỗi người chơi thực hiện một lượt mỗi vòng. Kết thúc tất cả các vòng, người chơi có tổng điểm thấp nhất sẽ giành chiến thắng.
-
-
+Sau số vòng đã chọn, người chơi có tổng điểm thấp nhất sẽ thắng.
 
 \*\*Lượt chơi của bạn\*\*
 
+1\. Gieo cả năm viên xúc xắc.
 
+2\. Giữ ít nhất một viên.
 
-Khi bắt đầu lượt, bạn có năm viên xúc xắc mới.
+3\. Gieo lại các viên chưa khóa.
 
-1\. \*\*Gieo:\*\* Nhấn \*\*R\*\* để gieo xúc xắc.
+4\. Sau mỗi lần gieo, tiếp tục giữ thêm ít nhất một viên.
 
-2\. \*\*Giữ:\*\* Sau mỗi lần gieo, bạn \*\*bắt buộc\*\* phải giữ lại ít nhất một viên. Những viên đã giữ sẽ bị khóa và không thể gieo lại trong lượt đó.
+5\. Lặp lại cho đến khi lượt chơi được quyết định hoàn toàn.
 
-3\. \*\*Lặp lại:\*\* Tiếp tục gieo những viên còn lại và giữ thêm ít nhất một viên cho đến khi cả năm viên đều được khóa.
+Khi bạn đã giữ một viên và gieo lại, viên đó sẽ bị khóa cho đến hết lượt. Xúc xắc đã khóa không thể thay đổi.
 
-
-
-Lượt chơi của bạn sẽ tự động kết thúc khi cả năm viên xúc xắc đã được quyết định. Nếu bạn chỉ còn lại một viên xúc xắc chưa khóa, nó sẽ được tự động tính điểm. Bạn cũng có thể nhấn \*\*B\*\* để chốt điểm và dừng lượt ngay khi tất cả xúc xắc đã được giữ hoặc khóa.
-
-
+Nếu chỉ còn một viên chưa khóa, lượt chơi sẽ được tính điểm tự động. Bạn cũng có thể dùng \*\*Chốt điểm và kết thúc lượt\*\* khi mọi viên xúc xắc đều đã được giữ hoặc khóa.
 
 \*\*Cách tính điểm\*\*
 
+\* Mỗi mặt 3 được 0 điểm.
 
+\* Mỗi mặt 1, 2, 4, 5, hoặc 6 tính đúng theo giá trị trên mặt xúc xắc.
 
-\* \*\*Con 3:\*\* 0 điểm. Đây là quy tắc cốt lõi của trò chơi. Hãy luôn giữ lại những con 3!
+\* Điểm càng thấp càng tốt.
 
-\* \*\*Các con số khác:\*\* Tính theo giá trị mặt (1=1 điểm, 2=2 điểm, 4=4 điểm, 5=5 điểm, 6=6 điểm).
+\* Nếu bạn kết thúc lượt với năm mặt 6, bạn \*\*chạm trăng\*\* và ghi -30 điểm cho lượt đó.
 
-\* \*\*Chạm tới mặt trăng (Shooting the Moon):\*\* Nếu bạn kết thúc lượt với cả năm viên xúc xắc đều là con 6, bạn sẽ được thưởng \*\*-30 điểm\*\*. Đây là một cú lội ngược dòng ngoạn mục nhưng cực kỳ khó thực hiện.
+\*\*Ví dụ một lượt\*\*
 
+Bạn gieo được 3, 5, 2, 6, và 3. Bạn giữ cả hai mặt 3 vì chúng được 0 điểm.
 
+Bạn gieo lại ba viên còn lại và được 4, 1, và 6. Bạn giữ mặt 1.
 
-\*\*Ví dụ một lượt chơi\*\*
+Bạn gieo hai viên cuối và được 3 và 5. Bạn giữ mặt 3. Viên 5 cuối cùng sẽ được tính điểm tự động.
 
+Điểm lượt này của bạn là 0 + 0 + 1 + 0 + 5 = 6 điểm.
 
+\*\*Tùy chọn\*\*
 
-1\. Bạn gieo được: \*\*3, 5, 2, 6, 3\*\*. Bạn giữ lại hai con \*\*3\*\* (0 điểm).
+\* \*\*Số vòng:\*\* Chọn số vòng sẽ chơi. Mặc định là 10.
 
-2\. Bạn gieo ba viên còn lại: được \*\*4, 1, 6\*\*. Bạn giữ lại con \*\*1\*\* (1 điểm).
+\*\*Tùy chọn cá nhân\*\*
 
-3\. Bạn gieo hai viên cuối: được \*\*3, 5\*\*. Bạn giữ con \*\*3\*\* (0 điểm).
+\* \*\*Thông báo ngắn gọn:\*\* Rút ngắn các thông báo lặp lại về lượt chơi, gieo, giữ xúc xắc, và tính điểm.
 
-4\. Viên cuối cùng (\*\*5\*\*) được tính điểm tự động.
+\* \*\*Kiểu giữ xúc xắc:\*\* Chọn phím số theo vị trí viên xúc xắc hoặc theo giá trị mặt xúc xắc.
 
-\*\*Tổng điểm lượt này:\*\* 0 + 0 + 1 + 0 + 5 = \*\*6 điểm\*\*.
+\*\*Hành động thông tin\*\*
 
+\* \*\*Kiểm tra xúc xắc:\*\* Nghe xúc xắc của lượt hiện tại, trạng thái đang giữ hoặc đã khóa, điểm lượt nếu chốt ngay, và số viên còn chưa khóa.
 
+\* \*\*Kiểm tra điểm:\*\* Nghe bảng điểm hiện tại.
 
-\*\*Tùy chọn trò chơi\*\*
-
-\* \*\*Tổng số vòng:\*\* Số vòng chơi (mặc định 10).
-
-
-
-\*\*Phím tắt bàn phím\*\*
-
-
+\*\*Phím tắt\*\*
 
 \* \*\*R:\*\* Gieo xúc xắc.
 
-\* \*\*B:\*\* Chốt và dừng lượt.
+\* \*\*B:\*\* Chốt điểm lượt chơi.
 
-\* \*\*1-5:\*\* Chọn giữ hoặc bỏ giữ một viên xúc xắc.
+\* \*\*1-5:\*\* Giữ hoặc bỏ giữ xúc xắc khi dùng kiểu điều khiển theo vị trí.
 
+\* \*\*H:\*\* Kiểm tra xúc xắc hiện tại.

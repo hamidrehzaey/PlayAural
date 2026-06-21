@@ -133,6 +133,20 @@ class DiceGameMixin:
     # Default is_enabled / is_hidden implementations (games can override)
     # ==========================================================================
 
+    def _first_toggleable_die_index(self, player: Player) -> int | None:
+        """Return any die index that the game currently allows toggling."""
+        if not hasattr(player, "dice"):
+            return None
+
+        dice = player.dice
+        for die_index in range(dice.num_dice):
+            if dice.is_locked(die_index):
+                continue
+            toggle_reason = self._is_dice_toggle_enabled(player, die_index)
+            if toggle_reason is None:
+                return die_index
+        return None
+
     def _is_dice_key_enabled(self, player: Player, *, action_id: str | None = None) -> str | None:
         """Enable dice keybind actions based on game state and keeping style."""
         if self.status != "playing":
@@ -158,12 +172,12 @@ class DiceGameMixin:
         if hasattr(self, "_is_dice_toggle_enabled"):
             if style == DiceKeepingStyle.INDEX_BASED:
                 die_index = key_num - 1
-            else:
-                die_index = 0
-            if hasattr(player, "dice") and die_index >= player.dice.num_dice:
-                return "action-not-available"
-            toggle_reason = self._is_dice_toggle_enabled(player, die_index)
-            if toggle_reason is not None:
+                if hasattr(player, "dice") and die_index >= player.dice.num_dice:
+                    return "action-not-available"
+                toggle_reason = self._is_dice_toggle_enabled(player, die_index)
+                if toggle_reason is not None:
+                    return "action-not-available"
+            elif self._first_toggleable_die_index(player) is None:
                 return "action-not-available"
         if style == DiceKeepingStyle.VALUE_BASED and hasattr(player, "dice"):
             if not self._has_kept_value(player, key_num):
@@ -191,8 +205,7 @@ class DiceGameMixin:
             if hasattr(player, "dice") and key_num > player.dice.sides:
                 return "action-not-available"
         if hasattr(self, "_is_dice_toggle_enabled"):
-            toggle_reason = self._is_dice_toggle_enabled(player, 0)
-            if toggle_reason is not None:
+            if self._first_toggleable_die_index(player) is None:
                 return "action-not-available"
         if hasattr(player, "dice") and key_num is not None:
             if not self._has_unkept_value(player, key_num):
@@ -382,7 +395,7 @@ class DiceGameMixin:
         """Get label for die toggle action. Override in game class."""
         if not hasattr(player, "dice"):
             return f"Die {die_index + 1}"
-        
+
         # Determine locale
         user = self.get_user(player)
         locale = user.locale if user else "en"

@@ -538,6 +538,7 @@ class TeamManager(DataClassJSONMixin):
         locale: str = "en",
         target_score: int | None = None,
         score_unit_key: str = "game-score-unit-points",
+        descending: bool = True,
     ) -> str:
         """
         Format scores as a brief single-line string for speaking.
@@ -545,7 +546,7 @@ class TeamManager(DataClassJSONMixin):
         Returns something like: "Alice: 5 points. Bob: 3 points."
         The unit comes from ``score_unit_key`` and may be chips, tokens, rounds, etc.
         """
-        sorted_teams = self.get_sorted_teams(by_score=True, descending=True)
+        sorted_teams = self.get_sorted_teams(by_score=True, descending=descending)
         parts = []
         for team in sorted_teams:
             parts.append(
@@ -563,6 +564,7 @@ class TeamManager(DataClassJSONMixin):
         locale: str = "en",
         target_score: int | None = None,
         score_unit_key: str = "game-score-unit-points",
+        descending: bool = True,
     ) -> list[str]:
         """
         Format scores as a list of lines for a status box.
@@ -574,7 +576,7 @@ class TeamManager(DataClassJSONMixin):
 
         No header needed - screen readers speak list items directly.
         """
-        sorted_teams = self.get_sorted_teams(by_score=True, descending=True)
+        sorted_teams = self.get_sorted_teams(by_score=True, descending=descending)
         lines = []
         for team in sorted_teams:
             lines.append(
