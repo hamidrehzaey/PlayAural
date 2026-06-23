@@ -24,6 +24,7 @@ export function createHistoryView({
   let renderedLogBuffer = "";
   let renderedLogValue = "";
   let renderScheduled = false;
+  const bufferFieldEl = bufferSelectEl?.closest("label") || bufferSelectEl || null;
 
   setMutedBuffers(initialMutedBuffers, { notify: false });
 
@@ -170,6 +171,13 @@ export function createHistoryView({
   function renderMobileVisibility() {
     if (!historyContentEl || !historyToggleEl || !historyLogEl) {
       return;
+    }
+    const hideBufferField = isMobileLike && mobileCollapsed;
+    if (bufferFieldEl) {
+      bufferFieldEl.hidden = hideBufferField;
+      if (hideBufferField && bufferFieldEl.contains(document.activeElement)) {
+        historyToggleEl.focus({ preventScroll: true });
+      }
     }
     if (!isMobileLike) {
       historyToggleEl.hidden = false;
