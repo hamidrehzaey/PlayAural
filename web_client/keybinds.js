@@ -386,16 +386,13 @@ export function installKeybinds({
         return;
       }
       event.preventDefault();
-      if (menu.escapeBehavior === "escape_event") {
+      if (
+        menu.escapeBehavior === "escape_event"
+        || menu.escapeBehavior === "back"
+        || menu.escapeBehavior === "select_first_option"
+        || menu.escapeBehavior === "select_last_option"
+      ) {
         sendEscape();
-        return;
-      }
-      if (menu.escapeBehavior === "select_last_option") {
-        const lastIndex = menu.items.length - 1;
-        if (lastIndex >= 0) {
-          menuView.setSelection(lastIndex);
-          sendMenuSelection(lastIndex);
-        }
         return;
       }
       // keybind behavior: send actual key name so server-defined keybinds match.

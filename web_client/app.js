@@ -8,12 +8,21 @@ import { createHistoryView } from "./ui/history.js";
 import { createMenuView } from "./ui/menus.js";
 
 const CLIENT_VERSION = String(window.PLAYAURAL_WEB_VERSION || "1.0.4.5");
-const DEFAULT_SERVER_URL = String(window.PLAYAURAL_SERVER_URL || "wss://playaural.ddt.one:443").trim();
+const WEB_CLIENT_CONFIG = window.PLAYAURAL_WEB_CONFIG || {};
+const DEFAULT_SERVER_URL = String(
+  WEB_CLIENT_CONFIG.serverUrl
+  || window.PLAYAURAL_SERVER_URL
+  || "wss://playaural.ddt.one:443",
+).trim();
 const CONFIG_KEY = "playaural_config";
 const REMEMBER_KEY = "pa_remember";
 const USER_KEY = "pa_user";
 const PASS_KEY = "pa_pass";
 const LANG_KEY = "pa_lang";
+const RECONNECT_WINDOW_MS = 30000;
+const RECONNECT_INITIAL_DELAY_MS = 1000;
+const RECONNECT_MAX_DELAY_MS = 10000;
+const SERVER_RESTART_RECONNECT_DELAY_MS = 3000;
 const RECAPTCHA_SITE_KEY = String(
   window.PLAYAURAL_RECAPTCHA_SITE_KEY || window.RECAPTCHA_SITE_KEY || "",
 ).trim();
@@ -865,7 +874,7 @@ class PlayAuralWebApp {
       validator,
       onStatus: (status) => this.handleNetworkStatus(status),
       onPacket: (packet) => this.handlePacket(packet),
-      onError: (message) => this.localError(message),
+      onError: (message, params) => this.handleNetworkError(message, params),
     });
 
     this.lastUser = "";
@@ -874,7 +883,11 @@ class PlayAuralWebApp {
     this.shouldReconnect = false;
     this.manualDisconnect = false;
     this.reconnectAttempts = 0;
+    this.reconnectStartedAt = 0;
+    this.reconnectDelayMs = RECONNECT_INITIAL_DELAY_MS;
     this.reconnectTimer = null;
+    this.reconnectDeadlineTimer = null;
+    this.sessionEstablished = false;
     this.currentAuthStatusEl = this.elements.loginStatus;
     this.currentTableContextId = "";
     this.webActionsItem = null;
@@ -884,6 +897,7 @@ class PlayAuralWebApp {
     this.pingStart = null;
     this.playlists = {};
     this.connectionStatusMessage = "status-disconnected";
+    this.connectionStatusParams = {};
     this.connectionStatusError = false;
     this.deferredPrompt = null;
     this.isIOS = (
@@ -1339,7 +1353,7 @@ class PlayAuralWebApp {
       [byId("buffer-option-game"), "buffer-game"],
       [byId("buffer-option-system"), "buffer-system"],
       [byId("buffer-option-misc"), "buffer-misc"],
-      [byId("chat-heading"), "tab-chat"],
+      [byId("chat-heading"), "chat-heading"],
       [byId("chat-input-label"), "chat-input-label"],
       [byId("btn-chat-send"), "btn-chat-send"],
       [byId("voice-chat-heading"), "voice-chat-heading"],
@@ -1382,7 +1396,11 @@ class PlayAuralWebApp {
       e.installInstruction.hidden = false;
     }
     this.renderSavedSession();
-    this.updateConnectionStatus(this.connectionStatusMessage, this.connectionStatusError);
+    this.updateConnectionStatus(
+      this.connectionStatusMessage,
+      this.connectionStatusError,
+      this.connectionStatusParams,
+    );
     this.updateVolumeLabels();
   }
 
@@ -1560,8 +1578,8 @@ class PlayAuralWebApp {
     }
   }
 
-  localError(message, statusEl = this.currentAuthStatusEl) {
-    const text = Localization.has(message) ? Localization.get(message) : String(message || "");
+  localError(message, statusEl = this.currentAuthStatusEl, params = {}) {
+    const text = Localization.has(message) ? Localization.get(message, params) : String(message || "");
     if (statusEl) {
       statusEl.textContent = text;
       statusEl.classList.add("error");
@@ -1779,78 +1797,192 @@ class PlayAuralWebApp {
 
   handleNetworkStatus(status) {
     this.store.setConnection({ status });
+    const reconnecting = this.isReconnectEligible() && this.reconnectStartedAt > 0;
     if (status === "connected") {
-      this.updateConnectionStatus("status-authenticating");
-      this.reconnectAttempts = 0;
+      this.updateConnectionStatus(reconnecting ? "main-reconnecting" : "status-authenticating");
       return;
     }
     if (status === "connecting") {
-      this.updateConnectionStatus("status-connecting");
+      if (!reconnecting) {
+        this.updateConnectionStatus("status-connecting");
+      }
       return;
     }
     if (status === "error") {
-      this.updateConnectionStatus("status-connection-error", true);
+      if (!this.isReconnectEligible()) {
+        this.updateConnectionStatus("status-connection-error", true);
+      }
       return;
     }
     if (status === "disconnected") {
       this.store.setConnection({ authenticated: false });
-      this.updateConnectionStatus("status-disconnected");
       this.cleanupRuntime();
-      if (this.shouldReconnect && !this.manualDisconnect && this.lastUser && this.lastPass && this.lastUrl) {
-        this.scheduleReconnect();
+      if (this.isReconnectEligible()) {
+        this.startReconnectWindow({
+          statusKey: "main-attempting-reconnect",
+          speak: this.reconnectStartedAt === 0,
+        });
       } else {
+        this.updateConnectionStatus("status-disconnected");
         this.showAuth();
       }
     }
   }
 
-  updateConnectionStatus(keyOrText, error = false) {
+  handleNetworkError(message, params = {}) {
+    if (this.isReconnectEligible()) {
+      console.warn("Network error while reconnecting:", message, params);
+      return;
+    }
+    this.localError(message, this.currentAuthStatusEl, params);
+  }
+
+  updateConnectionStatus(keyOrText, error = false, params = {}) {
     this.connectionStatusMessage = keyOrText;
+    this.connectionStatusParams = params && typeof params === "object" ? { ...params } : {};
     this.connectionStatusError = error;
-    const text = Localization.has(keyOrText) ? Localization.get(keyOrText) : String(keyOrText || "");
+    const text = Localization.has(keyOrText)
+      ? Localization.get(keyOrText, this.connectionStatusParams)
+      : String(keyOrText || "");
     if (this.currentAuthStatusEl && !this.elements.authScreen.hidden) {
       this.currentAuthStatusEl.textContent = text;
       this.currentAuthStatusEl.classList.toggle("error", error);
     }
   }
 
-  scheduleReconnect() {
+  isReconnectEligible() {
+    return Boolean(
+      this.shouldReconnect
+      && !this.manualDisconnect
+      && this.sessionEstablished
+      && this.lastUser
+      && this.lastPass
+      && this.lastUrl
+    );
+  }
+
+  resetReconnectState() {
+    if (this.reconnectTimer) {
+      window.clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    if (this.reconnectDeadlineTimer) {
+      window.clearTimeout(this.reconnectDeadlineTimer);
+      this.reconnectDeadlineTimer = null;
+    }
+    this.reconnectAttempts = 0;
+    this.reconnectStartedAt = 0;
+    this.reconnectDelayMs = RECONNECT_INITIAL_DELAY_MS;
+  }
+
+  startReconnectWindow({
+    initialDelayMs = 0,
+    statusKey = "main-attempting-reconnect",
+    params = {},
+    speak = true,
+  } = {}) {
+    if (!this.isReconnectEligible()) {
+      return;
+    }
+    const startingWindow = !this.reconnectStartedAt;
+    if (startingWindow) {
+      this.reconnectStartedAt = Date.now();
+      this.reconnectDelayMs = RECONNECT_INITIAL_DELAY_MS;
+      this.reconnectAttempts = 0;
+      this.reconnectDeadlineTimer = window.setTimeout(() => {
+        if (this.isReconnectEligible()) {
+          this.failReconnect();
+        }
+      }, RECONNECT_WINDOW_MS);
+    }
+    const retryDelayMs = startingWindow
+      ? initialDelayMs
+      : Math.max(initialDelayMs, this.reconnectDelayMs);
+    this.updateConnectionStatus(statusKey, false, params);
+    if (speak) {
+      this.speak(statusKey, {
+        params,
+        buffer: "system",
+        assertive: true,
+      });
+    }
+    this.scheduleReconnectAttempt(retryDelayMs);
+  }
+
+  scheduleReconnectAttempt(delayMs = this.reconnectDelayMs) {
+    if (!this.isReconnectEligible()) {
+      return;
+    }
     if (this.reconnectTimer) {
       return;
     }
-    const delay = Math.min(15000, 3000 + this.reconnectAttempts * 2000);
+    const startedAt = this.reconnectStartedAt || Date.now();
+    this.reconnectStartedAt = startedAt;
+    const remainingMs = RECONNECT_WINDOW_MS - (Date.now() - startedAt);
+    if (remainingMs <= 0) {
+      this.failReconnect();
+      return;
+    }
+    const delay = Math.max(0, Math.min(delayMs, remainingMs));
+    this.reconnectTimer = window.setTimeout(() => {
+      this.reconnectTimer = null;
+      this.performReconnectAttempt();
+    }, delay);
+  }
+
+  performReconnectAttempt() {
+    if (!this.isReconnectEligible()) {
+      return;
+    }
+    const elapsedMs = Date.now() - (this.reconnectStartedAt || Date.now());
+    if (elapsedMs > RECONNECT_WINDOW_MS) {
+      this.failReconnect();
+      return;
+    }
     this.reconnectAttempts += 1;
-    this.speak(Localization.get("main-reconnecting-in-3s", { seconds: Math.round(delay / 1000) }), {
+    this.updateConnectionStatus("main-reconnecting");
+    this.network.connect({
+      serverUrl: this.lastUrl,
+      authPacket: {
+        type: "authorize",
+        username: this.lastUser,
+        password: this.lastPass,
+        version: CLIENT_VERSION,
+        client: "web",
+      },
+    });
+    this.reconnectDelayMs = Math.min(
+      Math.max(this.reconnectDelayMs, RECONNECT_INITIAL_DELAY_MS) * 2,
+      RECONNECT_MAX_DELAY_MS,
+    );
+  }
+
+  failReconnect() {
+    this.shouldReconnect = false;
+    this.manualDisconnect = true;
+    this.sessionEstablished = false;
+    this.resetReconnectState();
+    this.network.disconnect();
+    this.cleanupRuntime(true);
+    this.store.setConnection({ authenticated: false, status: "disconnected" });
+    this.showAuth();
+    this.updateConnectionStatus("main-reconnect-failed", true);
+    this.speak("main-reconnect-failed", {
       buffer: "system",
       assertive: true,
     });
-    this.reconnectTimer = window.setTimeout(() => {
-      this.reconnectTimer = null;
-      this.network.connect({
-        serverUrl: this.lastUrl,
-        authPacket: {
-          type: "authorize",
-          username: this.lastUser,
-          password: this.lastPass,
-          version: CLIENT_VERSION,
-          client: "web",
-        },
-      });
-    }, delay);
   }
 
   disconnectManually() {
     this.shouldReconnect = false;
     this.manualDisconnect = true;
-    if (this.reconnectTimer) {
-      window.clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-    }
+    this.sessionEstablished = false;
+    this.resetReconnectState();
     this.network.disconnect();
     this.store.setConnection({ authenticated: false, status: "disconnected" });
     this.cleanupRuntime(true);
-    this.updateConnectionStatus("status-disconnected");
     this.showAuth();
+    this.updateConnectionStatus("status-disconnected");
   }
 
   cleanupRuntime(full = false) {
@@ -2010,6 +2142,8 @@ class PlayAuralWebApp {
   handleLoginFailed(packet) {
     this.shouldReconnect = false;
     this.manualDisconnect = true;
+    this.sessionEstablished = false;
+    this.resetReconnectState();
     const message = this.authResponseMessage(packet, "", "auth-error-wrong-password");
     this.localError(message, this.elements.loginStatus);
     this.network.disconnect();
@@ -2030,6 +2164,10 @@ class PlayAuralWebApp {
   }
 
   handleAuthorizeSuccess(packet) {
+    this.sessionEstablished = true;
+    this.shouldReconnect = true;
+    this.manualDisconnect = false;
+    this.resetReconnectState();
     this.store.setConnection({
       authenticated: true,
       username: packet.username || this.lastUser,
@@ -2064,30 +2202,49 @@ class PlayAuralWebApp {
   }
 
   handleServerDisconnect(packet) {
+    if (packet.reconnect === true) {
+      this.shouldReconnect = true;
+      this.manualDisconnect = false;
+      this.sessionEstablished = true;
+      this.cleanupRuntime();
+      this.network.disconnect();
+      this.store.setConnection({ authenticated: false, status: "disconnected" });
+      this.startReconnectWindow({
+        initialDelayMs: SERVER_RESTART_RECONNECT_DELAY_MS,
+        statusKey: "main-reconnecting-in-3s",
+        params: { seconds: Math.round(SERVER_RESTART_RECONNECT_DELAY_MS / 1000) },
+        speak: true,
+      });
+      return;
+    }
     if (packet.reconnect === false) {
       this.shouldReconnect = false;
       this.manualDisconnect = true;
+      this.sessionEstablished = false;
+      this.resetReconnectState();
     }
     const reason = packet.reason ? Localization.get(packet.reason) : Localization.get("status-disconnected");
     this.speak(reason, { buffer: "system", assertive: true });
     this.network.disconnect();
     this.store.setConnection({ authenticated: false, status: "disconnected" });
-    this.updateConnectionStatus(reason, true);
     if (!this.shouldReconnect) {
       this.showAuth();
     }
+    this.updateConnectionStatus(reason, true);
   }
 
   handleForceExit(packet) {
     this.shouldReconnect = false;
     this.manualDisconnect = true;
+    this.sessionEstablished = false;
+    this.resetReconnectState();
     const reason = packet.reason ? Localization.get(packet.reason) : Localization.get("status-disconnected");
     this.speak(reason, { buffer: "system", assertive: true });
     this.network.disconnect();
     this.store.setConnection({ authenticated: false, status: "disconnected" });
     this.cleanupRuntime(true);
-    this.updateConnectionStatus(reason, true);
     this.showAuth();
+    this.updateConnectionStatus(reason, true);
   }
 
   handleVoiceJoinError(packet) {
@@ -2379,14 +2536,38 @@ class PlayAuralWebApp {
       this.cancelInlineInput();
       return;
     }
-    const behavior = this.store.state.currentMenu.escapeBehavior || "keybind";
+    const menu = this.store.state.currentMenu;
+    const behavior = menu.escapeBehavior || "keybind";
+    if (behavior === "escape_event") {
+      this.focusMenuOnNextPacket = true;
+      this.send({
+        type: "escape",
+        menu_id: menu.menuId,
+      });
+      return;
+    }
     if (behavior === "back") {
       this.focusMenuOnNextPacket = true;
       this.send({
         type: "menu",
-        menu_id: this.store.state.currentMenu.menuId,
+        menu_id: menu.menuId,
         selection_id: "back",
       });
+      return;
+    }
+    if (behavior === "select_last_option" || behavior === "select_first_option") {
+      const index = behavior === "select_last_option" ? menu.items.length - 1 : 0;
+      const item = menu.items[index];
+      if (item) {
+        this.focusMenuOnNextPacket = true;
+        this.audio.playSound({ name: "menuenter.ogg", volume: 50 });
+        this.send({
+          type: "menu",
+          menu_id: menu.menuId,
+          selection: index + 1,
+          selection_id: item.id,
+        });
+      }
       return;
     }
     this.sendKeybind("escape", this.focusedMenuItemId());
@@ -2801,6 +2982,6 @@ bootstrap().catch((error) => {
   console.error("PlayAural web client failed to start.", error);
   const target = byId("live-assertive") || document.body;
   const message = document.createElement("p");
-  message.textContent = "PlayAural web client failed to start. Please refresh the page.";
+  message.textContent = Localization.get("startup-error");
   target.appendChild(message);
 });

@@ -148,12 +148,12 @@ export function createNetworkClient({ validator, onStatus, onPacket, onError }) 
 
   function send(packet) {
     if (!isConnected()) {
-      onError("Not connected.");
+      onError("network-error-not-connected");
       return false;
     }
     const check = validator.validateOutgoing(packet);
     if (!check.ok) {
-      onError(`Blocked outgoing packet: ${check.error}`);
+      onError("network-error-outgoing-blocked", { reason: check.error });
       return false;
     }
     ws.send(JSON.stringify(packet));
@@ -181,7 +181,7 @@ export function createNetworkClient({ validator, onStatus, onPacket, onError }) 
       }
       onStatus("connected");
       if (!authPacket || typeof authPacket !== "object") {
-        onError("Missing auth packet.");
+        onError("network-error-auth-missing");
         return;
       }
       send(authPacket);
@@ -195,12 +195,12 @@ export function createNetworkClient({ validator, onStatus, onPacket, onError }) 
         const packet = JSON.parse(event.data);
         const check = validator.validateIncoming(packet);
         if (!check.ok) {
-          onError(`Ignored incoming packet: ${check.error}`);
+          onError("network-error-incoming-blocked", { reason: check.error });
           return;
         }
         onPacket(packet);
       } catch (error) {
-        onError(`Invalid server message: ${String(error)}`);
+        onError("network-error-invalid-server-message", { reason: String(error) });
       }
     });
 
@@ -217,7 +217,7 @@ export function createNetworkClient({ validator, onStatus, onPacket, onError }) 
         return;
       }
       onStatus("error");
-      onError("WebSocket connection error.");
+      onError("network-error-websocket");
     });
   }
 
