@@ -421,8 +421,8 @@ class PiratesGame(Game):
 
         return action_set
 
-    # WEB-SPECIFIC: Target order for Standard Actions
-    web_target_order = [
+    # Touch clients need desktop-keybind utility actions as visible buttons.
+    touch_standard_action_order = [
         "check_position",
         "check_moon",
         "check_status",
@@ -457,7 +457,7 @@ class PiratesGame(Game):
                 label=Localization.get(locale, "pirates-check-position"),
                 handler="_action_check_position",
                 is_enabled="_is_status_enabled",
-                is_hidden="_is_always_hidden",
+                is_hidden="_is_check_position_hidden",
             )
         )
         action_set.add(
@@ -482,7 +482,9 @@ class PiratesGame(Game):
         )
 
         if self.is_touch_client(user):
-            self._order_touch_standard_actions(action_set, self.web_target_order)
+            self._order_touch_standard_actions(
+                action_set, self.touch_standard_action_order
+            )
 
         return action_set
 
@@ -912,7 +914,7 @@ class PiratesGame(Game):
         """Always return hidden - for keybind-only actions."""
         return Visibility.HIDDEN
 
-    # WEB-SPECIFIC: Visibility Overrides
+    # Touch-specific visibility overrides.
 
     def _is_whos_at_table_hidden(self, player: "Player") -> Visibility:
         """Override: Visible for Web (always), hidden otherwise."""
@@ -931,7 +933,9 @@ class PiratesGame(Game):
         return super()._is_whose_turn_hidden(player)
 
     def _is_check_position_hidden(self, player: "Player") -> Visibility:
-        """Override: Visible for Web, hidden otherwise."""
+        """Show the position check as a touch utility during active play."""
+        if self.status != "playing":
+            return Visibility.HIDDEN
         if player.is_spectator:
             return Visibility.HIDDEN
         user = self.get_user(player)

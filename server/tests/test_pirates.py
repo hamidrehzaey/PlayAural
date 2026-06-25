@@ -213,6 +213,11 @@ def test_touch_actions_hidden_while_waiting_and_ordered_during_play() -> None:
     assert "use_skill" not in waiting_ids
 
     game.on_start()
+    playing_ids = {
+        resolved.action.id for resolved in game.get_all_visible_actions(alice)
+    }
+    assert "check_position" in playing_ids
+
     standard = game.create_standard_action_set(alice)
     relevant = [
         action_id
