@@ -854,21 +854,7 @@ export function PlayAuralApp() {
           clearTimeout(programmaticNativeFocusTimerRef.current);
           programmaticNativeFocusTimerRef.current = null;
         }
-        return;
       }
-    }
-    const scheduledFocusKey =
-      pendingNativeAccessibilityFocusKeyRef.current ?? nativeFocusTargetKeyRef.current;
-    const scheduledAt = pendingNativeAccessibilityFocusKeyRef.current
-      ? pendingNativeAccessibilityFocusQueuedAtRef.current
-      : nativeFocusTargetQueuedAtRef.current;
-    if (
-      focusKey &&
-      scheduledFocusKey &&
-      focusKey !== scheduledFocusKey &&
-      Date.now() - scheduledAt <= NATIVE_FOCUS_RESET_GUARD_MS
-    ) {
-      return;
     }
     tts.stopAnnouncements();
     pendingNativeAccessibilityFocusKeyRef.current = null;
