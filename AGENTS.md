@@ -294,6 +294,25 @@ Any persistent feature must define and test:
 Do not add database rows, tables, saved runtime state, notifications, chat logs,
 tokens, invites, moderation records, or similar data without this lifecycle.
 
+## Server Power Management
+
+Server reboot and shutdown flows must go through the centralized server power
+manager and admin UI. Do not add chat-command reboot/shutdown paths or
+per-game shutdown hooks.
+
+- Planned reboot preserves active tables through transient table checkpoints,
+  freezes framework-owned mutation during finalization, skips normal bot
+  substitution on disconnect, and lets clients auto-reconnect.
+- Planned shutdown clears active table checkpoints and must warn players to
+  save anything they want to keep before the server goes offline.
+- Transient checkpoints need kind, creation time, expiration, pruning, and
+  account-deletion cleanup. Keep the one-day checkpoint TTL unless a future
+  migration explicitly changes the lifecycle.
+- Post-reboot no-show handling belongs in shared table/game framework logic:
+  restored tables receive a grace window, then missing active players are
+  replaced with bots only when at least one human has returned; tables with no
+  humans eventually close through abandoned-table cleanup.
+
 ## Server, Web, Desktop, and Mobile Rules
 
 - Server navigation uses `_nav_push`, `_nav_back`, `_nav_refresh`, and

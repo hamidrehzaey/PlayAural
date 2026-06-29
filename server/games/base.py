@@ -558,27 +558,44 @@ class Game(
                 self.current_ambience, outro=self.current_ambience_outro,
             )
             
-        # Check for game resume (if this was a Host vs Bot paused scenario)
+        # Check for game resume (if this was a paused-table reconnect scenario).
         if self.status == "playing":
-             player = self.get_player_by_id(player_id)
-             if player and not player.is_bot and not player.is_spectator:
-                 # Clear pending bot actions
-                 player.bot_pending_action = None
-                 player.bot_think_ticks = 0
+            player = self.get_player_by_id(player_id)
+            if player and not player.is_bot and not player.is_spectator:
+                # Clear pending bot actions.
+                player.bot_pending_action = None
+                player.bot_think_ticks = 0
 
-                 # Set a short grace period (1 second = 20 ticks) to ignore rapid input during sync
-                 player.reconnect_grace_ticks = 20
+                table = getattr(self, "_table", None)
+                power_restore_active = bool(
+                    table
+                    and hasattr(table, "is_power_restore_grace_active")
+                    and table.is_power_restore_grace_active()
+                )
 
-                 # Count humans *including* this new one (who is already in _users)
-                 # Exclude spectators from this count - we only care about ACTIVE players
-                 human_count = sum(1 for p in self.players if not p.is_bot and not p.is_spectator and p.id in self._users)
-                 # If this is the FIRST human back, it means we were paused
-                 if human_count == 1:
-                      self.broadcast_l("game-resumed", buffer="system", player=user.username)
-                 
-                 # Mark the player's menu for repaint so they have UI state
-                 # at the next flush (within the current tick).
-                 self.refresh_menus(player)
+                # Normal reconnects keep a short sync grace. Planned reboot
+                # restores use a table-level grace with explicit feedback, so
+                # do not leave a second silent per-player block behind.
+                player.reconnect_grace_ticks = 0 if power_restore_active else 20
+
+                # Count humans including this new one (already in _users).
+                # During planned reboot restore grace, the table owns the
+                # resume announcement after all returning players are handled.
+                human_count = sum(
+                    1
+                    for p in self.players
+                    if not p.is_bot and not p.is_spectator and p.id in self._users
+                )
+                if human_count == 1 and not power_restore_active:
+                    self.broadcast_l(
+                        "game-resumed",
+                        buffer="system",
+                        player=user.username,
+                    )
+
+                # Mark the player's menu for repaint so they have UI state
+                # at the next flush (within the current tick).
+                self.refresh_menus(player)
 
     def get_user(self, player: Player) -> User | None:
         """Get the user for a player."""

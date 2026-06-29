@@ -3,14 +3,21 @@
 import asyncio
 import json
 import logging
-import os
 import re
+import signal
 import sys
 import unicodedata
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable
 
+from .power import (
+    POWER_REBOOT_EXIT_CODE,
+    POWER_RESTORE_GRACE_SECONDS,
+    PowerAction,
+    ScheduledPowerOperation,
+    ServerPowerManager,
+)
 from .tick import TickScheduler
 from ..administration.manager import ADMIN_MENU_IDS, AdministrationManager
 from ..network.websocket_server import WebSocketServer, ClientConnection
@@ -247,8 +254,10 @@ class Server:
             str,
             tuple[Callable[..., None], tuple[Any, ...], dict[str, Any]],
         ] = {}
-        # Active shutdown/reboot countdown task (None when idle)
-        self._shutdown_task: asyncio.Task | None = None
+        self.power_manager = ServerPowerManager(self)
+        self._stopping = False
+        self._serve_stop_event: asyncio.Event | None = None
+        self._requested_exit_code = 0
         self._voice = VoiceService.from_env()
         self._voice_context_resolvers = {
             "table": self._resolve_table_voice_context,
@@ -288,6 +297,9 @@ class Server:
 PlayAural Server
 """
         print(f"Starting PlayAural v{VERSION} server...")
+        self._serve_stop_event = asyncio.Event()
+        self._requested_exit_code = 0
+        self._stopping = False
 
         # Connect to database. Server startup owns guarded corruption recovery:
         # a malformed SQLite file is quarantined before a fresh schema is built.
@@ -369,27 +381,45 @@ PlayAural Server
 
         return stat_keys_by_game, rating_game_types
 
-    async def stop(self) -> None:
+    async def stop(
+        self,
+        *,
+        preserve_tables: bool = True,
+        save_before_disconnect: bool = False,
+        checkpoint_kind: str = "shutdown",
+        checkpoint_expires_at: str | None = None,
+        checkpoint_operation_id: str = "",
+        clear_table_checkpoints: bool = False,
+    ) -> None:
         """Stop the server."""
+        if self._stopping:
+            return
+        self._stopping = True
         print("Stopping server...")
 
         # Stop tick scheduler first so no more game ticks fire during shutdown.
         if self._tick_scheduler:
             await self._tick_scheduler.stop()
+            self._tick_scheduler = None
+
+        if preserve_tables and save_before_disconnect:
+            self._save_tables(
+                checkpoint_kind=checkpoint_kind,
+                checkpoint_expires_at=checkpoint_expires_at,
+                checkpoint_operation_id=checkpoint_operation_id,
+            )
 
         # Stop WebSocket server — this closes all active connections and waits for
-        # all _handle_client coroutines to finish.  _on_client_disconnect fires for
-        # every connected user during this step (bot substitution, user-state cleanup,
-        # etc.), so we must stop the WS server BEFORE saving tables to capture any
-        # final game-state mutations (e.g. a player converted to bot on disconnect).
+        # all _handle_client coroutines to finish. Normal stops save afterward so
+        # disconnect-side mutations are captured; planned reboots save first and
+        # skip disconnect-side bot substitution to preserve the pre-reboot table.
         if self._ws_server:
             await self._ws_server.stop()
+            self._ws_server = None
 
-        # Cancel the shutdown countdown task if stop() is called externally
-        # (e.g. SIGTERM) while a /reboot or /stop sequence is still running.
-        if self._shutdown_task and not self._shutdown_task.done():
-            self._shutdown_task.cancel()
-            self._shutdown_task = None
+        # Cancel a scheduled power countdown if stop() is called externally
+        # before the operation reaches the finalization phase.
+        self.power_manager.cancel_for_stop()
 
         # Cancel any pending delayed-offline-broadcast tasks so they don't access
         # the database after it has been closed.
@@ -397,8 +427,15 @@ PlayAural Server
             task.cancel()
         self._pending_disconnects.clear()
 
-        # Save all tables after all connections have been processed.
-        self._save_tables()
+        if clear_table_checkpoints:
+            self._db.delete_all_tables()
+        elif preserve_tables and not save_before_disconnect:
+            # Save all tables after all connections have been processed.
+            self._save_tables(
+                checkpoint_kind=checkpoint_kind,
+                checkpoint_expires_at=checkpoint_expires_at,
+                checkpoint_operation_id=checkpoint_operation_id,
+            )
 
         # Close database
         self._db.close()
@@ -434,17 +471,92 @@ PlayAural Server
                         bot_user = Bot(player.name, uuid=player.id)
                         game.attach_user(player.id, bot_user)
 
+            if getattr(table, "_checkpoint_kind", "") == "planned_reboot":
+                table.mark_power_restored(POWER_RESTORE_GRACE_SECONDS)
+
         print(f"Loaded {len(tables)} tables from database.")
 
         # Delete all tables from database after loading to prevent stale data
         # on subsequent restarts. Tables will be re-saved on shutdown.
         self._db.delete_all_tables()
 
-    def _save_tables(self) -> None:
+    def _save_tables(
+        self,
+        *,
+        checkpoint_kind: str = "shutdown",
+        checkpoint_expires_at: str | None = None,
+        checkpoint_operation_id: str = "",
+    ) -> None:
         """Save all tables to database."""
         tables = self._tables.save_all()
-        self._db.save_all_tables(tables)
+        self._db.save_all_tables(
+            tables,
+            checkpoint_kind=checkpoint_kind,
+            checkpoint_expires_at=checkpoint_expires_at,
+            checkpoint_operation_id=checkpoint_operation_id,
+        )
         print(f"Saved {len(tables)} tables to database.")
+
+    def request_process_exit(self, code: int = 0) -> None:
+        """Ask the top-level runner to leave its serve loop."""
+        self._requested_exit_code = int(code)
+        if self._serve_stop_event and not self._serve_stop_event.is_set():
+            self._serve_stop_event.set()
+
+    async def wait_until_exit_requested(self) -> None:
+        """Block until the server has been asked to exit."""
+        if self._serve_stop_event is None:
+            self._serve_stop_event = asyncio.Event()
+        await self._serve_stop_event.wait()
+
+    @property
+    def requested_exit_code(self) -> int:
+        return self._requested_exit_code
+
+    async def _finalize_power_operation(
+        self, operation: ScheduledPowerOperation
+    ) -> None:
+        """Freeze runtime mutations, notify clients, and stop the process."""
+        if self._tick_scheduler:
+            await self._tick_scheduler.stop()
+            self._tick_scheduler = None
+
+        if operation.preserves_tables:
+            self._save_tables(
+                checkpoint_kind=f"planned_{operation.action.value}",
+                checkpoint_expires_at=self.power_manager.checkpoint_expires_at(),
+                checkpoint_operation_id=operation.operation_id,
+            )
+        else:
+            self._db.delete_all_tables()
+
+        await self._close_all_voice_contexts_for_power()
+        await self.power_manager.broadcast_final(operation)
+        await asyncio.sleep(2)
+        await self.stop(
+            preserve_tables=False,
+            clear_table_checkpoints=False,
+        )
+        self.request_process_exit(
+            POWER_REBOOT_EXIT_CODE
+            if operation.action == PowerAction.REBOOT
+            else 0
+        )
+
+    async def _close_all_voice_contexts_for_power(self) -> None:
+        """Close runtime voice contexts before a server power transition."""
+        active_voice_sessions = list(self._voice_presence_by_user.items())
+        self._voice_presence_by_user.clear()
+        for voice_username, presence in active_voice_sessions:
+            self._clear_voice_join_authorization(voice_username)
+            voice_user = self._users.get(voice_username)
+            if not voice_user:
+                continue
+            await self._send_voice_context_closed(
+                voice_user,
+                scope=str(presence.get("scope") or "table"),
+                context_id=str(presence.get("context_id") or ""),
+            )
 
     def _on_tick(self) -> None:
         """Called every tick (50ms)."""
@@ -515,7 +627,12 @@ PlayAural Server
                 "voice-status-connection-lost",
                 table=table,
             )
-            if table and table.game and table.game.status == "playing":
+            if (
+                not self.power_manager.is_finalizing
+                and table
+                and table.game
+                and table.game.status == "playing"
+            ):
                 # We need the user UUID. The user object is about to be popped, so get it now.
                 if user:
                     table.game.on_player_disconnect(user.uuid)
@@ -529,7 +646,12 @@ PlayAural Server
 
             # Schedule delayed offline broadcast to prevent spam on quick reconnects
             # Only broadcast if this client was actually the active one AND not banned
-            if user and user.connection == client and not is_banned:
+            if (
+                not self.power_manager.is_finalizing
+                and user
+                and user.connection == client
+                and not is_banned
+            ):
                 task = asyncio.create_task(self._delayed_offline_broadcast(
                     client.username, user.uuid, offline_sound, user.trust_level
                 ))
@@ -673,6 +795,14 @@ PlayAural Server
             await self._handle_ping(client)
         else:
             user = self._users.get(client.username)
+
+            if self.power_manager.is_finalizing:
+                if user and user.approved:
+                    user.speak_l(
+                        "server-power-finalizing-input-blocked",
+                        buffer="system",
+                    )
+                return
 
             if user:
                 # Check if user is in lockdown state (banned)
@@ -1000,6 +1130,12 @@ PlayAural Server
                                 # flush sends it within the same tick as today.
                                 if hasattr(table.game, "refresh_menus"):
                                     table.game.refresh_menus(player)
+                                if table.is_power_restore_grace_active():
+                                    user.speak_l(
+                                        "server-power-restore-waiting",
+                                        buffer="system",
+                                        seconds=table.power_restore_remaining_seconds(),
+                                    )
                         else:
                             table.attach_user(username, user)
                     else:
@@ -3299,6 +3435,76 @@ PlayAural Server
             return
         self._set_in_game_state(user, table_id)
 
+    @staticmethod
+    def _normalized_keybind_key(packet: dict) -> str:
+        key = str(packet.get("key") or "").lower()
+        if packet.get("shift") and not key.startswith("shift+"):
+            key = f"shift+{key}"
+        if packet.get("control") and not key.startswith("ctrl+"):
+            key = f"ctrl+{key}"
+        if packet.get("alt") and not key.startswith("alt+"):
+            key = f"alt+{key}"
+        return key
+
+    @classmethod
+    def _is_power_restore_exit_packet(cls, packet: dict) -> bool:
+        """Return whether a paused restored game should still accept the packet."""
+        packet_type = str(packet.get("type") or "")
+        if packet_type == "keybind":
+            return cls._normalized_keybind_key(packet) == "ctrl+q"
+
+        if packet_type not in {"menu", "escape"}:
+            return False
+
+        menu_id = str(packet.get("menu_id") or "")
+        selection_id = str(packet.get("selection_id") or "")
+        if menu_id == "leave_game_confirm":
+            return True
+        if menu_id == "turn_menu" and selection_id == "web_leave_table":
+            return True
+        if menu_id == "actions_menu" and selection_id in {
+            "leave_game",
+            "go_back",
+            "back",
+        }:
+            return True
+        return False
+
+    def _get_power_restore_blocking_table(
+        self,
+        user: NetworkUser,
+        current_menu: str | None,
+        packet: dict | None = None,
+    ) -> "Table | None":
+        """Return the user's restored table when gameplay input is paused."""
+        if current_menu in self.GLOBAL_SYSTEM_MENUS:
+            return None
+        if packet and self._is_power_restore_exit_packet(packet):
+            return None
+        table = self._tables.find_user_table(user.username)
+        if table and table.game and table.is_power_restore_grace_active():
+            return table
+        return None
+
+    def _speak_power_restore_input_blocked(
+        self, user: NetworkUser, table: "Table"
+    ) -> None:
+        """Explain why game input is temporarily blocked after reboot restore."""
+        missing_names = table.power_restore_missing_player_names()
+        if missing_names:
+            players = Localization.format_list_and(user.locale, missing_names)
+        else:
+            players = Localization.get(
+                user.locale,
+                "server-power-restore-missing-players-fallback",
+            )
+        user.speak_l(
+            "server-power-restore-input-blocked",
+            buffer="system",
+            seconds=table.power_restore_remaining_seconds(),
+            players=players,
+        )
+
     async def _handle_voice_presence(self, client: ClientConnection, packet: dict) -> None:
         user = self._users.get(client.username)
         if not user:
@@ -3707,6 +3913,15 @@ PlayAural Server
                 player = table.game.get_player_by_id(user.uuid)
                 if player:
                     table.game.handle_event(player, packet)
+            return
+
+        blocking_table = self._get_power_restore_blocking_table(
+            user,
+            current_menu,
+            packet,
+        )
+        if blocking_table:
+            self._speak_power_restore_input_blocked(user, blocking_table)
             return
 
         # Check if user is in a table - delegate to game ONLY if it's a table-specific menu
@@ -8218,6 +8433,11 @@ PlayAural Server
         if current_menu not in self.GLOBAL_SYSTEM_MENUS:
             table = self._tables.find_user_table(username)
             if table and table.game and user:
+                if table.is_power_restore_grace_active() and not (
+                    self._is_power_restore_exit_packet(packet)
+                ):
+                    self._speak_power_restore_input_blocked(user, table)
+                    return
                 player = table.game.get_player_by_id(user.uuid)
                 if player:
                     table.game.handle_event(player, packet)
@@ -8244,6 +8464,9 @@ PlayAural Server
         if current_menu not in self.GLOBAL_SYSTEM_MENUS:
             table = self._tables.find_user_table(username)
             if table and table.game:
+                if table.is_power_restore_grace_active():
+                    self._speak_power_restore_input_blocked(user, table)
+                    return
                 player = table.game.get_player_by_id(user.uuid)
                 if player:
                     table.game.handle_event(player, packet)
@@ -8528,132 +8751,10 @@ PlayAural Server
                 return
 
         if message.startswith("/reboot") or message.startswith("/stop"):
-            # Check permissions
             user = self._users.get(username)
             if user and user.trust_level >= 3:
-                # Prevent double-scheduling if a countdown is already in progress.
-                if self._shutdown_task is not None and not self._shutdown_task.done():
-                    return
-
-                is_reboot = message.startswith("/reboot")
-
-                def _broadcast_alert(seconds_remaining: int) -> None:
-                    """Send a countdown chat message + audio cue to all approved users."""
-                    msg_key = "server-restarting" if is_reboot else "server-shutting-down"
-                    # Prominent alarm at the 30 s / 20 s marks; short tick for the
-                    # per-second 10 s countdown.
-                    in_countdown = seconds_remaining <= 10
-                    sound = (
-                        "server_alert_warning.ogg"
-                        if not in_countdown
-                        else "server_alert_tick.ogg"
-                    )
-                    for u in list(self._users.values()):
-                        if not u.approved:
-                            continue
-                        # Countdown (≤10 s): raw number only. Warning (30/20 s): full sentence.
-                        if in_countdown:
-                            speak_text = str(seconds_remaining)
-                            chat_msg = str(seconds_remaining)
-                        else:
-                            speak_text = Localization.get(u.locale, msg_key, seconds=seconds_remaining)
-                            chat_msg = speak_text
-                        sys_name = Localization.get(u.locale, "system-name")
-                        # Chat packet — appears in the log but is silent (no TTS, no notify.ogg).
-                        # TTS is driven by the explicit speak packet below so we control the
-                        # exact text: bare number for countdown, full sentence for warnings.
-                        asyncio.create_task(u.connection.send({
-                            "type": "chat",
-                            "convo": "announcement",
-                            "sender": sys_name,
-                            "message": chat_msg,
-                            "silent": True,
-                        }))
-                        # Explicit TTS — bypasses chat-handler formatting so no prefix is added.
-                        asyncio.create_task(u.connection.send({
-                            "type": "speak",
-                            "text": speak_text,
-                        }))
-                        asyncio.create_task(u.connection.send({
-                            "type": "play_sound",
-                            "name": sound,
-                            "volume": 100,
-                            "pan": 0,
-                            "pitch": 100,
-                        }))
-
-                async def shutdown_sequence() -> None:
-                    # Phase 1 — 30 s countdown: broadcast at 30 s and 20 s marks,
-                    # then every second from 10 s down to 1 s.
-                    WARN_AT = {30, 20}
-                    COUNTDOWN_FROM = 10
-
-                    for seconds_remaining in range(30, 0, -1):
-                        if seconds_remaining in WARN_AT or seconds_remaining <= COUNTDOWN_FROM:
-                            _broadcast_alert(seconds_remaining)
-                        await asyncio.sleep(1)
-
-                    # Phase 2 — send shutdown sound + final chat line + disconnect
-                    # packet to every currently-approved user, then tear down.
-                    now_key = "server-restarting-now" if is_reboot else "server-shutting-down-now"
-                    active_voice_sessions = list(self._voice_presence_by_user.items())
-                    self._voice_presence_by_user.clear()
-                    for voice_username, presence in active_voice_sessions:
-                        self._clear_voice_join_authorization(voice_username)
-                        voice_user = self._users.get(voice_username)
-                        if not voice_user:
-                            continue
-                        asyncio.create_task(
-                            self._send_voice_context_closed(
-                                voice_user,
-                                scope=str(presence.get("scope") or "table"),
-                                context_id=str(presence.get("context_id") or ""),
-                            )
-                        )
-                    for u in list(self._users.values()):
-                        if not u.approved:
-                            continue
-                        msg = Localization.get(u.locale, now_key)
-                        sys_name = Localization.get(u.locale, "system-name")
-                        asyncio.create_task(u.connection.send({
-                            "type": "play_sound",
-                            "name": "server_alert_shutdown.ogg",
-                            "volume": 100,
-                            "pan": 0,
-                            "pitch": 100,
-                        }))
-                        asyncio.create_task(u.connection.send({
-                            "type": "chat",
-                            "convo": "announcement",
-                            "sender": sys_name,
-                            "message": msg,
-                            "silent": True,
-                        }))
-                        asyncio.create_task(u.connection.send({
-                            "type": "speak",
-                            "text": msg,
-                        }))
-                        # Graceful disconnect packet — tells the desktop client whether
-                        # to auto-reconnect (reboot) or exit cleanly (stop).
-                        asyncio.create_task(u.connection.send({
-                            "type": "disconnect",
-                            "reason": msg,
-                            "reconnect": is_reboot,
-                        }))
-
-                    # Give clients 2 s to receive and process all packets before we
-                    # tear down the WebSocket server.
-                    await asyncio.sleep(2)
-                    await self.stop()
-                    # os._exit bypasses asyncio's exception handler so the process
-                    # exits cleanly. Exit code 1 triggers systemd Restart=on-failure.
-                    os._exit(1)
-
-                self._shutdown_task = asyncio.create_task(shutdown_sequence())
-                return
-            else:
-                 # Fake command not found for non-admins to avoid revealing existence
-                 return
+                user.speak_l("server-power-command-removed", buffer="system")
+            return
 
         elif message.startswith("/kick"):
              # Kick command
@@ -9613,6 +9714,37 @@ PlayAural Server
             self.admin_manager._show_manage_motd_menu(user)
         elif menu == "view_motd_menu":
             self.admin_manager._show_view_motd_menu(user)
+        elif menu == "server_power_menu":
+            self.admin_manager._show_server_power_menu(user)
+        elif menu == "server_power_delay_menu":
+            action = frame.get("power_action", "")
+            if action:
+                self.admin_manager._show_server_power_delay_menu(user, action)
+            else:
+                self.admin_manager._show_server_power_menu(user)
+        elif menu == "server_power_reason_menu":
+            action = frame.get("power_action", "")
+            delay_seconds = int(frame.get("power_delay_seconds", 0) or 0)
+            if action and delay_seconds:
+                self.admin_manager._show_server_power_reason_menu(
+                    user, action, delay_seconds
+                )
+            else:
+                self.admin_manager._show_server_power_menu(user)
+        elif menu == "server_power_confirm_menu":
+            action = frame.get("power_action", "")
+            delay_seconds = int(frame.get("power_delay_seconds", 0) or 0)
+            reason_id = frame.get("power_reason_id", "")
+            if action and delay_seconds and reason_id:
+                self.admin_manager._show_server_power_confirm_menu(
+                    user,
+                    action,
+                    delay_seconds,
+                    reason_id,
+                    dict(frame.get("power_custom_reasons", {}) or {}),
+                )
+            else:
+                self.admin_manager._show_server_power_menu(user)
         elif menu == "smtp_settings_menu":
             self.admin_manager._show_smtp_settings_menu(user)
         elif menu == "smtp_encryption_menu":
@@ -9964,11 +10096,17 @@ async def run_server(
     server = Server(host=host, port=port, ssl_cert=ssl_cert, ssl_key=ssl_key)
     await server.start()
 
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        try:
+            loop.add_signal_handler(sig, server.request_process_exit, 0)
+        except (NotImplementedError, RuntimeError, ValueError):
+            pass
+
     try:
-        # Run forever
-        while True:
-            await asyncio.sleep(1)
+        await server.wait_until_exit_requested()
     except KeyboardInterrupt:
         pass
     finally:
         await server.stop()
+    if server.requested_exit_code:
+        raise SystemExit(server.requested_exit_code)

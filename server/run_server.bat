@@ -3,12 +3,16 @@ setlocal
 
 cd /d "%~dp0"
 set "VENV_PYTHON=%CD%\.venv\Scripts\python.exe"
+set "REBOOT_EXIT_CODE=75"
 
 echo Starting PlayAural Server...
 echo.
 
+set "USE_UV=0"
 where uv >nul 2>nul
-if not errorlevel 1 (
+if not errorlevel 1 set "USE_UV=1"
+
+if "%USE_UV%"=="1" (
     echo Synchronizing server environment with uv, including dev/test dependencies...
     uv sync --extra dev
     if errorlevel 1 (
@@ -17,29 +21,32 @@ if not errorlevel 1 (
         set "EXIT_CODE=1"
         goto finish
     )
-
+) else (
+    echo uv was not found on PATH. Falling back to local .venv setup with pip.
     echo.
-    echo Server environment is ready. Launching PlayAural...
-    echo.
-    uv run --extra dev python main.py %*
-    set "EXIT_CODE=%ERRORLEVEL%"
-    goto finish
-)
-
-echo uv was not found on PATH. Falling back to local .venv setup with pip.
-echo.
-
-call :ensure_pip_environment
-if errorlevel 1 (
-    set "EXIT_CODE=1"
-    goto finish
+    call :ensure_pip_environment
+    if errorlevel 1 (
+        set "EXIT_CODE=1"
+        goto finish
+    )
 )
 
 echo.
 echo Server environment is ready. Launching PlayAural...
 echo.
-"%VENV_PYTHON%" main.py %*
+:launch
+if "%USE_UV%"=="1" (
+    uv run --extra dev python main.py %*
+) else (
+    "%VENV_PYTHON%" main.py %*
+)
 set "EXIT_CODE=%ERRORLEVEL%"
+if "%EXIT_CODE%"=="%REBOOT_EXIT_CODE%" (
+    echo.
+    echo PlayAural requested a graceful reboot. Restarting in 3 seconds...
+    timeout /t 3 /nobreak >nul
+    goto launch
+)
 
 :finish
 echo.

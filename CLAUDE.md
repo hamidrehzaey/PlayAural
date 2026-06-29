@@ -422,11 +422,29 @@ Use `_enter_input_state(user, input_id, **extra)` / `server.enter_input_state(..
 `_restore_user_state` handles reconnect and cleans up stale lobby membership, spectators, and inconsistent table mappings. Reconnect restoration should always route through the centralized restore flow, not custom menu-specific chains.
 
 #### Server Alert Broadcast
-The `/reboot` and `/stop` shutdown countdown is a structured 32-second sequence with:
+Scheduled server power alerts use:
 - deduplicated task guard
-- warning/tick/shutdown sounds
+- tiered warning/tick/shutdown sounds
 - silent chat packets plus explicit `speak` packets
-- reconnect-aware disconnect packets
+- reconnect-aware disconnect packets for planned reboots
+
+#### Server Power Management
+Server reboot and shutdown flows are framework-owned. Use the centralized
+server power manager and developer-only Administration menu; do not add
+chat-command reboot/shutdown paths or per-game shutdown hooks.
+
+- Planned reboot preserves active tables through transient checkpoints, freezes
+  framework-owned mutation during finalization, skips normal disconnect bot
+  substitution, and tells clients to auto-reconnect.
+- Planned shutdown clears active table checkpoints and must warn players to
+  save games they want to keep before the server goes offline.
+- Table checkpoints are transient data with explicit kind, creation time,
+  expiration, pruning, account-deletion cleanup, and a one-day TTL unless a
+  future migration deliberately changes that lifecycle.
+- Post-reboot no-show handling belongs in shared table/game framework logic:
+  restored tables get a grace window, then missing active players are replaced
+  with bots only when at least one human has returned; tables with no returning
+  humans eventually close through abandoned-table cleanup.
 
 #### TTS Buffer Categorization
 Every `user.speak_l()` and `broadcast_l()` call must include an explicit `buffer=`:

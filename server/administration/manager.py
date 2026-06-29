@@ -10,6 +10,11 @@ from ..users.network_user import NetworkUser
 from ..users.base import MenuItem, EscapeBehavior
 from ..messages.localization import Localization
 from ..persistence.database import BanRecord, MuteRecord
+from ..core.power import (
+    POWER_MAX_CUSTOM_DELAY_MINUTES,
+    PowerAction,
+    ServerPowerManager,
+)
 from ..menu_pagination import (
     DEFAULT_MENU_PAGE_SIZE,
     MENU_PAGE_IDS,
@@ -49,12 +54,18 @@ ADMIN_MENU_IDS = {
     "unmute_menu",
     "manage_motd_menu",
     "view_motd_menu",
+    "server_power_menu",
+    "server_power_delay_menu",
+    "server_power_reason_menu",
+    "server_power_confirm_menu",
     "smtp_settings_menu",
     "smtp_encryption_menu",
     "smtp_setting_input",
     "admin_broadcast_input",
     "admin_motd_version_input",
     "admin_motd_input",
+    "server_power_custom_delay_input",
+    "server_power_custom_reason_input",
     "ban_custom_reason_input",
     "mute_custom_reason_input",
     ADMIN_TARGET_SEARCH_INPUT,
@@ -593,6 +604,12 @@ class AdministrationManager:
         if user.trust_level >= 3:
             items.append(
                 MenuItem(
+                    text=Localization.get(user.locale, "server-power-management"),
+                    id="server_power",
+                )
+            )
+            items.append(
+                MenuItem(
                     text=Localization.get(user.locale, "admin-smtp-settings"),
                     id="smtp_settings",
                 )
@@ -846,6 +863,14 @@ class AdministrationManager:
         elif current_menu == "view_motd_menu":
              if selection_id == "back":
                  self.server._nav_back(user)
+        elif current_menu == "server_power_menu":
+             await self._handle_server_power_selection(user, selection_id, state)
+        elif current_menu == "server_power_delay_menu":
+             await self._handle_server_power_delay_selection(user, selection_id, state)
+        elif current_menu == "server_power_reason_menu":
+             await self._handle_server_power_reason_selection(user, selection_id, state)
+        elif current_menu == "server_power_confirm_menu":
+             await self._handle_server_power_confirm_selection(user, selection_id, state)
         elif current_menu == "smtp_settings_menu":
              await self._handle_smtp_settings_selection(user, selection_id)
         elif current_menu == "smtp_encryption_menu":
@@ -875,6 +900,12 @@ class AdministrationManager:
             self._show_broadcast_input_menu(user)
         elif selection_id == "manage_motd":
             self.server._nav_push(user, self._show_manage_motd_menu)
+        elif selection_id == "server_power":
+            if user.trust_level >= 3:
+                self.server._nav_push(user, self._show_server_power_menu)
+            else:
+                user.speak_l("dev-only-action", buffer="system")
+                self.server._nav_refresh(user, self._show_admin_menu)
         elif selection_id == "smtp_settings":
             if user.trust_level >= 3:
                 self.server._nav_push(user, self._show_smtp_settings_menu)
@@ -1282,6 +1313,70 @@ class AdministrationManager:
                 # Cancelled or empty
                 self.server._restore_input_parent(user, state)
             return True
+        elif (
+            menu_id == "server_power_custom_delay_input"
+            and input_id == "server_power_custom_delay_input"
+        ):
+            if not self._require_dev_power(user):
+                return True
+            action = str(state.get("power_action") or "")
+            if not value:
+                self.server._restore_input_parent(user, state)
+                return True
+            delay_seconds = ServerPowerManager.seconds_from_custom_minutes(value)
+            if delay_seconds is None:
+                user.speak_l(
+                    "server-power-invalid-custom-delay",
+                    buffer="system",
+                    max=POWER_MAX_CUSTOM_DELAY_MINUTES,
+                )
+                self.server._restore_input_parent(user, state)
+                return True
+            self.server._restore_input_parent(user, state)
+            self.server._nav_push(
+                user,
+                self._show_server_power_reason_menu,
+                action,
+                delay_seconds,
+            )
+            return True
+        elif (
+            menu_id == "server_power_custom_reason_input"
+            and input_id.startswith("server_power_reason_")
+        ):
+            if not self._require_dev_power(user):
+                return True
+            language = input_id.split("server_power_reason_", 1)[1]
+            action = str(state.get("power_action") or "")
+            delay_seconds = int(state.get("power_delay_seconds") or 0)
+            pending_languages = list(state.get("pending_languages", []))
+            translations = dict(state.get("translations", {}))
+            if not value:
+                self.server._restore_input_parent(user, state)
+                return True
+            translations[language] = str(value).strip()
+            if language in pending_languages:
+                pending_languages.remove(language)
+            if pending_languages:
+                self._prompt_power_reason_language(
+                    user,
+                    pending_languages[0],
+                    pending_languages,
+                    translations,
+                    action,
+                    delay_seconds,
+                )
+            else:
+                self.server._restore_input_parent(user, state)
+                self.server._nav_push(
+                    user,
+                    self._show_server_power_confirm_menu,
+                    action,
+                    delay_seconds,
+                    "custom",
+                    translations,
+                )
+            return True
         elif menu_id == "ban_custom_reason_input" and input_id == "ban_custom_reason_input":
             if value:
                 target_username = state.get("target_username")
@@ -1534,6 +1629,380 @@ class AdministrationManager:
         else:
             user.speak_l("smtp-test-failed", buffer="system", error=error)
 
+
+    def _require_dev_power(self, user: NetworkUser) -> bool:
+        if user.trust_level >= 3:
+            return True
+        user.speak_l("dev-only-action", buffer="system")
+        self._return_to_admin_root(user)
+        return False
+
+    def _show_server_power_menu(self, user: NetworkUser) -> None:
+        """Show developer-only server power controls."""
+        if not self._require_dev_power(user):
+            return
+
+        items: list[MenuItem] = []
+        operation = self.server.power_manager.active_operation
+        if operation:
+            items.append(
+                MenuItem(
+                    text=Localization.get(
+                        user.locale,
+                        "server-power-active-status",
+                        action=self.server.power_manager.format_action(
+                            user.locale, operation.action
+                        ),
+                        reason=self.server.power_manager.format_reason(
+                            user.locale, operation
+                        ),
+                    ),
+                    id="",
+                )
+            )
+            items.append(
+                MenuItem(
+                    text=Localization.get(user.locale, "server-power-cancel"),
+                    id="cancel",
+                )
+            )
+        else:
+            items.append(
+                MenuItem(
+                    text=Localization.get(user.locale, "server-power-reboot"),
+                    id="reboot",
+                )
+            )
+            items.append(
+                MenuItem(
+                    text=Localization.get(user.locale, "server-power-shutdown"),
+                    id="shutdown",
+                )
+            )
+        items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
+        user.show_menu(
+            "server_power_menu",
+            items,
+            multiletter=True,
+            escape_behavior=EscapeBehavior.SELECT_LAST,
+        )
+        self.server.user_states[user.username] = {"menu": "server_power_menu"}
+
+    async def _handle_server_power_selection(
+        self, user: NetworkUser, selection_id: str, state: dict[str, Any]
+    ) -> None:
+        if not self._require_dev_power(user):
+            return
+        if selection_id == "back":
+            self.server._nav_back(user)
+            return
+        if selection_id == "cancel":
+            operation = self.server.power_manager.active_operation
+            if not operation or not self.server.power_manager.cancel():
+                user.speak_l("server-power-cancel-none", buffer="system")
+                self.server._nav_refresh(user, self._show_server_power_menu)
+                return
+            user.speak_l("server-power-cancelled", buffer="system")
+            await self.server.power_manager.broadcast_cancelled(user, operation)
+            self.server._nav_refresh(user, self._show_server_power_menu)
+            return
+        if selection_id in {PowerAction.REBOOT.value, PowerAction.SHUTDOWN.value}:
+            if self.server.power_manager.is_scheduled:
+                user.speak_l("server-power-already-scheduled", buffer="system")
+                self.server._nav_refresh(user, self._show_server_power_menu)
+                return
+            self.server._nav_push(
+                user,
+                self._show_server_power_delay_menu,
+                selection_id,
+            )
+
+    def _show_server_power_delay_menu(
+        self, user: NetworkUser, action: str
+    ) -> None:
+        if not self._require_dev_power(user):
+            return
+        items = [
+            MenuItem(
+                text=Localization.get(user.locale, "server-power-delay-30s"),
+                id="delay_30",
+            ),
+            MenuItem(
+                text=Localization.get(user.locale, "server-power-delay-1m"),
+                id="delay_60",
+            ),
+            MenuItem(
+                text=Localization.get(user.locale, "server-power-delay-5m"),
+                id="delay_300",
+            ),
+            MenuItem(
+                text=Localization.get(user.locale, "server-power-delay-10m"),
+                id="delay_600",
+            ),
+            MenuItem(
+                text=Localization.get(user.locale, "server-power-delay-30m"),
+                id="delay_1800",
+            ),
+            MenuItem(
+                text=Localization.get(user.locale, "server-power-delay-1h"),
+                id="delay_3600",
+            ),
+            MenuItem(
+                text=Localization.get(user.locale, "server-power-delay-2h"),
+                id="delay_7200",
+            ),
+            MenuItem(
+                text=Localization.get(user.locale, "server-power-delay-custom"),
+                id="delay_custom",
+            ),
+            MenuItem(text=Localization.get(user.locale, "back"), id="back"),
+        ]
+        user.show_menu(
+            "server_power_delay_menu",
+            items,
+            multiletter=True,
+            escape_behavior=EscapeBehavior.SELECT_LAST,
+        )
+        self.server.user_states[user.username] = {
+            "menu": "server_power_delay_menu",
+            "power_action": action,
+        }
+
+    async def _handle_server_power_delay_selection(
+        self, user: NetworkUser, selection_id: str, state: dict[str, Any]
+    ) -> None:
+        if not self._require_dev_power(user):
+            return
+        if selection_id == "back":
+            self.server._nav_back(user)
+            return
+        action = str(state.get("power_action") or "")
+        if action not in {PowerAction.REBOOT.value, PowerAction.SHUTDOWN.value}:
+            self._return_to_admin_root(user, "server_power")
+            return
+        if selection_id == "delay_custom":
+            user.show_editbox(
+                "server_power_custom_delay_input",
+                Localization.get(
+                    user.locale,
+                    "server-power-custom-delay-prompt",
+                    max=POWER_MAX_CUSTOM_DELAY_MINUTES,
+                ),
+                multiline=False,
+            )
+            self.server.enter_input_state(
+                user,
+                "server_power_custom_delay_input",
+                power_action=action,
+            )
+            return
+        if selection_id.startswith("delay_"):
+            try:
+                delay_seconds = int(selection_id[6:])
+            except ValueError:
+                return
+            self.server._nav_push(
+                user,
+                self._show_server_power_reason_menu,
+                action,
+                delay_seconds,
+            )
+
+    def _show_server_power_reason_menu(
+        self, user: NetworkUser, action: str, delay_seconds: int
+    ) -> None:
+        if not self._require_dev_power(user):
+            return
+        items = [
+            MenuItem(
+                text=Localization.get(user.locale, "server-power-reason-update"),
+                id="reason_update",
+            ),
+            MenuItem(
+                text=Localization.get(user.locale, "server-power-reason-maintenance"),
+                id="reason_maintenance",
+            ),
+            MenuItem(
+                text=Localization.get(user.locale, "server-power-reason-security"),
+                id="reason_security",
+            ),
+            MenuItem(
+                text=Localization.get(user.locale, "server-power-reason-technical"),
+                id="reason_technical",
+            ),
+            MenuItem(
+                text=Localization.get(user.locale, "server-power-reason-custom"),
+                id="reason_custom",
+            ),
+            MenuItem(text=Localization.get(user.locale, "back"), id="back"),
+        ]
+        user.show_menu(
+            "server_power_reason_menu",
+            items,
+            multiletter=True,
+            escape_behavior=EscapeBehavior.SELECT_LAST,
+        )
+        self.server.user_states[user.username] = {
+            "menu": "server_power_reason_menu",
+            "power_action": action,
+            "power_delay_seconds": delay_seconds,
+        }
+
+    async def _handle_server_power_reason_selection(
+        self, user: NetworkUser, selection_id: str, state: dict[str, Any]
+    ) -> None:
+        if not self._require_dev_power(user):
+            return
+        if selection_id == "back":
+            self.server._nav_back(user)
+            return
+        action = str(state.get("power_action") or "")
+        delay_seconds = int(state.get("power_delay_seconds") or 0)
+        if action not in {PowerAction.REBOOT.value, PowerAction.SHUTDOWN.value}:
+            self._return_to_admin_root(user, "server_power")
+            return
+        if selection_id == "reason_custom":
+            languages = Localization.get_available_languages()
+            pending = list(languages.keys())
+            if not pending:
+                user.speak_l("error-no-languages", buffer="system")
+                self.server._nav_back(user)
+                return
+            self._prompt_power_reason_language(
+                user,
+                pending[0],
+                pending,
+                {},
+                action,
+                delay_seconds,
+            )
+            return
+        if selection_id.startswith("reason_"):
+            reason_id = selection_id[7:]
+            self.server._nav_push(
+                user,
+                self._show_server_power_confirm_menu,
+                action,
+                delay_seconds,
+                reason_id,
+                {},
+            )
+
+    def _prompt_power_reason_language(
+        self,
+        user: NetworkUser,
+        language: str,
+        pending_languages: list[str],
+        translations: dict[str, str],
+        action: str,
+        delay_seconds: int,
+    ) -> None:
+        languages = Localization.get_available_languages(user.locale)
+        language_name = languages.get(language, language)
+        user.show_editbox(
+            f"server_power_reason_{language}",
+            Localization.get(
+                user.locale,
+                "server-power-custom-reason-prompt",
+                language=language_name,
+            ),
+            multiline=True,
+        )
+        self.server.enter_input_state(
+            user,
+            "server_power_custom_reason_input",
+            pending_languages=list(pending_languages),
+            translations=dict(translations),
+            power_action=action,
+            power_delay_seconds=delay_seconds,
+        )
+
+    def _show_server_power_confirm_menu(
+        self,
+        user: NetworkUser,
+        action: str,
+        delay_seconds: int,
+        reason_id: str,
+        custom_reasons: dict[str, str],
+    ) -> None:
+        if not self._require_dev_power(user):
+            return
+        action_enum = PowerAction(action)
+        reason_text = (
+            ServerPowerManager._custom_reason_for_locale(user.locale, custom_reasons)
+            if reason_id == "custom"
+            else Localization.get(user.locale, f"server-power-reason-{reason_id}")
+        )
+        items = [
+            MenuItem(
+                text=Localization.get(
+                    user.locale,
+                    "server-power-confirm-summary",
+                    action=self.server.power_manager.format_action(
+                        user.locale, action_enum
+                    ),
+                    duration=ServerPowerManager.format_duration(
+                        user.locale, delay_seconds
+                    ),
+                    reason=reason_text,
+                ),
+                id="",
+            ),
+            MenuItem(text=Localization.get(user.locale, "confirm-yes"), id="confirm"),
+            MenuItem(text=Localization.get(user.locale, "confirm-no"), id="back"),
+        ]
+        user.show_menu(
+            "server_power_confirm_menu",
+            items,
+            multiletter=True,
+            escape_behavior=EscapeBehavior.SELECT_LAST,
+        )
+        self.server.user_states[user.username] = {
+            "menu": "server_power_confirm_menu",
+            "power_action": action,
+            "power_delay_seconds": delay_seconds,
+            "power_reason_id": reason_id,
+            "power_custom_reasons": dict(custom_reasons),
+        }
+
+    async def _handle_server_power_confirm_selection(
+        self, user: NetworkUser, selection_id: str, state: dict[str, Any]
+    ) -> None:
+        if not self._require_dev_power(user):
+            return
+        if selection_id == "back":
+            self.server._nav_back(user)
+            return
+        if selection_id != "confirm":
+            return
+        if self.server.power_manager.is_scheduled:
+            user.speak_l("server-power-already-scheduled", buffer="system")
+            self._return_to_admin_root(user, "server_power")
+            return
+        try:
+            action = PowerAction(str(state.get("power_action") or ""))
+        except ValueError:
+            self._return_to_admin_root(user, "server_power")
+            return
+        delay_seconds = int(state.get("power_delay_seconds") or 0)
+        reason_id = str(state.get("power_reason_id") or "unspecified")
+        custom_reasons = dict(state.get("power_custom_reasons") or {})
+        operation = self.server.power_manager.schedule(
+            action=action,
+            delay_seconds=delay_seconds,
+            requested_by=user.username,
+            reason_id=reason_id,
+            custom_reasons=custom_reasons,
+        )
+        user.speak_l(
+            "server-power-scheduled",
+            buffer="system",
+            action=self.server.power_manager.format_action(user.locale, action),
+            duration=ServerPowerManager.format_duration(
+                user.locale, operation.delay_seconds
+            ),
+        )
+        self._return_to_admin_root(user, "server_power")
 
     def _show_manage_motd_menu(self, user: NetworkUser) -> None:
         """Show the manage MOTD menu."""

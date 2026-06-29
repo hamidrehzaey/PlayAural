@@ -562,6 +562,62 @@ server-restarting = Server is restarting in { $seconds } seconds...
 server-restarting-now = Server is restarting now. Please reconnect shortly.
 server-shutting-down = Server is shutting down in { $seconds } seconds...
 server-shutting-down-now = Server is shutting down now. Goodbye!
+server-power-management = Server Power Management
+server-power-reboot = Reboot Server
+server-power-shutdown = Shutdown Server
+server-power-cancel = Cancel Scheduled Power Action
+server-power-active-status = Scheduled { $action }. Reason: { $reason }.
+server-power-action-reboot = reboot
+server-power-action-shutdown = shutdown
+server-power-delay-30s = In 30 seconds
+server-power-delay-1m = In 1 minute
+server-power-delay-5m = In 5 minutes
+server-power-delay-10m = In 10 minutes
+server-power-delay-30m = In 30 minutes
+server-power-delay-1h = In 1 hour
+server-power-delay-2h = In 2 hours
+server-power-delay-custom = Custom delay in minutes
+server-power-custom-delay-prompt = Enter the delay in minutes, from 1 to { $max }:
+server-power-invalid-custom-delay = Invalid delay. Enter a whole number of minutes from 1 to { $max }.
+server-power-reason-update = Update
+server-power-reason-maintenance = Maintenance
+server-power-reason-security = Security
+server-power-reason-technical = Technical issue
+server-power-reason-custom = Custom reason
+server-power-reason-unspecified = unspecified reason
+server-power-custom-reason-prompt = Enter the server power reason for { $language }:
+server-power-confirm-summary = Confirm server { $action } in { $duration }. Reason: { $reason }.
+server-power-scheduled = Scheduled server { $action } in { $duration }.
+server-power-already-scheduled = A server power action is already scheduled. Cancel it before scheduling another.
+server-power-cancel-none = No server power action is currently scheduled.
+server-power-cancelled = Scheduled server power action cancelled.
+server-power-cancelled-broadcast = { $admin } cancelled the scheduled server { $action }.
+server-power-command-removed = The /reboot and /stop chat commands have been removed. Use Administration, Server Power Management instead.
+server-power-finalizing-input-blocked = The server is finalizing a reboot or shutdown. Please wait for the client to disconnect.
+server-power-finalize-failed = The scheduled server { $action } could not finish safely. The server is staying online; please contact an administrator.
+server-power-reboot-warning = Server reboot in { $duration }. Reason: { $reason }. Do not disconnect manually; your client will reconnect automatically, and active tables will be preserved.
+server-power-shutdown-warning = Server shutdown in { $duration }. Reason: { $reason }. The server is going offline; save any games you want to keep before the shutdown.
+server-power-reboot-now = Server is rebooting now. Reason: { $reason }. Do not disconnect manually; your client will reconnect automatically, and active tables will be preserved.
+server-power-shutdown-now = Server is shutting down now. Reason: { $reason }. The server is going offline.
+server-power-restore-waiting = This table was restored after a planned reboot. Waiting up to { $seconds } seconds for the other players to reconnect before replacing missing seats with bots.
+server-power-restore-input-blocked = This table is still recovering from the planned reboot. Gameplay is paused for up to { $seconds } more seconds while waiting for { $players }; please try again after the grace period ends.
+server-power-restore-missing-players-fallback = the remaining players
+server-power-restore-complete = All active players have reconnected after the planned reboot. Game resumed.
+server-power-restore-complete-with-bots = Reconnect grace ended after the planned reboot. Missing seats were replaced with bots, and the game is resuming.
+duration-seconds = { $count ->
+    [one] 1 second
+   *[other] { $count } seconds
+}
+duration-minutes = { $count ->
+    [one] 1 minute
+   *[other] { $count } minutes
+}
+duration-hours = { $count ->
+    [one] 1 hour
+   *[other] { $count } hours
+}
+duration-minutes-seconds = { $minutes } minutes and { $seconds } seconds
+duration-hours-minutes = { $hours } hours and { $minutes } minutes
 server-error-changing-language = Error changing language: { $error }
 default-save-name = { $game } - { $date }
 
@@ -586,8 +642,8 @@ mobile-tts-enter-rate = Enter mobile speech rate (50-200)
 mobile-tts-invalid-rate = Invalid mobile speech rate. Use a value between 50 and 200.
 
 player-kicked-offline = Player { $player } has been kicked (offline).
-game-paused-host-disconnect = Game paused. Waiting for host { $player } to reconnect...
-game-resumed = Host { $player } reconnected. Game resumed!
+game-paused-host-disconnect = Game paused. Waiting for { $player } to reconnect...
+game-resumed = { $player } reconnected. Game resumed!
 new-host = New host: { $player }
 
 auth-error-username-length = Username must be between 3 and 30 characters.

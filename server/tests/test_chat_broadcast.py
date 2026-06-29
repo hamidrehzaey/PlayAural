@@ -201,7 +201,6 @@ async def test_non_admin_slash_commands_do_not_broadcast_as_chat(message: str) -
         "Alice": alice,
         "Bob": bob,
     }
-    server._shutdown_task = None
 
     await server._handle_chat(
         DummyClient("Alice"),

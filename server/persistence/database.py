@@ -261,9 +261,26 @@ class Database:
                 host TEXT NOT NULL,
                 members_json TEXT NOT NULL,
                 game_json TEXT,
-                status TEXT DEFAULT 'waiting'
+                status TEXT DEFAULT 'waiting',
+                checkpoint_kind TEXT NOT NULL DEFAULT 'legacy',
+                checkpoint_created_at TEXT NOT NULL DEFAULT '',
+                checkpoint_expires_at TEXT,
+                checkpoint_operation_id TEXT NOT NULL DEFAULT ''
             )
         """)
+        self._ensure_column(
+            cursor, "tables", "checkpoint_kind", "TEXT NOT NULL DEFAULT 'legacy'"
+        )
+        self._ensure_column(
+            cursor, "tables", "checkpoint_created_at", "TEXT NOT NULL DEFAULT ''"
+        )
+        self._ensure_column(cursor, "tables", "checkpoint_expires_at", "TEXT")
+        self._ensure_column(
+            cursor,
+            "tables",
+            "checkpoint_operation_id",
+            "TEXT NOT NULL DEFAULT ''",
+        )
 
         # Saved tables (user-saved game states)
         cursor.execute("""
@@ -445,6 +462,10 @@ class Database:
             ON saved_tables(username, saved_at DESC)
         """)
         cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_tables_checkpoint_expires
+            ON tables(checkpoint_expires_at)
+        """)
+        cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_friendships_receiver_status_created
             ON friendships(receiver_id, status, created_at)
         """)
@@ -455,17 +476,36 @@ class Database:
 
         self._conn.commit()
 
+    def _ensure_column(
+        self,
+        cursor: sqlite3.Cursor,
+        table_name: str,
+        column_name: str,
+        definition: str,
+    ) -> None:
+        """Add a missing column to an existing SQLite table."""
+        cursor.execute(f"PRAGMA table_info({self._quote_identifier(table_name)})")
+        columns = {row["name"] for row in cursor.fetchall()}
+        if column_name in columns:
+            return
+        cursor.execute(
+            f"ALTER TABLE {self._quote_identifier(table_name)} "
+            f"ADD COLUMN {self._quote_identifier(column_name)} {definition}"
+        )
+
     def prune_old_records(self) -> None:
         """
         Prune historical bloat from the database to save space.
         - game_results: Older than 30 days.
         - saved_tables: Older than 365 days.
+        - tables checkpoints: Older than 1 day or explicitly expired.
         - bans: Expired more than 30 days ago.
         - mutes: Expired or orphaned.
         - password reset tokens: Expired.
         """
         now = datetime.now()
         thirty_days_ago = (now - timedelta(days=30)).isoformat()
+        one_day_ago = (now - timedelta(days=1)).isoformat()
         one_year_ago = (now - timedelta(days=365)).isoformat()
 
         cursor = self._conn.cursor()
@@ -480,6 +520,17 @@ class Database:
         # 2. Prune saved_tables
         cursor.execute("DELETE FROM saved_tables WHERE saved_at < ?", (one_year_ago,))
         deleted_saves = cursor.rowcount
+
+        # 2b. Prune transient table checkpoints.
+        cursor.execute(
+            """
+            DELETE FROM tables
+            WHERE (checkpoint_expires_at IS NOT NULL AND checkpoint_expires_at < ?)
+               OR (checkpoint_created_at != '' AND checkpoint_created_at < ?)
+            """,
+            (now.isoformat(), one_day_ago),
+        )
+        deleted_table_checkpoints = cursor.rowcount
 
         # 3. Prune expired bans (keep them around for 30 days post-expiry for admin logs, then drop)
         cursor.execute("DELETE FROM bans WHERE expires_at IS NOT NULL AND expires_at < ?", (thirty_days_ago,))
@@ -518,14 +569,14 @@ class Database:
 
         # Log results
         logger = logging.getLogger("playaural.db.prune")
-        if deleted_games > 0 or deleted_saves > 0 or deleted_bans > 0 or deleted_requests > 0 or deleted_notifications > 0 or deleted_mutes > 0 or deleted_tokens > 0:
-             logger.info(f"Database Pruning: Deleted {deleted_games} old game results, {deleted_saves} old saved tables, {deleted_bans} expired bans, {deleted_requests} pending requests, {deleted_notifications} notifications, {deleted_expired_mutes} expired mutes, {deleted_orphaned_mutes} orphaned mutes, {deleted_tokens} expired tokens.")
+        if deleted_games > 0 or deleted_saves > 0 or deleted_table_checkpoints > 0 or deleted_bans > 0 or deleted_requests > 0 or deleted_notifications > 0 or deleted_mutes > 0 or deleted_tokens > 0:
+             logger.info(f"Database Pruning: Deleted {deleted_games} old game results, {deleted_saves} old saved tables, {deleted_table_checkpoints} table checkpoints, {deleted_bans} expired bans, {deleted_requests} pending requests, {deleted_notifications} notifications, {deleted_expired_mutes} expired mutes, {deleted_orphaned_mutes} orphaned mutes, {deleted_tokens} expired tokens.")
         else:
              logger.info("Database Pruning: 0 records deleted (no old data found).")
 
         # Also print to standard output for explicit CLI visibility on startup
-        if deleted_games > 0 or deleted_saves > 0 or deleted_bans > 0 or deleted_requests > 0 or deleted_notifications > 0 or deleted_mutes > 0 or deleted_tokens > 0:
-             print(f"Database Pruning: Cleaned up {deleted_games} game_results, {deleted_saves} saved_tables, {deleted_bans} bans, {deleted_requests} friend requests, {deleted_notifications} notifications, {deleted_expired_mutes} expired mutes, {deleted_orphaned_mutes} orphaned mutes, {deleted_tokens} expired tokens.")
+        if deleted_games > 0 or deleted_saves > 0 or deleted_table_checkpoints > 0 or deleted_bans > 0 or deleted_requests > 0 or deleted_notifications > 0 or deleted_mutes > 0 or deleted_tokens > 0:
+             print(f"Database Pruning: Cleaned up {deleted_games} game_results, {deleted_saves} saved_tables, {deleted_table_checkpoints} table checkpoints, {deleted_bans} bans, {deleted_requests} friend requests, {deleted_notifications} notifications, {deleted_expired_mutes} expired mutes, {deleted_orphaned_mutes} mutes, {deleted_tokens} tokens.")
 
     @staticmethod
     def _quote_identifier(identifier: str) -> str:
@@ -1128,6 +1179,7 @@ class Database:
         cursor.execute("DELETE FROM player_game_stats WHERE player_id = ?", (user.uuid,))
         cursor.execute("DELETE FROM player_ratings WHERE player_id = ?", (user.uuid,))
         cursor.execute("DELETE FROM saved_tables WHERE username = ?", (username,))
+        self._delete_table_checkpoints_for_username(cursor, username)
         cursor.execute("DELETE FROM bans WHERE username = ?", (username,))
         cursor.execute("DELETE FROM mutes WHERE username = ?", (username,))
         cursor.execute("DELETE FROM friendships WHERE requester_id = ? OR receiver_id = ?", (user.uuid, user.uuid))
@@ -1146,6 +1198,31 @@ class Database:
 
         self._conn.commit()
         return cursor.rowcount > 0
+
+    def _delete_table_checkpoints_for_username(
+        self, cursor: sqlite3.Cursor, username: str
+    ) -> int:
+        """Delete transient table checkpoints that reference an account."""
+        username_key = username.casefold()
+        cursor.execute("SELECT table_id, host, members_json FROM tables")
+        table_ids: list[str] = []
+        for row in cursor.fetchall():
+            if str(row["host"]).casefold() == username_key:
+                table_ids.append(row["table_id"])
+                continue
+            try:
+                members = json.loads(row["members_json"])
+            except (TypeError, json.JSONDecodeError):
+                continue
+            if any(
+                str(member.get("username", "")).casefold() == username_key
+                for member in members
+            ):
+                table_ids.append(row["table_id"])
+
+        for table_id in table_ids:
+            cursor.execute("DELETE FROM tables WHERE table_id = ?", (table_id,))
+        return len(table_ids)
 
     def get_non_admin_users(self) -> list[UserRecord]:
         """Get all approved users who are not admins (trust_level < 2)."""
@@ -1796,8 +1873,19 @@ class Database:
 
         cursor.execute(
             """
-            INSERT OR REPLACE INTO tables (table_id, game_type, host, members_json, game_json, status)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO tables (
+                table_id,
+                game_type,
+                host,
+                members_json,
+                game_json,
+                status,
+                checkpoint_kind,
+                checkpoint_created_at,
+                checkpoint_expires_at,
+                checkpoint_operation_id
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
                 table.table_id,
@@ -1806,6 +1894,10 @@ class Database:
                 members_json,
                 table.game_json,
                 table.status,
+                "manual",
+                datetime.now().isoformat(),
+                None,
+                "",
             ),
         )
         self._conn.commit()
@@ -1827,7 +1919,7 @@ class Database:
             for m in members_data
         ]
 
-        return Table(
+        table = Table(
             table_id=row["table_id"],
             game_type=row["game_type"],
             host=row["host"],
@@ -1835,12 +1927,29 @@ class Database:
             game_json=row["game_json"],
             status=row["status"],
         )
+        table._checkpoint_kind = row["checkpoint_kind"] if "checkpoint_kind" in row.keys() else "legacy"
+        table._checkpoint_created_at = row["checkpoint_created_at"] if "checkpoint_created_at" in row.keys() else ""
+        return table
 
     def load_all_tables(self) -> list[Table]:
         """Load all tables from the database in a single query."""
         from ..tables.table import TableMember
         cursor = self._conn.cursor()
-        cursor.execute("SELECT table_id, game_type, host, members_json, game_json, status FROM tables")
+        cursor.execute(
+            """
+            SELECT
+                table_id,
+                game_type,
+                host,
+                members_json,
+                game_json,
+                status,
+                checkpoint_kind,
+                checkpoint_created_at
+            FROM tables
+            ORDER BY checkpoint_created_at DESC, table_id
+            """
+        )
         tables = []
         for row in cursor.fetchall():
             try:
@@ -1849,14 +1958,17 @@ class Database:
                     TableMember(username=m["username"], is_spectator=m["is_spectator"])
                     for m in members_data
                 ]
-                tables.append(Table(
+                table = Table(
                     table_id=row["table_id"],
                     game_type=row["game_type"],
                     host=row["host"],
                     members=members,
                     game_json=row["game_json"],
                     status=row["status"],
-                ))
+                )
+                table._checkpoint_kind = row["checkpoint_kind"] or "legacy"
+                table._checkpoint_created_at = row["checkpoint_created_at"] or ""
+                tables.append(table)
             except Exception:
                 pass  # Skip any malformed table records
         return tables
@@ -1873,23 +1985,55 @@ class Database:
         cursor.execute("DELETE FROM tables")
         self._conn.commit()
 
-    def save_all_tables(self, tables: list[Table]) -> None:
+    def save_all_tables(
+        self,
+        tables: list[Table],
+        *,
+        checkpoint_kind: str = "shutdown",
+        checkpoint_expires_at: str | None = None,
+        checkpoint_operation_id: str = "",
+    ) -> None:
         """Save multiple tables in a single transaction."""
-        if not tables:
-            return
-        cursor = self._conn.cursor()
-        for table in tables:
-            members_json = json.dumps(
-                [{"username": m.username, "is_spectator": m.is_spectator} for m in table.members]
-            )
-            cursor.execute(
-                """
-                INSERT OR REPLACE INTO tables (table_id, game_type, host, members_json, game_json, status)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (table.table_id, table.game_type, table.host, members_json, table.game_json, table.status),
-            )
-        self._conn.commit()
+        checkpoint_created_at = datetime.now().isoformat()
+        with self._conn:
+            cursor = self._conn.cursor()
+            cursor.execute("DELETE FROM tables")
+            for table in tables:
+                members_json = json.dumps(
+                    [
+                        {"username": m.username, "is_spectator": m.is_spectator}
+                        for m in table.members
+                    ]
+                )
+                cursor.execute(
+                    """
+                    INSERT INTO tables (
+                        table_id,
+                        game_type,
+                        host,
+                        members_json,
+                        game_json,
+                        status,
+                        checkpoint_kind,
+                        checkpoint_created_at,
+                        checkpoint_expires_at,
+                        checkpoint_operation_id
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        table.table_id,
+                        table.game_type,
+                        table.host,
+                        members_json,
+                        table.game_json,
+                        table.status,
+                        checkpoint_kind,
+                        checkpoint_created_at,
+                        checkpoint_expires_at,
+                        checkpoint_operation_id,
+                    ),
+                )
 
     # Saved table operations (user-saved game states)
 

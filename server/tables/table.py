@@ -1,5 +1,6 @@
 """Table management for games."""
 
+import math
 import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
@@ -65,6 +66,9 @@ class Table(DataClassJSONMixin):
         # Keyed by player UUID. Dies with this Table instance, so no ban can
         # carry over even if a future table reuses the same table_id.
         self._banned_uuids: set[str] = set()
+        self._power_restore_started_at: float | None = None
+        self._power_restore_grace_seconds: int = 0
+        self._power_restore_processed: bool = False
 
     @property
     def game(self) -> "Game | None":
@@ -212,24 +216,9 @@ class Table(DataClassJSONMixin):
                 voice_reason=voice_reason,
             )
 
-        if self.effective_status() == "waiting" and username == self.host:
-            # Host left/kicked in lobby -> promote new host
-            # Filter for non-spectator humans. Note: Removed user is already gone from self.members
-            candidates = [m for m in self.members if not m.is_spectator and not (self._users.get(m.username) and getattr(self._users.get(m.username), "is_bot", False))]
-
-            if candidates:
-                # Prioritize ONLINE humans
-                candidates.sort(key=lambda m: m.username in self._server._users if self._server else False, reverse=True)
-
-                new_host = candidates[0].username
-                self.host = new_host
-                # Broadcast via game if possible
-                if self._game:
-                    self._game.broadcast_l("new-host", buffer="system", player=new_host)
-                    self._game.host = new_host
-                    if hasattr(self._game, "refresh_menus"):
-                        self._game.refresh_menus()
-            else:
+        if username == self.host:
+            promoted = self._promote_table_host(message_key="new-host")
+            if not promoted and self.effective_status() == "waiting":
                 # No non-spectator human can take over as host: destroy the table.
                 # This handles the case where only spectators remain after the host leaves
                 # (e.g. host is the only player and others joined as spectators, or the
@@ -286,8 +275,245 @@ class Table(DataClassJSONMixin):
         for user in self._users.values():
             user.play_sound(name, volume)
 
+    def mark_power_restored(self, grace_seconds: int) -> None:
+        """Hold restored gameplay briefly while clients auto-reconnect."""
+        self._power_restore_started_at = time.time()
+        self._power_restore_grace_seconds = max(0, int(grace_seconds))
+        self._power_restore_processed = False
+        self._offline_since = None
+        self._member_offline_since.clear()
+
+    def clear_power_restore_grace(self) -> None:
+        self._power_restore_started_at = None
+        self._power_restore_grace_seconds = 0
+        self._power_restore_processed = True
+
+    def is_power_restore_grace_active(self) -> bool:
+        return (
+            self._power_restore_started_at is not None
+            and not self._power_restore_processed
+        )
+
+    def power_restore_remaining_seconds(self) -> int:
+        if self._power_restore_started_at is None:
+            return 0
+        elapsed = time.time() - self._power_restore_started_at
+        remaining = self._power_restore_grace_seconds - elapsed
+        return max(0, math.ceil(remaining))
+
+    def power_restore_missing_player_names(self) -> list[str]:
+        """Return active human seats still missing during reboot restore grace."""
+        return [
+            player.replaced_human_name or player.name
+            for player in self._offline_active_humans()
+        ]
+
+    def _online_active_humans(self) -> list[Any]:
+        if not self._game or not self._server:
+            return []
+        result = []
+        for player in self._game.players:
+            if player.is_bot or player.is_spectator:
+                continue
+            user = self._game.get_user(player)
+            if user and user.username in self._server._users:
+                result.append(player)
+        return result
+
+    def _offline_active_humans(self) -> list[Any]:
+        if not self._game or not self._server:
+            return []
+        result = []
+        for player in self._game.players:
+            if player.is_bot or player.is_spectator:
+                continue
+            user = self._game.get_user(player)
+            if not user or user.username not in self._server._users:
+                result.append(player)
+        return result
+
+    def _all_active_humans_are_online(self) -> bool:
+        if not self._game:
+            return True
+        return not self._offline_active_humans()
+
+    def _handle_power_restore_grace(self, current_time: float) -> bool:
+        """Return True when normal table ticking should remain paused."""
+        if not self.is_power_restore_grace_active():
+            return False
+
+        if self._all_active_humans_are_online():
+            if self.effective_status() == "playing" and self._game:
+                self._game.broadcast_l(
+                    "server-power-restore-complete",
+                    buffer="system",
+                )
+            self.clear_power_restore_grace()
+            return False
+
+        assert self._power_restore_started_at is not None
+        elapsed = current_time - self._power_restore_started_at
+        if elapsed < self._power_restore_grace_seconds:
+            return True
+
+        if self.effective_status() == "playing":
+            online_humans = self._online_active_humans()
+            if not self._game:
+                self.clear_power_restore_grace()
+                return False
+            if not online_humans:
+                # Nobody is present to supervise the restored game yet. Keep
+                # gameplay frozen instead of letting bots advance an unattended
+                # table, but still let the abandoned-table timeout clean it up.
+                if self._offline_since is None:
+                    self._offline_since = current_time
+                elif current_time - self._offline_since > 300:
+                    self.destroy()
+                return True
+            offline_players = self._offline_active_humans()
+            missing_usernames = {
+                player.replaced_human_name or player.name
+                for player in offline_players
+            }
+            replaced_any = False
+            for player in offline_players:
+                if self._game._replace_with_bot(player):
+                    replaced_any = True
+            self._promote_power_restore_host_if_missing(missing_usernames)
+            if replaced_any and hasattr(self._game, "refresh_menus"):
+                self._game.broadcast_l(
+                    "server-power-restore-complete-with-bots",
+                    buffer="system",
+                )
+                self._game.refresh_menus()
+            self.clear_power_restore_grace()
+            return False
+
+        if self.effective_status() == "waiting":
+            self._prune_waiting_power_restore_absentees()
+            self.clear_power_restore_grace()
+        return False
+
+    def _prune_waiting_power_restore_absentees(self) -> None:
+        """Remove offline humans from a restored waiting lobby after grace."""
+        if not self._server:
+            return
+
+        online_members = [
+            member
+            for member in self.members
+            if member.username in self._server._users
+        ]
+        if not online_members:
+            self.destroy()
+            return
+
+        offline_usernames = {
+            member.username
+            for member in self.members
+            if member.username not in self._server._users
+        }
+        if not offline_usernames:
+            return
+
+        self.members = [
+            member
+            for member in self.members
+            if member.username not in offline_usernames
+        ]
+        for username in offline_usernames:
+            self._users.pop(username, None)
+            if self._manager and hasattr(self._manager, "_username_to_table"):
+                self._manager._username_to_table.pop(username, None)
+
+        if self._game:
+            self._game.players = [
+                player
+                for player in self._game.players
+                if player.is_bot
+                or player.name not in offline_usernames
+                or getattr(player, "replaced_human_name", "")
+            ]
+            for player_id in list(self._game.player_action_sets):
+                if not self._game.get_player_by_id(player_id):
+                    self._game.player_action_sets.pop(player_id, None)
+            for player_id in list(self._game._users):
+                if not self._game.get_player_by_id(player_id):
+                    self._game._users.pop(player_id, None)
+
+        if self.host in offline_usernames:
+            candidates = [member for member in self.members if not member.is_spectator]
+            if candidates:
+                self.host = candidates[0].username
+                if self._game:
+                    self._game.host = self.host
+            else:
+                self.destroy()
+                return
+
+        if self._server and hasattr(self._server, "on_tables_changed"):
+            self._server.on_tables_changed()
+
+    def _promote_power_restore_host_if_missing(
+        self, missing_usernames: set[str]
+    ) -> None:
+        """Promote an online human if the restored table host never returned."""
+        if self.host not in missing_usernames:
+            return
+        self._promote_table_host(
+            message_key="table-new-host-promoted",
+            online_only=True,
+        )
+
+    def _promote_table_host(
+        self,
+        *,
+        message_key: str,
+        online_only: bool = False,
+    ) -> bool:
+        """Promote the next eligible human table member to host."""
+        candidates = []
+        for member in self.members:
+            if member.is_spectator:
+                continue
+            member_user = self._users.get(member.username)
+            if member_user and getattr(member_user, "is_bot", False):
+                continue
+            if online_only and (
+                not self._server or member.username not in self._server._users
+            ):
+                continue
+            candidates.append(member)
+
+        if not candidates:
+            return False
+
+        if self._server:
+            candidates.sort(
+                key=lambda member: member.username in self._server._users,
+                reverse=True,
+            )
+
+        new_host = candidates[0].username
+        if new_host == self.host:
+            return True
+
+        self.host = new_host
+        if self._game:
+            self._game.host = new_host
+            self._game.broadcast_l(message_key, buffer="system", player=new_host)
+            if hasattr(self._game, "refresh_menus"):
+                self._game.refresh_menus()
+        if self._server and hasattr(self._server, "on_tables_changed"):
+            self._server.on_tables_changed()
+        return True
+
     def on_tick(self) -> None:
         """Called every tick. Forwards to game."""
+        current_time = time.time()
+        if self._handle_power_restore_grace(current_time):
+            return
+
         if self._game:
             self._game.on_tick()
             self._sync_status_from_game()
@@ -323,8 +549,6 @@ class Table(DataClassJSONMixin):
                         any_human_present = True
                         break
 
-            current_time = time.time()
-            
             should_destroy = False
             
             table_status = self.effective_status()
