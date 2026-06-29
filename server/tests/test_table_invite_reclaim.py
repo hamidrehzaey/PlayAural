@@ -1,5 +1,7 @@
+import asyncio
 import os
 import tempfile
+from contextlib import suppress
 from types import SimpleNamespace
 
 import pytest
@@ -618,6 +620,37 @@ class TestTableInviteReclaim:
         ) in host.get_spoken_messages()
 
     @pytest.mark.asyncio
+    async def test_network_disconnected_replacement_stays_under_human_roster_row(self):
+        host = self._create_online_user("Host")
+        guest = self._create_online_user("Guest")
+        table, game = self._create_started_table(host, guest)
+        client = SimpleNamespace(username=guest.username, address="guest-client")
+        guest.connection = client
+
+        await self.server._on_client_disconnect(client)
+        pending = self.server._pending_disconnects.pop(guest.username, None)
+        if pending:
+            pending.cancel()
+            with suppress(asyncio.CancelledError):
+                await pending
+
+        replacement = game.get_player_by_id(guest.uuid)
+        assert replacement is not None
+        assert replacement.is_bot is True
+        assert replacement.replaced_human_name == guest.username
+        assert any(member.username == guest.username for member in table.members)
+
+        self.server._show_table_members_menu(host, table)
+        roster_items = host.get_current_menu_items(TABLE_MEMBERS_MENU) or []
+        row_texts = [item.text for item in roster_items]
+        guest_row = next(
+            text for text in row_texts if text.startswith(f"{guest.username}:")
+        )
+        assert "Offline" in guest_row
+        assert f"bot playing on their behalf: {replacement.name}" in guest_row
+        assert not any(text.startswith(f"{replacement.name}:") for text in row_texts)
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize("is_ban", [False, True])
     async def test_host_kick_plays_default_table_leave_sound(self, is_ban):
         host = self._create_online_user("Host")
@@ -934,6 +967,87 @@ class TestTableInviteReclaim:
             text.startswith(f"{replacement_bot_name}:")
             for text in refreshed_texts
         )
+
+    @pytest.mark.asyncio
+    async def test_table_roster_back_stack_after_offline_kick_and_blocked_bot_remove(self):
+        host = self._create_online_user("Host")
+        guest = self._create_online_user("Guest")
+        table, game = self._create_started_table(host, guest)
+        host_player = game.get_player_by_id(host.uuid)
+        guest_player = game.get_player_by_id(guest.uuid)
+        assert host_player is not None
+        assert guest_player is not None
+
+        assert game._replace_with_bot(guest_player) is True
+        replacement_bot_name = guest_player.name
+        self.server._users.pop(guest.username, None)
+        self.server._set_in_game_state(host, table.table_id)
+
+        game._action_whos_at_table(host_player, "whos_at_table")
+        assert self.server._user_states[host.username]["menu"] == TABLE_MEMBERS_MENU
+
+        await self.server._handle_table_members_selection(
+            host,
+            f"table_member_user_{guest.username}",
+            self.server._user_states[host.username],
+        )
+        assert (
+            self.server._user_states[host.username]["menu"]
+            == TABLE_MEMBER_ACTIONS_MENU
+        )
+
+        await self.server._handle_table_member_actions_selection(
+            host,
+            "table_kick",
+            self.server._user_states[host.username],
+        )
+        state = self.server._user_states[host.username]
+        assert state["menu"] == TABLE_MEMBERS_MENU
+        assert [frame.get("menu") for frame in state["_stack"]] == ["in_game"]
+
+        roster_items = host.get_current_menu_items(TABLE_MEMBERS_MENU) or []
+        assert any(
+            item.text.startswith(f"{replacement_bot_name}:")
+            for item in roster_items
+        )
+
+        await self.server._handle_table_members_selection(
+            host,
+            f"table_member_bot_{guest.uuid}",
+            self.server._user_states[host.username],
+        )
+        assert (
+            self.server._user_states[host.username]["menu"]
+            == TABLE_MEMBER_ACTIONS_MENU
+        )
+
+        await self.server._handle_table_member_actions_selection(
+            host,
+            "table_remove_bot",
+            self.server._user_states[host.username],
+        )
+        state = self.server._user_states[host.username]
+        assert state["menu"] == TABLE_MEMBER_ACTIONS_MENU
+        assert [frame.get("menu") for frame in state["_stack"]] == [
+            "in_game",
+            TABLE_MEMBERS_MENU,
+        ]
+
+        await self.server._handle_table_member_actions_selection(
+            host,
+            "back",
+            self.server._user_states[host.username],
+        )
+        state = self.server._user_states[host.username]
+        assert state["menu"] == TABLE_MEMBERS_MENU
+        assert [frame.get("menu") for frame in state["_stack"]] == ["in_game"]
+
+        await self.server._handle_table_members_selection(
+            host,
+            "back",
+            self.server._user_states[host.username],
+        )
+        assert self.server._user_states[host.username]["menu"] == "in_game"
 
     @pytest.mark.asyncio
     async def test_table_roster_bot_actions_remove_selected_bot(self):

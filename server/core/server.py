@@ -9148,6 +9148,40 @@ PlayAural Server
             # Refresh the actions menu so the button disappears, preserving the stack
             self._nav_refresh(user, self._show_online_user_actions_menu, target_username)
 
+    def _navigation_frame_identity(self, frame: dict) -> tuple[Any, ...] | None:
+        """Return the logical identity for stack frames that must not duplicate."""
+        menu = frame.get("menu")
+        if menu not in self.IN_GAME_OVERLAY_MENUS:
+            return None
+        table_id = frame.get("table_id")
+        if menu in ("host_kick_menu", "host_kick_ban_menu"):
+            return (menu, table_id, bool(frame.get("ban", False)))
+        if menu == TABLE_MEMBER_ACTIONS_MENU:
+            return (
+                menu,
+                table_id,
+                frame.get("target_kind", ""),
+                frame.get("target_id", ""),
+            )
+        return (menu, table_id)
+
+    def _collapse_duplicate_navigation_stack(
+        self,
+        current_state: dict,
+        stack: list[dict],
+    ) -> list[dict]:
+        """Drop redundant top frames that restore the menu already on screen."""
+        current_key = self._navigation_frame_identity(current_state)
+        if not current_key:
+            return stack
+        normalized = list(stack)
+        while (
+            normalized
+            and self._navigation_frame_identity(normalized[-1]) == current_key
+        ):
+            normalized.pop()
+        return normalized
+
     def _nav_refresh(self, user: NetworkUser, show_fn, *args, **kwargs) -> None:
         """Re-show a menu in-place, preserving the existing navigation stack.
 
@@ -9166,8 +9200,12 @@ PlayAural Server
         }
         show_fn(user, *args, **kwargs)
         if username in self._user_states:
-            self._user_states[username]["_stack"] = saved_stack
-            self._user_states[username].update(saved_focus)
+            state = self._user_states[username]
+            state["_stack"] = self._collapse_duplicate_navigation_stack(
+                state,
+                saved_stack,
+            )
+            state.update(saved_focus)
 
     def _enter_input_state(self, user: NetworkUser, input_id: str, **extra) -> None:
         """Transition into an editbox input state, recording the parent frame.
@@ -9386,7 +9424,8 @@ PlayAural Server
         stack.append(frame)
         show_fn(user, *args, **kwargs)
         if username in self._user_states:
-            self._user_states[username]["_stack"] = stack
+            state = self._user_states[username]
+            state["_stack"] = self._collapse_duplicate_navigation_stack(state, stack)
 
     def _nav_back(self, user: NetworkUser) -> None:
         """Navigate back by restoring the top frame from the return stack."""
@@ -9468,7 +9507,11 @@ PlayAural Server
             else:
                 self._return_to_game(user, table)
             if username in self._user_states:
-                self._user_states[username]["_stack"] = stack
+                state = self._user_states[username]
+                state["_stack"] = self._collapse_duplicate_navigation_stack(
+                    state,
+                    stack,
+                )
                 self._restore_menu_focus(user, frame)
             return  # IN_GAME_OVERLAY_MENUS manage their own state
         # For all other menus: call show function then re-inject stack
@@ -9758,7 +9801,8 @@ PlayAural Server
             return
         # Re-inject stack (show functions overwrite _user_states[username])
         if username in self._user_states:
-            self._user_states[username]["_stack"] = stack
+            state = self._user_states[username]
+            state["_stack"] = self._collapse_duplicate_navigation_stack(state, stack)
             self._restore_menu_focus(user, frame)
 
     def _remember_current_menu_focus(
