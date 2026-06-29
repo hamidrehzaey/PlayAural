@@ -457,6 +457,27 @@ reason-custom = Khác / Tùy chỉnh
 
 no-users-to-ban = Không có người dùng nào để cấm.
 no-banned-users = Không có người dùng nào đang bị cấm.
+admin-active-ban-entry = { $username }. Lệnh cấm hết hạn: { $expires }. Lý do: { $reason }. Admin thực hiện: { $admin }.
+admin-active-mute-entry = { $username }. Lệnh tắt tiếng hết hạn: { $expires }. Lý do: { $reason }. Admin thực hiện: { $admin }.
+admin-penalty-expiry-permanent = vĩnh viễn
+admin-penalty-expiry-unknown = không rõ thời hạn
+admin-penalty-expiry-expired = đã hết hạn
+admin-penalty-expiry-timed = { $date } (còn { $remaining })
+admin-penalty-reason-unknown = chưa ghi lý do
+admin-penalty-admin-unknown = admin không xác định
+admin-penalty-remaining-days = { $count ->
+    [one] 1 ngày
+   *[other] { $count } ngày
+}
+admin-penalty-remaining-hours = { $count ->
+    [one] 1 giờ
+   *[other] { $count } giờ
+}
+admin-penalty-remaining-minutes = { $count ->
+    [one] 1 phút
+   *[other] { $count } phút
+}
+admin-penalty-remaining-less-minute = dưới 1 phút
 
 ban-broadcast = { $target } đã bị cấm bởi { $actor } vì { $reason }. Thời hạn: { $duration }.
 unban-broadcast = { $target } đã được bỏ cấm bởi { $actor }.

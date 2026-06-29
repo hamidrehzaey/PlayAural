@@ -2,12 +2,14 @@
 
 import functools
 import asyncio
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 from ..users.network_user import NetworkUser
 from ..users.base import MenuItem, EscapeBehavior
 from ..messages.localization import Localization
+from ..persistence.database import BanRecord, MuteRecord
 from ..menu_pagination import (
     DEFAULT_MENU_PAGE_SIZE,
     MENU_PAGE_IDS,
@@ -57,6 +59,15 @@ ADMIN_MENU_IDS = {
     "mute_custom_reason_input",
     ADMIN_TARGET_SEARCH_INPUT,
 }
+
+
+@dataclass(frozen=True)
+class AdminTargetRow:
+    """Display text plus stable username action target for admin lists."""
+
+    username: str
+    label: str
+
 
 def require_admin(func):
     """Decorator that checks if the user is still an admin before executing an admin action."""
@@ -136,7 +147,7 @@ class AdministrationManager:
         menu_id: str,
         mode: str,
         action_prefix: str,
-        targets: PaginatedMenuPage[str],
+        targets: PaginatedMenuPage[str | AdminTargetRow],
         empty_key: str,
         query: str = "",
         focus_page_start: bool = False,
@@ -171,7 +182,15 @@ class AdministrationManager:
             if focus_page_start:
                 focus_position = len(items) + 1
             for target in targets.items:
-                items.append(MenuItem(text=target, id=f"{action_prefix}_{target}"))
+                if isinstance(target, AdminTargetRow):
+                    label = target.label
+                    target_username = target.username
+                else:
+                    label = target
+                    target_username = target
+                items.append(
+                    MenuItem(text=label, id=f"{action_prefix}_{target_username}")
+                )
             items.extend(
                 pagination_menu_items(user.locale, targets, include_refresh=True)
             )
@@ -387,35 +406,139 @@ class AdministrationManager:
             page_size=ADMIN_TARGET_PAGE_SIZE,
         )
 
+    def _penalty_reason_text(self, locale: str, reason_key: str | None) -> str:
+        raw_reason = str(reason_key or "").strip()
+        if not raw_reason:
+            return Localization.get(locale, "admin-penalty-reason-unknown")
+
+        if raw_reason.startswith("CUSTOM_"):
+            custom_reason = raw_reason[7:].strip().replace("\n", " ")[:200]
+            return custom_reason or Localization.get(
+                locale,
+                "admin-penalty-reason-unknown",
+            )
+
+        localized = Localization.get(locale, raw_reason)
+        if not localized or localized == raw_reason:
+            return Localization.get(locale, "admin-penalty-reason-unknown")
+        return localized
+
+    def _penalty_admin_text(self, locale: str, admin_username: str | None) -> str:
+        admin_name = str(admin_username or "").strip()
+        if admin_name:
+            return admin_name
+        return Localization.get(locale, "admin-penalty-admin-unknown")
+
+    def _format_remaining_duration(self, locale: str, expires_at: datetime) -> str:
+        now = datetime.now(expires_at.tzinfo) if expires_at.tzinfo else datetime.now()
+        total_seconds = int((expires_at - now).total_seconds())
+        if total_seconds < 60:
+            return Localization.get(locale, "admin-penalty-remaining-less-minute")
+
+        total_minutes = (total_seconds + 59) // 60
+        days, remainder = divmod(total_minutes, 24 * 60)
+        hours, minutes = divmod(remainder, 60)
+        parts: list[str] = []
+        if days:
+            parts.append(
+                Localization.get(locale, "admin-penalty-remaining-days", count=days)
+            )
+        if hours:
+            parts.append(
+                Localization.get(locale, "admin-penalty-remaining-hours", count=hours)
+            )
+        if minutes:
+            parts.append(
+                Localization.get(
+                    locale,
+                    "admin-penalty-remaining-minutes",
+                    count=minutes,
+                )
+            )
+        return Localization.format_list_and(locale, parts)
+
+    def _penalty_expiry_text(self, locale: str, expires_at: str | None) -> str:
+        raw_expiry = str(expires_at or "").strip()
+        if not raw_expiry:
+            return Localization.get(locale, "admin-penalty-expiry-permanent")
+
+        try:
+            expiry = datetime.fromisoformat(raw_expiry)
+        except ValueError:
+            return Localization.get(locale, "admin-penalty-expiry-unknown")
+
+        now = datetime.now(expiry.tzinfo) if expiry.tzinfo else datetime.now()
+        if expiry <= now:
+            return Localization.get(locale, "admin-penalty-expiry-expired")
+
+        return Localization.get(
+            locale,
+            "admin-penalty-expiry-timed",
+            date=expiry.strftime("%Y-%m-%d %H:%M"),
+            remaining=self._format_remaining_duration(locale, expiry),
+        )
+
+    def _ban_record_row(self, locale: str, record: BanRecord) -> AdminTargetRow:
+        return AdminTargetRow(
+            username=record.username,
+            label=Localization.get(
+                locale,
+                "admin-active-ban-entry",
+                username=record.username,
+                expires=self._penalty_expiry_text(locale, record.expires_at),
+                reason=self._penalty_reason_text(locale, record.reason_key),
+                admin=self._penalty_admin_text(locale, record.admin_username),
+            ),
+        )
+
+    def _mute_record_row(self, locale: str, record: MuteRecord) -> AdminTargetRow:
+        return AdminTargetRow(
+            username=record.username,
+            label=Localization.get(
+                locale,
+                "admin-active-mute-entry",
+                username=record.username,
+                expires=self._penalty_expiry_text(locale, record.expires_at),
+                reason=self._penalty_reason_text(locale, record.reason),
+                admin=self._penalty_admin_text(locale, record.admin_username),
+            ),
+        )
+
     def _search_active_bans_page(
-        self, query: str, page: int
-    ) -> PaginatedMenuPage[str]:
+        self, query: str, page: int, locale: str
+    ) -> PaginatedMenuPage[AdminTargetRow]:
         total = self.server.db.count_active_banned_users(query)
         safe_page = clamp_page(page, total, ADMIN_TARGET_PAGE_SIZE)
         offset = (safe_page - 1) * ADMIN_TARGET_PAGE_SIZE
         return PaginatedMenuPage(
-            items=self.server.db.search_active_banned_users(
-                query,
-                limit=ADMIN_TARGET_PAGE_SIZE,
-                offset=offset,
-            ),
+            items=[
+                self._ban_record_row(locale, record)
+                for record in self.server.db.search_active_ban_records(
+                    query,
+                    limit=ADMIN_TARGET_PAGE_SIZE,
+                    offset=offset,
+                )
+            ],
             total=total,
             page=safe_page,
             page_size=ADMIN_TARGET_PAGE_SIZE,
         )
 
     def _search_active_mutes_page(
-        self, query: str, page: int
-    ) -> PaginatedMenuPage[str]:
+        self, query: str, page: int, locale: str
+    ) -> PaginatedMenuPage[AdminTargetRow]:
         total = self.server.db.count_active_muted_users(query)
         safe_page = clamp_page(page, total, ADMIN_TARGET_PAGE_SIZE)
         offset = (safe_page - 1) * ADMIN_TARGET_PAGE_SIZE
         return PaginatedMenuPage(
-            items=self.server.db.search_active_muted_users(
-                query,
-                limit=ADMIN_TARGET_PAGE_SIZE,
-                offset=offset,
-            ),
+            items=[
+                self._mute_record_row(locale, record)
+                for record in self.server.db.search_active_mute_records(
+                    query,
+                    limit=ADMIN_TARGET_PAGE_SIZE,
+                    offset=offset,
+                )
+            ],
             total=total,
             page=safe_page,
             page_size=ADMIN_TARGET_PAGE_SIZE,
@@ -1865,7 +1988,7 @@ class AdministrationManager:
             menu_id="unban_menu",
             mode="unban",
             action_prefix="unban",
-            targets=self._search_active_bans_page(query, page),
+            targets=self._search_active_bans_page(query, page, user.locale),
             empty_key="no-banned-users",
             query=query,
             focus_page_start=focus_page_start,
@@ -2107,7 +2230,7 @@ class AdministrationManager:
             menu_id="unmute_menu",
             mode="unmute",
             action_prefix="unmute",
-            targets=self._search_active_mutes_page(query, page),
+            targets=self._search_active_mutes_page(query, page, user.locale),
             empty_key="no-muted-users",
             query=query,
             focus_page_start=focus_page_start,

@@ -1,5 +1,6 @@
 """Admin menu navigation and focus restoration tests."""
 
+from datetime import datetime, timedelta
 from types import SimpleNamespace
 
 import pytest
@@ -43,6 +44,13 @@ async def _select(server: Server, user: MockUser, menu_id: str, selection_id: st
 
 def _menu_item_ids(user: MockUser, menu_id: str) -> list[str]:
     return [item.id for item in user.get_current_menu_items(menu_id) or []]
+
+
+def _menu_item_text(user: MockUser, menu_id: str, item_id: str) -> str:
+    for item in user.get_current_menu_items(menu_id) or []:
+        if item.id == item_id:
+            return item.text
+    raise AssertionError(f"{item_id!r} not found in {menu_id!r}")
 
 
 @pytest.mark.asyncio
@@ -262,6 +270,75 @@ async def test_admin_searchable_unban_menu_uses_active_ban_search(tmp_path) -> N
         filtered_ids = _menu_item_ids(admin, "unban_menu")
         assert "unban_SpecialBan" in filtered_ids
         assert not any(item_id == "unban_Banned00" for item_id in filtered_ids)
+    finally:
+        server._db.close()
+
+
+@pytest.mark.asyncio
+async def test_admin_unban_menu_shows_penalty_details(tmp_path) -> None:
+    server, admin = _make_admin_server(tmp_path)
+    try:
+        _create_approved_user(server, "TimedBan")
+        expires = (datetime.now() + timedelta(hours=2, minutes=5)).isoformat()
+        server._db.ban_user("TimedBan", admin.username, "reason-spam", expires)
+
+        _create_approved_user(server, "LegacyBan")
+        server._db.ban_user("LegacyBan", "", "", None)
+
+        _create_approved_user(server, "DuplicateBan")
+        server._db.ban_user("DuplicateBan", "OldAdmin", "reason-spam", expires)
+        server._db.ban_user("DuplicateBan", admin.username, "reason-cheating", None)
+
+        await _select(server, admin, "main_menu", "administration")
+        await _select(server, admin, "admin_menu", "unban_user")
+
+        timed_text = _menu_item_text(admin, "unban_menu", "unban_TimedBan")
+        assert "TimedBan" in timed_text
+        assert "Ban expiration:" in timed_text
+        assert "remaining" in timed_text
+        assert "Spam" in timed_text
+        assert "Admin" in timed_text
+
+        legacy_text = _menu_item_text(admin, "unban_menu", "unban_LegacyBan")
+        assert "LegacyBan" in legacy_text
+        assert "permanent" in legacy_text
+        assert "unspecified reason" in legacy_text
+        assert "unknown administrator" in legacy_text
+
+        duplicate_ids = [
+            item_id
+            for item_id in _menu_item_ids(admin, "unban_menu")
+            if item_id == "unban_DuplicateBan"
+        ]
+        assert duplicate_ids == ["unban_DuplicateBan"]
+        duplicate_text = _menu_item_text(admin, "unban_menu", "unban_DuplicateBan")
+        assert "Cheating" in duplicate_text
+        assert "Spam" not in duplicate_text
+    finally:
+        server._db.close()
+
+
+@pytest.mark.asyncio
+async def test_admin_unmute_menu_shows_penalty_details(tmp_path) -> None:
+    server, admin = _make_admin_server(tmp_path)
+    try:
+        _create_approved_user(server, "MutedTarget")
+        server._db.mute_user(
+            "MutedTarget",
+            admin.username,
+            "CUSTOM_repeated table chat spam",
+            None,
+        )
+
+        await _select(server, admin, "main_menu", "administration")
+        await _select(server, admin, "admin_menu", "unmute_user")
+
+        text = _menu_item_text(admin, "unmute_menu", "unmute_MutedTarget")
+        assert "MutedTarget" in text
+        assert "Mute expiration:" in text
+        assert "permanent" in text
+        assert "repeated table chat spam" in text
+        assert "Admin" in text
     finally:
         server._db.close()
 

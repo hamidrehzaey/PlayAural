@@ -1503,6 +1503,64 @@ class Database:
         )
         return [row["username"] for row in cursor.fetchall()]
 
+    def search_active_ban_records(
+        self,
+        query: str = "",
+        *,
+        limit: int = 25,
+        offset: int = 0,
+    ) -> list[BanRecord]:
+        """Search latest active ban records without loading the full ban table."""
+        now = datetime.now().isoformat()
+        term = query.strip()
+        limit = max(1, min(int(limit), 100))
+        offset = max(0, int(offset))
+        cursor = self._conn.cursor()
+        cursor.execute(
+            """
+            WITH ranked_active_bans AS (
+                SELECT
+                    id,
+                    username,
+                    admin_username,
+                    reason_key,
+                    issued_at,
+                    expires_at,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY LOWER(username)
+                        ORDER BY issued_at DESC, id DESC
+                    ) AS row_number
+                FROM bans
+                WHERE (expires_at IS NULL OR expires_at > ?)
+                  AND username LIKE ? COLLATE NOCASE
+            )
+            SELECT id, username, admin_username, reason_key, issued_at, expires_at
+            FROM ranked_active_bans
+            WHERE row_number = 1
+            ORDER BY
+                CASE
+                    WHEN username = ? COLLATE NOCASE THEN 0
+                    WHEN username LIKE ? COLLATE NOCASE THEN 1
+                    ELSE 2
+                END,
+                LOWER(username)
+            LIMIT ?
+            OFFSET ?
+            """,
+            (now, f"%{term}%", term, f"{term}%", limit, offset),
+        )
+        return [
+            BanRecord(
+                id=row["id"],
+                username=row["username"],
+                admin_username=row["admin_username"],
+                reason_key=row["reason_key"],
+                issued_at=row["issued_at"],
+                expires_at=row["expires_at"],
+            )
+            for row in cursor.fetchall()
+        ]
+
     def count_active_banned_users(self, query: str = "") -> int:
         """Count currently banned usernames matching an optional search term."""
         now = datetime.now().isoformat()
@@ -1512,10 +1570,11 @@ class Database:
             """
             SELECT COUNT(*) AS count
             FROM (
-                SELECT DISTINCT username
+                SELECT LOWER(username) AS username_key
                 FROM bans
                 WHERE (expires_at IS NULL OR expires_at > ?)
                   AND username LIKE ? COLLATE NOCASE
+                GROUP BY LOWER(username)
             )
             """,
             (now, f"%{term}%"),
@@ -1531,33 +1590,14 @@ class Database:
         offset: int = 0,
     ) -> list[str]:
         """Search currently banned usernames without loading the full ban list."""
-        now = datetime.now().isoformat()
-        term = query.strip()
-        limit = max(1, min(int(limit), 100))
-        offset = max(0, int(offset))
-        cursor = self._conn.cursor()
-        cursor.execute(
-            """
-            SELECT username
-            FROM (
-                SELECT DISTINCT username
-                FROM bans
-                WHERE (expires_at IS NULL OR expires_at > ?)
-                  AND username LIKE ? COLLATE NOCASE
+        return [
+            record.username
+            for record in self.search_active_ban_records(
+                query,
+                limit=limit,
+                offset=offset,
             )
-            ORDER BY
-                CASE
-                    WHEN username = ? COLLATE NOCASE THEN 0
-                    WHEN username LIKE ? COLLATE NOCASE THEN 1
-                    ELSE 2
-                END,
-                LOWER(username)
-            LIMIT ?
-            OFFSET ?
-            """,
-            (now, f"%{term}%", term, f"{term}%", limit, offset),
-        )
-        return [row["username"] for row in cursor.fetchall()]
+        ]
 
     # ==================== Mute operations ====================
 
@@ -1636,6 +1676,64 @@ class Database:
         )
         return [row["username"] for row in cursor.fetchall()]
 
+    def search_active_mute_records(
+        self,
+        query: str = "",
+        *,
+        limit: int = 25,
+        offset: int = 0,
+    ) -> list[MuteRecord]:
+        """Search latest active mute records without loading the full mute table."""
+        now = datetime.now().isoformat()
+        term = query.strip()
+        limit = max(1, min(int(limit), 100))
+        offset = max(0, int(offset))
+        cursor = self._conn.cursor()
+        cursor.execute(
+            """
+            WITH ranked_active_mutes AS (
+                SELECT
+                    id,
+                    username,
+                    admin_username,
+                    reason,
+                    issued_at,
+                    expires_at,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY LOWER(username)
+                        ORDER BY issued_at DESC, id DESC
+                    ) AS row_number
+                FROM mutes
+                WHERE (expires_at IS NULL OR expires_at > ?)
+                  AND username LIKE ? COLLATE NOCASE
+            )
+            SELECT id, username, admin_username, reason, issued_at, expires_at
+            FROM ranked_active_mutes
+            WHERE row_number = 1
+            ORDER BY
+                CASE
+                    WHEN username = ? COLLATE NOCASE THEN 0
+                    WHEN username LIKE ? COLLATE NOCASE THEN 1
+                    ELSE 2
+                END,
+                LOWER(username)
+            LIMIT ?
+            OFFSET ?
+            """,
+            (now, f"%{term}%", term, f"{term}%", limit, offset),
+        )
+        return [
+            MuteRecord(
+                id=row["id"],
+                username=row["username"],
+                admin_username=row["admin_username"],
+                reason=row["reason"],
+                issued_at=row["issued_at"],
+                expires_at=row["expires_at"],
+            )
+            for row in cursor.fetchall()
+        ]
+
     def count_active_muted_users(self, query: str = "") -> int:
         """Count currently muted usernames matching an optional search term."""
         now = datetime.now().isoformat()
@@ -1645,10 +1743,11 @@ class Database:
             """
             SELECT COUNT(*) AS count
             FROM (
-                SELECT DISTINCT username
+                SELECT LOWER(username) AS username_key
                 FROM mutes
                 WHERE (expires_at IS NULL OR expires_at > ?)
                   AND username LIKE ? COLLATE NOCASE
+                GROUP BY LOWER(username)
             )
             """,
             (now, f"%{term}%"),
@@ -1664,33 +1763,14 @@ class Database:
         offset: int = 0,
     ) -> list[str]:
         """Search currently muted usernames without loading the full mute list."""
-        now = datetime.now().isoformat()
-        term = query.strip()
-        limit = max(1, min(int(limit), 100))
-        offset = max(0, int(offset))
-        cursor = self._conn.cursor()
-        cursor.execute(
-            """
-            SELECT username
-            FROM (
-                SELECT DISTINCT username
-                FROM mutes
-                WHERE (expires_at IS NULL OR expires_at > ?)
-                  AND username LIKE ? COLLATE NOCASE
+        return [
+            record.username
+            for record in self.search_active_mute_records(
+                query,
+                limit=limit,
+                offset=offset,
             )
-            ORDER BY
-                CASE
-                    WHEN username = ? COLLATE NOCASE THEN 0
-                    WHEN username LIKE ? COLLATE NOCASE THEN 1
-                    ELSE 2
-                END,
-                LOWER(username)
-            LIMIT ?
-            OFFSET ?
-            """,
-            (now, f"%{term}%", term, f"{term}%", limit, offset),
-        )
-        return [row["username"] for row in cursor.fetchall()]
+        ]
 
     def get_approved_users(self) -> list[tuple[str, int]]:
         """Return (username, trust_level) for every approved user account."""

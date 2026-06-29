@@ -466,6 +466,27 @@ reason-custom = Other / Custom
 
 no-users-to-ban = No users available to ban.
 no-banned-users = No users are currently banned.
+admin-active-ban-entry = { $username }. Ban expiration: { $expires }. Reason: { $reason }. Issued by: { $admin }.
+admin-active-mute-entry = { $username }. Mute expiration: { $expires }. Reason: { $reason }. Issued by: { $admin }.
+admin-penalty-expiry-permanent = permanent
+admin-penalty-expiry-unknown = unknown expiration
+admin-penalty-expiry-expired = already expired
+admin-penalty-expiry-timed = { $date } ({ $remaining } remaining)
+admin-penalty-reason-unknown = unspecified reason
+admin-penalty-admin-unknown = unknown administrator
+admin-penalty-remaining-days = { $count ->
+    [one] 1 day
+   *[other] { $count } days
+}
+admin-penalty-remaining-hours = { $count ->
+    [one] 1 hour
+   *[other] { $count } hours
+}
+admin-penalty-remaining-minutes = { $count ->
+    [one] 1 minute
+   *[other] { $count } minutes
+}
+admin-penalty-remaining-less-minute = less than 1 minute
 
 ban-broadcast = { $target } has been banned by { $actor } for { $reason }. Duration: { $duration }.
 unban-broadcast = { $target } has been unbanned by { $actor }.
