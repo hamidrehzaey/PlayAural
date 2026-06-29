@@ -21,6 +21,11 @@ def _current_menu(server, username: str) -> str:
     return _user_state(server, username).get("menu", "")
 
 
+def _menu_ids(user: MockUser, menu_id: str) -> list[str]:
+    items = user.get_current_menu_items(menu_id) or []
+    return [item.id for item in items]
+
+
 def _make_server(tmp_path):
     server = Server(db_path=tmp_path / "options_nav.sqlite")
     server._db.connect()
@@ -318,6 +323,77 @@ async def test_action_close_uses_position_when_parent_item_disappears(tmp_path) 
         restored = user.menus["friend_requests_menu"]
         assert restored["selection_id"] is None
         assert restored["position"] == 1
+    finally:
+        server._db.close()
+
+
+@pytest.mark.asyncio
+async def test_friend_requests_menu_pages_large_pending_lists(tmp_path) -> None:
+    server, user = _make_server(tmp_path)
+    try:
+        viewer = server._db.get_user(user.username)
+        assert viewer is not None
+        for index in range(101):
+            requester = server._db.create_user(f"Requester{index:03d}", "hash")
+            assert requester is not None
+            assert server._db.send_friend_request(requester.uuid, viewer.uuid) == "sent"
+
+        server._show_friend_requests_menu(user)
+        ids = _menu_ids(user, "friend_requests_menu")
+        assert len([item_id for item_id in ids if item_id.startswith("req_")]) == 100
+        assert "req_Requester100" not in ids
+        assert "refresh" in ids
+        assert "page_next" in ids
+
+        await server._handle_friend_requests_selection(
+            user,
+            "page_next",
+            server._user_states[user.username],
+        )
+
+        second_page_ids = _menu_ids(user, "friend_requests_menu")
+        assert server._user_states[user.username]["friend_requests_page"] == 2
+        assert "req_Requester100" in second_page_ids
+        assert "page_previous" in second_page_ids
+        assert "page_next" not in second_page_ids
+        assert user.menus["friend_requests_menu"]["position"] == 1
+    finally:
+        server._db.close()
+
+
+@pytest.mark.asyncio
+async def test_saved_tables_menu_pages_large_lists(tmp_path) -> None:
+    server, user = _make_server(tmp_path)
+    try:
+        last_record_id = 0
+        for index in range(101):
+            record = server._db.save_user_table(
+                user.username,
+                f"Save {index:03d}",
+                "pig",
+                "{}",
+                "[]",
+            )
+            last_record_id = record.id
+
+        server._show_saved_tables_menu(user)
+        ids = _menu_ids(user, "saved_tables_menu")
+        assert len([item_id for item_id in ids if item_id.startswith("saved_")]) == 100
+        assert f"saved_{last_record_id}" in ids
+        assert "refresh" in ids
+        assert "page_next" in ids
+
+        await server._handle_saved_tables_selection(
+            user,
+            "page_next",
+            server._user_states[user.username],
+        )
+
+        second_page_ids = _menu_ids(user, "saved_tables_menu")
+        assert server._user_states[user.username]["saved_tables_page"] == 2
+        assert "page_previous" in second_page_ids
+        assert "page_next" not in second_page_ids
+        assert user.menus["saved_tables_menu"]["position"] == 1
     finally:
         server._db.close()
 

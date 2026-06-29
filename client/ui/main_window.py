@@ -460,6 +460,7 @@ class MainWindow(wx.Frame):
         self.ID_LIST_ONLINE = wx.NewIdRef()
         self.ID_LIST_ONLINE_WITH_GAMES = wx.NewIdRef()
         self.ID_OPEN_FRIENDS_HUB = wx.NewIdRef()
+        self.ID_OPEN_ADMIN_MENU = wx.NewIdRef()
         self.ID_OPEN_OPTIONS = wx.NewIdRef()
 
         # Buffer system IDs
@@ -496,6 +497,11 @@ class MainWindow(wx.Frame):
             ),
             wx.AcceleratorEntry(wx.ACCEL_ALT, ord("P"), self.ID_PING),
             wx.AcceleratorEntry(wx.ACCEL_ALT, ord("F"), self.ID_OPEN_FRIENDS_HUB),
+            wx.AcceleratorEntry(
+                wx.ACCEL_ALT | wx.ACCEL_SHIFT,
+                ord("A"),
+                self.ID_OPEN_ADMIN_MENU,
+            ),
             wx.AcceleratorEntry(wx.ACCEL_ALT, ord("O"), self.ID_OPEN_OPTIONS),
         ]
 
@@ -548,6 +554,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_volume_up, id=self.ID_VOLUME_UP)
         self.Bind(wx.EVT_MENU, self.on_ping, id=self.ID_PING)
         self.Bind(wx.EVT_MENU, self.on_open_friends_hub, id=self.ID_OPEN_FRIENDS_HUB)
+        self.Bind(wx.EVT_MENU, self.on_open_admin_menu, id=self.ID_OPEN_ADMIN_MENU)
         self.Bind(wx.EVT_MENU, self.on_open_options, id=self.ID_OPEN_OPTIONS)
         self.Bind(wx.EVT_MENU, self.on_list_online, id=self.ID_LIST_ONLINE)
         self.Bind(
@@ -994,6 +1001,20 @@ class MainWindow(wx.Frame):
         "friend_requests_menu", "friend_request_actions_menu",
         "send_friend_request_input",
     })
+    # Administration-family menus. Permission remains enforced by the server.
+    _ADMIN_MENU_IDS = frozenset({
+        "admin_menu", "account_approval_menu", "pending_user_actions_menu",
+        "promote_admin_menu", "demote_admin_menu", "promote_confirm_menu",
+        "demote_confirm_menu", "kick_menu", "kick_confirm_menu",
+        "broadcast_choice_menu", "ban_menu", "ban_duration_menu",
+        "ban_reason_menu", "unban_menu", "mute_menu", "mute_duration_menu",
+        "mute_reason_menu", "unmute_menu", "manage_motd_menu",
+        "view_motd_menu", "smtp_settings_menu", "smtp_encryption_menu",
+        "smtp_setting_input", "admin_broadcast_input",
+        "admin_motd_version_input", "admin_motd_input",
+        "ban_custom_reason_input", "mute_custom_reason_input",
+        "admin_target_search_input",
+    })
     # Options-family menus.
     _OPTIONS_MENU_IDS = frozenset({
         "options_menu", "options_audio_submenu", "volume_selection_menu",
@@ -1011,6 +1032,12 @@ class MainWindow(wx.Frame):
         if self.connected and self.current_menu_id not in self._FRIENDS_MENU_IDS:
             self._prepare_for_menu_shortcut_navigation()
             self.network.send_packet({"type": "open_friends_hub"})
+
+    def on_open_admin_menu(self, event):
+        """Handle Alt+Shift+A to request the admin menu from anywhere."""
+        if self.connected and self.current_menu_id not in self._ADMIN_MENU_IDS:
+            self._prepare_for_menu_shortcut_navigation()
+            self.network.send_packet({"type": "open_admin_menu"})
 
     def on_open_options(self, event):
         """Handle Alt+O to open the options menu from anywhere."""
@@ -1284,8 +1311,11 @@ class MainWindow(wx.Frame):
                 key_name = "enter"
         # Handle letter keys (case insensitive)
         elif 65 <= key_code <= 90:  # A-Z
-            # Alt+P, M, C, V, H, F, O are handled by accelerator table
-            if event.AltDown() and key_code in [ord("P"), ord("M"), ord("C"), ord("V"), ord("H"), ord("F"), ord("O")]:
+            # Alt shortcuts are handled by the accelerator table.
+            if event.AltDown() and key_code in [
+                ord("P"), ord("M"), ord("C"), ord("V"), ord("H"),
+                ord("F"), ord("A"), ord("O"),
+            ]:
                 event.Skip()
                 return
             key_name = chr(key_code).lower()
@@ -2828,6 +2858,14 @@ class MainWindow(wx.Frame):
 
         return operations
 
+    @staticmethod
+    def _menu_ids_are_unique_and_stable(item_ids):
+        """Return True only when every menu row has a non-empty unique ID."""
+        return (
+            all(isinstance(item_id, str) and item_id for item_id in item_ids)
+            and len(item_ids) == len(set(item_ids))
+        )
+
     def compute_menu_diff(self, old_items, new_items, old_ids=None, new_ids=None):
         """
         Compute minimal operations to transform old_items into new_items.
@@ -2841,10 +2879,14 @@ class MainWindow(wx.Frame):
         - Otherwise use LCS-based diff for structural changes
         """
         # Check if we can use ID-based diffing (all items have IDs)
-        if (old_ids is not None and new_ids is not None and
-            len(old_ids) == len(old_items) and len(new_ids) == len(new_items) and
-            all(item_id is not None for item_id in old_ids) and
-            all(item_id is not None for item_id in new_ids)):
+        if (
+            old_ids is not None
+            and new_ids is not None
+            and len(old_ids) == len(old_items)
+            and len(new_ids) == len(new_items)
+            and self._menu_ids_are_unique_and_stable(old_ids)
+            and self._menu_ids_are_unique_and_stable(new_ids)
+        ):
             # Use simpler ID-based algorithm
             return self.compute_menu_diff_by_id(old_items, new_items, old_ids, new_ids)
 
@@ -3022,7 +3064,10 @@ class MainWindow(wx.Frame):
                     if 0 <= old_selection < len(old_item_ids)
                     else None
                 )
-                if old_focused_id is not None and old_focused_id in item_ids:
+                if (
+                    old_focused_id
+                    and item_ids.count(old_focused_id) == 1
+                ):
                     target = item_ids.index(old_focused_id)
                 elif old_selection != wx.NOT_FOUND:
                     target = min(old_selection, len(items) - 1)

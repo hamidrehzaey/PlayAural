@@ -60,6 +60,7 @@ export function installKeybinds({
   onToggleVoiceMic,
   onFocusHistory,
   onOpenFriends,
+  onOpenAdmin,
   onOpenOptions,
   onPreviousBuffer,
   onNextBuffer,
@@ -101,6 +102,19 @@ export function installKeybinds({
     ) {
       event.preventDefault();
       onToggleVoiceMic?.();
+      return;
+    }
+
+    if (
+      connected
+      && event.altKey
+      && event.shiftKey
+      && !event.ctrlKey
+      && !event.metaKey
+      && event.key.toLowerCase() === "a"
+    ) {
+      event.preventDefault();
+      onOpenAdmin?.();
       return;
     }
 

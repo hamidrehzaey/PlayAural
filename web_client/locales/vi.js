@@ -110,6 +110,7 @@ export default {
   "requesting-player-list": "Đang lấy danh sách người chơi trực tuyến...",
   "requesting-game-list": "Đang lấy danh sách người chơi đang ở bàn...",
   "requesting-friends-hub": "Đang mở bạn bè...",
+  "requesting-admin-menu": "Đang mở Quản trị...",
   "requesting-options": "Đang mở tùy chỉnh...",
 
   "audio-sound": "Hiệu ứng",

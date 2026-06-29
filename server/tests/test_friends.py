@@ -206,6 +206,51 @@ class TestFriendsSystem:
             table.destroy()
 
     @pytest.mark.asyncio
+    async def test_friends_list_pages_large_results(self):
+        self.db.create_user("Alice", "hash")
+        alice = self.db.get_user("Alice")
+        alice_user = self._make_network_user(alice.username, alice.uuid)
+
+        def latest_menu_ids(messages: list[dict]) -> list[str]:
+            menu = next(
+                message
+                for message in reversed(messages)
+                if message.get("type") == "menu"
+                and message.get("menu_id") == "friends_list_menu"
+            )
+            ids: list[str] = []
+            for item in menu.get("items", []):
+                if isinstance(item, dict):
+                    ids.append(item.get("id", ""))
+            return ids
+
+        for index in range(101):
+            username = f"Friend{index:03d}"
+            self.db.create_user(username, "hash")
+            friend = self.db.get_user(username)
+            self.db.send_friend_request(alice.uuid, friend.uuid)
+            self.db.accept_friend_request(alice.uuid, friend.uuid)
+
+        self.server._show_friends_list_menu(alice_user)
+        ids = latest_menu_ids(alice_user.get_queued_messages())
+        assert len([item_id for item_id in ids if item_id.startswith("friend_")]) == 100
+        assert "friend_Friend100" not in ids
+        assert "refresh" in ids
+        assert "page_next" in ids
+
+        await self.server._handle_friends_list_selection(
+            alice_user,
+            "page_next",
+            self.server._user_states[alice.username],
+        )
+
+        last_page_ids = latest_menu_ids(alice_user.get_queued_messages())
+        assert self.server._user_states[alice.username]["friends_page"] == 2
+        assert "friend_Friend100" in last_page_ids
+        assert "page_previous" in last_page_ids
+        assert "page_next" not in last_page_ids
+
+    @pytest.mark.asyncio
     async def test_remove_friend_prompts_before_deleting(self):
         alice, bob = self._create_friendship()
         alice_user = self._make_network_user(alice.username, alice.uuid)

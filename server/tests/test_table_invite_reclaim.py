@@ -1261,8 +1261,8 @@ class TestTableInviteReclaim:
         public_game._table = public_table
         public_game.initialize_lobby(public_host.username, public_host)
 
-        game_items = self.server._get_tables_menu_items(outsider, "pig")
-        active_items = self.server._get_active_tables_menu_items(outsider)
+        game_items, _ = self.server._get_tables_menu_items(outsider, "pig")
+        active_items, _ = self.server._get_active_tables_menu_items(outsider)
         outsider_table_ids = {item.id for item in game_items + active_items if hasattr(item, "id")}
 
         assert f"table_{private_table.table_id}" not in outsider_table_ids
@@ -1271,7 +1271,7 @@ class TestTableInviteReclaim:
         self.server._show_friend_actions_menu(outsider, host.username)
         assert "join_table" not in self._get_menu_action_ids(outsider, "friend_actions_menu")
 
-        member_game_items = self.server._get_tables_menu_items(member, "pig")
+        member_game_items, _ = self.server._get_tables_menu_items(member, "pig")
         member_ids = {item.id for item in member_game_items if hasattr(item, "id")}
         assert f"table_{private_table.table_id}" in member_ids
 

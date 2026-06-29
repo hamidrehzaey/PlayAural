@@ -1316,6 +1316,7 @@ class PlayAuralWebApp {
       onToggleVoiceMic: () => this.voice.toggleMic(),
       onFocusHistory: () => this.focusHistory(),
       onOpenFriends: () => this.openFriendsHub(),
+      onOpenAdmin: () => this.openAdminMenu(),
       onOpenOptions: () => this.openOptionsMenu(),
       onPreviousBuffer: () => this.historyView.previousBuffer(),
       onNextBuffer: () => this.historyView.nextBuffer(),
@@ -3090,6 +3091,12 @@ class PlayAuralWebApp {
   openFriendsHub() {
     if (this.send({ type: "open_friends_hub" })) {
       this.speak(Localization.get("requesting-friends-hub"), { buffer: "system" });
+    }
+  }
+
+  openAdminMenu() {
+    if (this.send({ type: "open_admin_menu" })) {
+      this.speak(Localization.get("requesting-admin-menu"), { buffer: "system" });
     }
   }
 

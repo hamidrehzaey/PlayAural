@@ -8,9 +8,55 @@ from typing import TYPE_CHECKING, Any
 from ..users.network_user import NetworkUser
 from ..users.base import MenuItem, EscapeBehavior
 from ..messages.localization import Localization
+from ..menu_pagination import (
+    DEFAULT_MENU_PAGE_SIZE,
+    MENU_PAGE_IDS,
+    PaginatedMenuPage,
+    clamp_page,
+    is_page_navigation,
+    is_page_refresh,
+    page_for_selection,
+    pagination_menu_items,
+    paginate_sequence,
+)
 
 if TYPE_CHECKING:
     from ..core.server import Server
+
+ADMIN_TARGET_PAGE_SIZE = DEFAULT_MENU_PAGE_SIZE
+ADMIN_TARGET_SEARCH_INPUT = "admin_target_search_input"
+
+ADMIN_MENU_IDS = {
+    "admin_menu",
+    "account_approval_menu",
+    "pending_user_actions_menu",
+    "promote_admin_menu",
+    "demote_admin_menu",
+    "promote_confirm_menu",
+    "demote_confirm_menu",
+    "kick_menu",
+    "kick_confirm_menu",
+    "broadcast_choice_menu",
+    "ban_menu",
+    "ban_duration_menu",
+    "ban_reason_menu",
+    "unban_menu",
+    "mute_menu",
+    "mute_duration_menu",
+    "mute_reason_menu",
+    "unmute_menu",
+    "manage_motd_menu",
+    "view_motd_menu",
+    "smtp_settings_menu",
+    "smtp_encryption_menu",
+    "smtp_setting_input",
+    "admin_broadcast_input",
+    "admin_motd_version_input",
+    "admin_motd_input",
+    "ban_custom_reason_input",
+    "mute_custom_reason_input",
+    ADMIN_TARGET_SEARCH_INPUT,
+}
 
 def require_admin(func):
     """Decorator that checks if the user is still an admin before executing an admin action."""
@@ -72,6 +118,302 @@ class AdministrationManager:
                 continue  # Skip the excluded admin
             user.speak_l(message_id, buffer="system")
             user.play_sound(sound)
+
+    def _admin_target_search_text(self, user: NetworkUser, query: str) -> str:
+        query = query.strip()
+        if query:
+            return Localization.get(
+                user.locale,
+                "admin-search-users-current",
+                query=query,
+            )
+        return Localization.get(user.locale, "admin-search-users")
+
+    def _show_admin_target_menu(
+        self,
+        user: NetworkUser,
+        *,
+        menu_id: str,
+        mode: str,
+        action_prefix: str,
+        targets: PaginatedMenuPage[str],
+        empty_key: str,
+        query: str = "",
+        focus_page_start: bool = False,
+    ) -> None:
+        query = query.strip()
+        items = [
+            MenuItem(text=self._admin_target_search_text(user, query), id="search")
+        ]
+        focus_position: int | None = None
+
+        if targets.total:
+            if targets.total_pages > 1:
+                summary_key = (
+                    "menu-page-summary-query" if query else "menu-page-summary"
+                )
+                items.append(
+                    MenuItem(
+                        text=Localization.get(
+                            user.locale,
+                            summary_key,
+                            query=query,
+                            start=targets.start_index,
+                            end=targets.end_index,
+                            total=targets.total,
+                            page=targets.page,
+                            pages=targets.total_pages,
+                        ),
+                        id="page_summary",
+                    )
+                )
+
+            if focus_page_start:
+                focus_position = len(items) + 1
+            for target in targets.items:
+                items.append(MenuItem(text=target, id=f"{action_prefix}_{target}"))
+            items.extend(pagination_menu_items(user.locale, targets))
+        elif query:
+            items.append(
+                MenuItem(
+                    text=Localization.get(user.locale, "admin-search-no-results"),
+                    id="",
+                )
+            )
+            items.extend(pagination_menu_items(user.locale, targets))
+        else:
+            items.append(MenuItem(text=Localization.get(user.locale, empty_key), id=""))
+            items.extend(pagination_menu_items(user.locale, targets))
+
+        items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
+        user.show_menu(
+            menu_id,
+            items,
+            multiletter=True,
+            escape_behavior=EscapeBehavior.SELECT_LAST,
+            position=focus_position,
+        )
+        self.server.user_states[user.username] = {
+            "menu": menu_id,
+            "target_mode": mode,
+            "search_query": query,
+            "target_page": targets.page,
+            "target_page_count": targets.total_pages,
+        }
+
+    def _show_admin_target_search_input(
+        self, user: NetworkUser, mode: str, query: str = ""
+    ) -> None:
+        user.show_editbox(
+            ADMIN_TARGET_SEARCH_INPUT,
+            Localization.get(
+                user.locale,
+                "admin-search-prompt",
+            ),
+            default_value=query.strip(),
+            multiline=False,
+        )
+        self.server.enter_input_state(
+            user,
+            ADMIN_TARGET_SEARCH_INPUT,
+            target_mode=mode,
+        )
+
+    def _refresh_admin_target_menu(
+        self,
+        user: NetworkUser,
+        mode: str,
+        query: str = "",
+        page: int = 1,
+        *,
+        focus_page_start: bool = False,
+    ) -> None:
+        show_fn = {
+            "promote": self._show_promote_admin_menu,
+            "demote": self._show_demote_admin_menu,
+            "kick": self._show_kick_menu,
+            "ban": self._show_ban_menu,
+            "unban": self._show_unban_menu,
+            "mute": self._show_mute_menu,
+            "unmute": self._show_unmute_menu,
+        }.get(mode)
+        if show_fn is None:
+            self._return_to_admin_root(user)
+            return
+        self.server._nav_refresh(
+            user,
+            show_fn,
+            query.strip(),
+            page,
+            focus_page_start=focus_page_start,
+        )
+
+    def _handle_target_search_selection(
+        self, user: NetworkUser, state: dict[str, Any]
+    ) -> None:
+        mode = state.get("target_mode")
+        if not mode:
+            self._return_to_admin_root(user)
+            return
+        self._show_admin_target_search_input(
+            user,
+            str(mode),
+            str(state.get("search_query", "")),
+        )
+
+    def _handle_target_page_selection(
+        self, user: NetworkUser, selection_id: str, state: dict[str, Any]
+    ) -> bool:
+        if selection_id not in MENU_PAGE_IDS:
+            return False
+        mode = state.get("target_mode")
+        if not mode:
+            self._return_to_admin_root(user)
+            return True
+        query = str(state.get("search_query", ""))
+        current_page = int(state.get("target_page", 1) or 1)
+        page_count = max(1, int(state.get("target_page_count", 1) or 1))
+        next_page = page_for_selection(selection_id, current_page, page_count)
+        if next_page is None:
+            return False
+        if is_page_refresh(selection_id):
+            user.speak_l("menu-list-refreshed", buffer="system")
+        self._refresh_admin_target_menu(
+            user,
+            str(mode),
+            query,
+            next_page,
+            focus_page_start=is_page_navigation(selection_id),
+        )
+        return True
+
+    def _search_user_targets_page(
+        self,
+        query: str,
+        page: int,
+        **filters: Any,
+    ) -> PaginatedMenuPage[str]:
+        total = self.server.db.count_users(query, **filters)
+        safe_page = clamp_page(page, total, ADMIN_TARGET_PAGE_SIZE)
+        offset = (safe_page - 1) * ADMIN_TARGET_PAGE_SIZE
+        usernames = [
+            record.username
+            for record in self.server.db.search_users(
+                query,
+                limit=ADMIN_TARGET_PAGE_SIZE,
+                offset=offset,
+                **filters,
+            )
+        ]
+        return PaginatedMenuPage(
+            items=usernames,
+            total=total,
+            page=safe_page,
+            page_size=ADMIN_TARGET_PAGE_SIZE,
+        )
+
+    def _search_promote_targets(
+        self, query: str, page: int
+    ) -> PaginatedMenuPage[str]:
+        return self._search_user_targets_page(
+            query,
+            page,
+            approved=True,
+            max_trust_level=1,
+        )
+
+    def _search_demote_targets(
+        self, user: NetworkUser, query: str, page: int
+    ) -> PaginatedMenuPage[str]:
+        return self._search_user_targets_page(
+            query,
+            page,
+            min_trust_level=2,
+            max_trust_level=2,
+            exclude_username=user.username,
+        )
+
+    def _search_ban_targets(
+        self, user: NetworkUser, query: str, page: int
+    ) -> PaginatedMenuPage[str]:
+        max_trust = 2 if user.trust_level >= 3 else 1
+        return self._search_user_targets_page(
+            query,
+            page,
+            approved=True,
+            max_trust_level=max_trust,
+            exclude_username=user.username,
+            exclude_active_bans=True,
+        )
+
+    def _search_mute_targets(
+        self, user: NetworkUser, query: str, page: int
+    ) -> PaginatedMenuPage[str]:
+        max_trust = 2 if user.trust_level >= 3 else 1
+        return self._search_user_targets_page(
+            query,
+            page,
+            approved=True,
+            max_trust_level=max_trust,
+            exclude_username=user.username,
+            exclude_active_mutes=True,
+        )
+
+    def _search_kick_targets(
+        self, user: NetworkUser, query: str, page: int
+    ) -> PaginatedMenuPage[str]:
+        term = query.strip().lower()
+        targets = []
+        for target in self.server.users.values():
+            if target.username == user.username:
+                continue
+            if target.trust_level >= 3:
+                continue
+            if user.trust_level < 3 and target.trust_level >= 2:
+                continue
+            if term and term not in target.username.lower():
+                continue
+            targets.append(target.username)
+        targets.sort(key=str.lower)
+        return paginate_sequence(
+            targets,
+            page,
+            page_size=ADMIN_TARGET_PAGE_SIZE,
+        )
+
+    def _search_active_bans_page(
+        self, query: str, page: int
+    ) -> PaginatedMenuPage[str]:
+        total = self.server.db.count_active_banned_users(query)
+        safe_page = clamp_page(page, total, ADMIN_TARGET_PAGE_SIZE)
+        offset = (safe_page - 1) * ADMIN_TARGET_PAGE_SIZE
+        return PaginatedMenuPage(
+            items=self.server.db.search_active_banned_users(
+                query,
+                limit=ADMIN_TARGET_PAGE_SIZE,
+                offset=offset,
+            ),
+            total=total,
+            page=safe_page,
+            page_size=ADMIN_TARGET_PAGE_SIZE,
+        )
+
+    def _search_active_mutes_page(
+        self, query: str, page: int
+    ) -> PaginatedMenuPage[str]:
+        total = self.server.db.count_active_muted_users(query)
+        safe_page = clamp_page(page, total, ADMIN_TARGET_PAGE_SIZE)
+        offset = (safe_page - 1) * ADMIN_TARGET_PAGE_SIZE
+        return PaginatedMenuPage(
+            items=self.server.db.search_active_muted_users(
+                query,
+                limit=ADMIN_TARGET_PAGE_SIZE,
+                offset=offset,
+            ),
+            total=total,
+            page=safe_page,
+            page_size=ADMIN_TARGET_PAGE_SIZE,
+        )
 
     # ==================== Menu Display Functions ====================
 
@@ -135,16 +477,52 @@ class AdministrationManager:
         )
         self.server.user_states[user.username] = {"menu": "admin_menu"}
 
-    def _show_account_approval_menu(self, user: NetworkUser) -> None:
+    def _pending_users_page(self, page: int) -> PaginatedMenuPage[Any]:
+        total = self.server.db.count_pending_users()
+        safe_page = clamp_page(page, total, ADMIN_TARGET_PAGE_SIZE)
+        offset = (safe_page - 1) * ADMIN_TARGET_PAGE_SIZE
+        return PaginatedMenuPage(
+            items=self.server.db.get_pending_users(
+                limit=ADMIN_TARGET_PAGE_SIZE,
+                offset=offset,
+            ),
+            total=total,
+            page=safe_page,
+            page_size=ADMIN_TARGET_PAGE_SIZE,
+        )
+
+    def _show_account_approval_menu(
+        self, user: NetworkUser, page: int = 1, *, focus_page_start: bool = False
+    ) -> None:
         """Show account approval menu with pending users."""
-        pending = self.server.db.get_pending_users()
+        pending = self._pending_users_page(page)
 
         items = []
-        if not pending:
+        focus_position: int | None = None
+        if not pending.items:
             items.append(MenuItem(text=Localization.get(user.locale, "no-pending-accounts"), id=""))
+            items.extend(pagination_menu_items(user.locale, pending))
         else:
-            for pending_user in pending:
+            if focus_page_start:
+                focus_position = len(items) + 1
+            for pending_user in pending.items:
                 items.append(MenuItem(text=pending_user.username, id=f"pending_{pending_user.username}"))
+            if pending.total_pages > 1:
+                items.append(
+                    MenuItem(
+                        text=Localization.get(
+                            user.locale,
+                            "menu-page-summary",
+                            start=pending.start_index,
+                            end=pending.end_index,
+                            total=pending.total,
+                            page=pending.page,
+                            pages=pending.total_pages,
+                        ),
+                        id="page_summary",
+                    )
+                )
+            items.extend(pagination_menu_items(user.locale, pending))
         items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
 
         user.show_menu(
@@ -152,8 +530,13 @@ class AdministrationManager:
             items,
             multiletter=True,
             escape_behavior=EscapeBehavior.SELECT_LAST,
+            position=focus_position,
         )
-        self.server.user_states[user.username] = {"menu": "account_approval_menu"}
+        self.server.user_states[user.username] = {
+            "menu": "account_approval_menu",
+            "account_approval_page": pending.page,
+            "account_approval_page_count": pending.total_pages,
+        }
 
     def _show_pending_user_actions_menu(self, user: NetworkUser, pending_username: str) -> None:
         """Show actions for a pending user (approve, decline)."""
@@ -173,48 +556,45 @@ class AdministrationManager:
             "pending_username": pending_username,
         }
 
-    def _show_promote_admin_menu(self, user: NetworkUser) -> None:
-        """Show promote admin menu with list of non-admin users."""
-        non_admins = self.server.db.get_non_admin_users()
-
-        items = []
-        if not non_admins:
-            items.append(MenuItem(text=Localization.get(user.locale, "no-users-to-promote"), id=""))
-        else:
-            for non_admin in non_admins:
-                items.append(MenuItem(text=non_admin.username, id=f"promote_{non_admin.username}"))
-        items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
-
-        user.show_menu(
-            "promote_admin_menu",
-            items,
-            multiletter=True,
-            escape_behavior=EscapeBehavior.SELECT_LAST,
+    def _show_promote_admin_menu(
+        self,
+        user: NetworkUser,
+        query: str = "",
+        page: int = 1,
+        *,
+        focus_page_start: bool = False,
+    ) -> None:
+        """Show searchable promote-admin targets."""
+        self._show_admin_target_menu(
+            user,
+            menu_id="promote_admin_menu",
+            mode="promote",
+            action_prefix="promote",
+            targets=self._search_promote_targets(query, page),
+            empty_key="no-users-to-promote",
+            query=query,
+            focus_page_start=focus_page_start,
         )
-        self.server.user_states[user.username] = {"menu": "promote_admin_menu"}
 
-    def _show_demote_admin_menu(self, user: NetworkUser) -> None:
-        """Show demote admin menu with list of admin users."""
-        admins = self.server.db.get_admin_users()
-
-        # Filter out the current user (can't demote yourself) and developers (trust_level >= 3)
-        admins = [a for a in admins if a.username != user.username and a.trust_level < 3]
-
-        items = []
-        if not admins:
-            items.append(MenuItem(text=Localization.get(user.locale, "no-admins-to-demote"), id=""))
-        else:
-            for admin in admins:
-                items.append(MenuItem(text=admin.username, id=f"demote_{admin.username}"))
-        items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
-
-        user.show_menu(
-            "demote_admin_menu",
-            items,
-            multiletter=True,
-            escape_behavior=EscapeBehavior.SELECT_LAST,
+    def _show_demote_admin_menu(
+        self,
+        user: NetworkUser,
+        query: str = "",
+        page: int = 1,
+        *,
+        focus_page_start: bool = False,
+    ) -> None:
+        """Show searchable demote-admin targets."""
+        self._show_admin_target_menu(
+            user,
+            menu_id="demote_admin_menu",
+            mode="demote",
+            action_prefix="demote",
+            targets=self._search_demote_targets(user, query, page),
+            empty_key="no-admins-to-demote",
+            query=query,
+            focus_page_start=focus_page_start,
         )
-        self.server.user_states[user.username] = {"menu": "demote_admin_menu"}
 
     def _show_promote_confirm_menu(self, user: NetworkUser, target_username: str) -> None:
         """Show confirmation menu for promoting a user to admin."""
@@ -281,39 +661,39 @@ class AdministrationManager:
         if current_menu == "admin_menu":
             await self._handle_admin_menu_selection(user, selection_id)
         elif current_menu == "account_approval_menu":
-            await self._handle_account_approval_selection(user, selection_id)
+            await self._handle_account_approval_selection(user, selection_id, state)
         elif current_menu == "pending_user_actions_menu":
             await self._handle_pending_user_actions_selection(user, selection_id, state)
         elif current_menu == "promote_admin_menu":
-            await self._handle_promote_admin_selection(user, selection_id)
+            await self._handle_promote_admin_selection(user, selection_id, state)
         elif current_menu == "demote_admin_menu":
-            await self._handle_demote_admin_selection(user, selection_id)
+            await self._handle_demote_admin_selection(user, selection_id, state)
         elif current_menu == "promote_confirm_menu":
             await self._handle_promote_confirm_selection(user, selection_id, state)
         elif current_menu == "demote_confirm_menu":
             await self._handle_demote_confirm_selection(user, selection_id, state)
         elif current_menu == "kick_menu":
-             await self._handle_kick_selection(user, selection_id)
+             await self._handle_kick_selection(user, selection_id, state)
         elif current_menu == "kick_confirm_menu":
              await self._handle_kick_confirm_selection(user, selection_id, state)
         elif current_menu == "broadcast_choice_menu":
             await self._handle_broadcast_choice_selection(user, selection_id, state)
         elif current_menu == "ban_menu":
-             await self._handle_ban_selection(user, selection_id)
+             await self._handle_ban_selection(user, selection_id, state)
         elif current_menu == "ban_duration_menu":
              await self._handle_ban_duration_selection(user, selection_id, state)
         elif current_menu == "ban_reason_menu":
              await self._handle_ban_reason_selection(user, selection_id, state)
         elif current_menu == "unban_menu":
-             await self._handle_unban_selection(user, selection_id)
+             await self._handle_unban_selection(user, selection_id, state)
         elif current_menu == "mute_menu":
-             await self._handle_mute_selection(user, selection_id)
+             await self._handle_mute_selection(user, selection_id, state)
         elif current_menu == "mute_duration_menu":
              await self._handle_mute_duration_selection(user, selection_id, state)
         elif current_menu == "mute_reason_menu":
              await self._handle_mute_reason_selection(user, selection_id, state)
         elif current_menu == "unmute_menu":
-             await self._handle_unmute_selection(user, selection_id)
+             await self._handle_unmute_selection(user, selection_id, state)
         elif current_menu == "manage_motd_menu":
              await self._handle_manage_motd_selection(user, selection_id, state)
         elif current_menu == "view_motd_menu":
@@ -358,11 +738,25 @@ class AdministrationManager:
             self.server._nav_back(user)
 
     async def _handle_account_approval_selection(
-        self, user: NetworkUser, selection_id: str
+        self, user: NetworkUser, selection_id: str, state: dict[str, Any]
     ) -> None:
         """Handle account approval menu selection."""
         if selection_id == "back":
             self.server._nav_back(user)
+        elif selection_id in MENU_PAGE_IDS:
+            current_page = int(state.get("account_approval_page", 1) or 1)
+            page_count = max(1, int(state.get("account_approval_page_count", 1) or 1))
+            next_page = page_for_selection(selection_id, current_page, page_count)
+            if next_page is None:
+                return
+            if is_page_refresh(selection_id):
+                user.speak_l("menu-list-refreshed", buffer="system")
+            self.server._nav_refresh(
+                user,
+                self._show_account_approval_menu,
+                next_page,
+                focus_page_start=is_page_navigation(selection_id),
+            )
         elif selection_id.startswith("pending_"):
             pending_username = selection_id[8:]  # Remove "pending_" prefix
             self.server._nav_push(
@@ -386,21 +780,29 @@ class AdministrationManager:
             self.server._nav_back(user)
 
     async def _handle_promote_admin_selection(
-        self, user: NetworkUser, selection_id: str
+        self, user: NetworkUser, selection_id: str, state: dict[str, Any]
     ) -> None:
         """Handle promote admin menu selection."""
         if selection_id == "back":
             self.server._nav_back(user)
+        elif selection_id == "search":
+            self._handle_target_search_selection(user, state)
+        elif self._handle_target_page_selection(user, selection_id, state):
+            return
         elif selection_id.startswith("promote_"):
             target_username = selection_id[8:]  # Remove "promote_" prefix
             self.server._nav_push(user, self._show_promote_confirm_menu, target_username)
 
     async def _handle_demote_admin_selection(
-        self, user: NetworkUser, selection_id: str
+        self, user: NetworkUser, selection_id: str, state: dict[str, Any]
     ) -> None:
         """Handle demote admin menu selection."""
         if selection_id == "back":
             self.server._nav_back(user)
+        elif selection_id == "search":
+            self._handle_target_search_selection(user, state)
+        elif self._handle_target_page_selection(user, selection_id, state):
+            return
         elif selection_id.startswith("demote_"):
             target_username = selection_id[7:]  # Remove "demote_" prefix
             self.server._nav_push(user, self._show_demote_confirm_menu, target_username)
@@ -442,11 +844,15 @@ class AdministrationManager:
             self.server._nav_back(user)
 
     async def _handle_kick_selection(
-        self, user: NetworkUser, selection_id: str
+        self, user: NetworkUser, selection_id: str, state: dict[str, Any]
     ) -> None:
         """Handle kick user menu selection."""
         if selection_id == "back":
             self.server._nav_back(user)
+        elif selection_id == "search":
+            self._handle_target_search_selection(user, state)
+        elif self._handle_target_page_selection(user, selection_id, state):
+            return
         elif selection_id.startswith("kick_"):
             target_username = selection_id[5:]  # Remove "kick_" prefix
             self.server._nav_push(user, self._show_kick_confirm_menu, target_username)
@@ -659,6 +1065,11 @@ class AdministrationManager:
         input_id = packet.get("input_id")
         value = packet.get("text", packet.get("value")) # Support both just in case
 
+        if menu_id in ADMIN_MENU_IDS and user.trust_level < 2:
+            user.speak_l("not-admin-anymore", buffer="system")
+            self.server._show_main_menu(user)
+            return True
+
         if menu_id == "smtp_setting_input":
             if user.trust_level < 3:
                 user.speak_l("dev-only-action", buffer="system")
@@ -705,6 +1116,14 @@ class AdministrationManager:
                 self.server.db.update_smtp_config(host, port, username, password, from_email, from_name, encryption_type)
                 user.speak_l("admin-smtp-updated-success", buffer="system")
             self.server._restore_input_parent(user, state)
+            return True
+        elif menu_id == ADMIN_TARGET_SEARCH_INPUT and input_id == ADMIN_TARGET_SEARCH_INPUT:
+            mode = state.get("target_mode")
+            if not mode:
+                self._return_to_admin_root(user)
+                return True
+            self.server._restore_input_parent(user, state)
+            self._refresh_admin_target_menu(user, str(mode), value or "", 1)
             return True
         elif menu_id == "admin_broadcast_input" and input_id == "broadcast_message":
             if value:
@@ -1106,46 +1525,25 @@ class AdministrationManager:
 
     # ==================== Kick System ====================
 
-    def _show_kick_menu(self, user: NetworkUser) -> None:
-        """Show kick menu with list of online users."""
-        # Get all online users except self and those with higher/equal immunity
-        # Admin (2) cannot kick Admin (2) or Dev (3) ?
-        # Rule: "Dev and admin can kick a user."
-        # Rule: "Dev can promote/demote admin but admin cannot promote/demote dev".
-        # Implied: Admin cannot kick Dev.
-        # Can Admin kick Admin? Usually yes, or maybe not. 
-        # "Dev and admin can kick a user." -> "A user" usually implies normal user.
-        # But let's assume standard hierarchy: Admin can kick < 2. Dev can kick < 3.
-        
-        target_users = []
-        for u in self.server.users.values():
-            if u.username == user.username:
-                continue
-            
-            # Immunity Check
-            if u.trust_level >= 3:
-                continue # Never show Devs
-            
-            if user.trust_level < 3 and u.trust_level >= 2:
-                 continue # Admin cannot kick other Admins (Safety)
-            
-            target_users.append(u)
-
-        items = []
-        if not target_users:
-            items.append(MenuItem(text=Localization.get(user.locale, "no-users-to-kick"), id=""))
-        else:
-            for target in target_users:
-                items.append(MenuItem(text=target.username, id=f"kick_{target.username}"))
-        items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
-
-        user.show_menu(
-            "kick_menu",
-            items,
-            multiletter=True,
-            escape_behavior=EscapeBehavior.SELECT_LAST,
+    def _show_kick_menu(
+        self,
+        user: NetworkUser,
+        query: str = "",
+        page: int = 1,
+        *,
+        focus_page_start: bool = False,
+    ) -> None:
+        """Show searchable online kick targets."""
+        self._show_admin_target_menu(
+            user,
+            menu_id="kick_menu",
+            mode="kick",
+            action_prefix="kick",
+            targets=self._search_kick_targets(user, query, page),
+            empty_key="no-users-to-kick",
+            query=query,
+            focus_page_start=focus_page_start,
         )
-        self.server.user_states[user.username] = {"menu": "kick_menu"}
 
     def _show_kick_confirm_menu(self, user: NetworkUser, target_username: str) -> None:
         """Show confirmation menu for kicking a user."""
@@ -1224,47 +1622,35 @@ class AdministrationManager:
 
     # ==================== Ban System ====================
 
-    def _show_ban_menu(self, user: NetworkUser) -> None:
-        """Show list of users to ban."""
-        all_users = self.server.db.get_approved_users()
-        banned = set(self.server.db.get_all_banned_users())
-
-        target_users = []
-        for username, trust_level in all_users:
-            if username == user.username:
-                continue
-
-            # Hierarchy Check: Admins (2) cannot ban Developers (3) or Admins (2). Devs (3) can ban anyone.
-            if trust_level >= 3:
-                continue
-            if user.trust_level < 3 and trust_level >= 2:
-                continue
-
-            # Exclude already banned users (O(1) set lookup instead of per-user DB query)
-            if username in banned:
-                continue
-
-            target_users.append(username)
-
-        items = []
-        if not target_users:
-            items.append(MenuItem(text=Localization.get(user.locale, "no-users-to-ban"), id=""))
-        else:
-            for target in target_users:
-                items.append(MenuItem(text=target, id=f"ban_{target}"))
-        items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
-
-        user.show_menu(
-            "ban_menu",
-            items,
-            multiletter=True,
-            escape_behavior=EscapeBehavior.SELECT_LAST,
+    def _show_ban_menu(
+        self,
+        user: NetworkUser,
+        query: str = "",
+        page: int = 1,
+        *,
+        focus_page_start: bool = False,
+    ) -> None:
+        """Show searchable ban targets."""
+        self._show_admin_target_menu(
+            user,
+            menu_id="ban_menu",
+            mode="ban",
+            action_prefix="ban",
+            targets=self._search_ban_targets(user, query, page),
+            empty_key="no-users-to-ban",
+            query=query,
+            focus_page_start=focus_page_start,
         )
-        self.server.user_states[user.username] = {"menu": "ban_menu"}
 
-    async def _handle_ban_selection(self, user: NetworkUser, selection_id: str) -> None:
+    async def _handle_ban_selection(
+        self, user: NetworkUser, selection_id: str, state: dict[str, Any]
+    ) -> None:
         if selection_id == "back":
             self.server._nav_back(user)
+        elif selection_id == "search":
+            self._handle_target_search_selection(user, state)
+        elif self._handle_target_page_selection(user, selection_id, state):
+            return
         elif selection_id.startswith("ban_"):
             target_username = selection_id[4:]
             self.server._nav_push(user, self._show_ban_duration_menu, target_username)
@@ -1439,29 +1825,35 @@ class AdministrationManager:
 
         self._return_to_admin_root(admin, "ban_user")
 
-    def _show_unban_menu(self, user: NetworkUser) -> None:
-        """Show list of banned users."""
-        banned_users = self.server.db.get_all_banned_users()
-
-        items = []
-        if not banned_users:
-            items.append(MenuItem(text=Localization.get(user.locale, "no-banned-users"), id=""))
-        else:
-            for username in banned_users:
-                items.append(MenuItem(text=username, id=f"unban_{username}"))
-        items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
-
-        user.show_menu(
-            "unban_menu",
-            items,
-            multiletter=True,
-            escape_behavior=EscapeBehavior.SELECT_LAST,
+    def _show_unban_menu(
+        self,
+        user: NetworkUser,
+        query: str = "",
+        page: int = 1,
+        *,
+        focus_page_start: bool = False,
+    ) -> None:
+        """Show searchable active bans."""
+        self._show_admin_target_menu(
+            user,
+            menu_id="unban_menu",
+            mode="unban",
+            action_prefix="unban",
+            targets=self._search_active_bans_page(query, page),
+            empty_key="no-banned-users",
+            query=query,
+            focus_page_start=focus_page_start,
         )
-        self.server.user_states[user.username] = {"menu": "unban_menu"}
 
-    async def _handle_unban_selection(self, user: NetworkUser, selection_id: str) -> None:
+    async def _handle_unban_selection(
+        self, user: NetworkUser, selection_id: str, state: dict[str, Any]
+    ) -> None:
         if selection_id == "back":
             self.server._nav_back(user)
+        elif selection_id == "search":
+            self._handle_target_search_selection(user, state)
+        elif self._handle_target_page_selection(user, selection_id, state):
+            return
         elif selection_id.startswith("unban_"):
             target_username = selection_id[6:]
             await self._perform_unban(user, target_username)
@@ -1475,48 +1867,45 @@ class AdministrationManager:
                     u.speak_l("unban-broadcast", buffer="system", target=target_username, actor=admin.username)
                     u.play_sound("accountban.ogg") # Requested to use same sound
 
-        self.server._nav_refresh(admin, self._show_unban_menu)
+        state = self.server.user_states.get(admin.username, {})
+        self._refresh_admin_target_menu(
+            admin,
+            "unban",
+            str(state.get("search_query", "")),
+            int(state.get("target_page", 1) or 1),
+        )
 
     # ==================== Mute / Unmute ====================
 
-    def _show_mute_menu(self, user: NetworkUser) -> None:
-        """Show list of users to mute."""
-        all_users = self.server.db.get_approved_users()
-        muted = set(self.server.db.get_all_muted_users())
-
-        target_users = []
-        for username, trust_level in all_users:
-            if username == user.username:
-                continue
-            # Devs cannot be muted
-            if trust_level >= 3:
-                continue
-            # Admins cannot mute other admins (only devs can)
-            if user.trust_level < 3 and trust_level >= 2:
-                continue
-            if username in muted:
-                continue
-            target_users.append(username)
-
-        items = []
-        if not target_users:
-            items.append(MenuItem(text=Localization.get(user.locale, "no-users-to-mute"), id=""))
-        else:
-            for target in target_users:
-                items.append(MenuItem(text=target, id=f"mute_{target}"))
-        items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
-
-        user.show_menu(
-            "mute_menu",
-            items,
-            multiletter=True,
-            escape_behavior=EscapeBehavior.SELECT_LAST,
+    def _show_mute_menu(
+        self,
+        user: NetworkUser,
+        query: str = "",
+        page: int = 1,
+        *,
+        focus_page_start: bool = False,
+    ) -> None:
+        """Show searchable mute targets."""
+        self._show_admin_target_menu(
+            user,
+            menu_id="mute_menu",
+            mode="mute",
+            action_prefix="mute",
+            targets=self._search_mute_targets(user, query, page),
+            empty_key="no-users-to-mute",
+            query=query,
+            focus_page_start=focus_page_start,
         )
-        self.server.user_states[user.username] = {"menu": "mute_menu"}
 
-    async def _handle_mute_selection(self, user: NetworkUser, selection_id: str) -> None:
+    async def _handle_mute_selection(
+        self, user: NetworkUser, selection_id: str, state: dict[str, Any]
+    ) -> None:
         if selection_id == "back":
             self.server._nav_back(user)
+        elif selection_id == "search":
+            self._handle_target_search_selection(user, state)
+        elif self._handle_target_page_selection(user, selection_id, state):
+            return
         elif selection_id.startswith("mute_"):
             target_username = selection_id[5:]
             self.server._nav_push(user, self._show_mute_duration_menu, target_username)
@@ -1678,29 +2067,35 @@ class AdministrationManager:
 
         self._return_to_admin_root(admin, "mute_user")
 
-    def _show_unmute_menu(self, user: NetworkUser) -> None:
-        """Show list of muted users."""
-        muted_users = self.server.db.get_all_muted_users()
-
-        items = []
-        if not muted_users:
-            items.append(MenuItem(text=Localization.get(user.locale, "no-muted-users"), id=""))
-        else:
-            for username in muted_users:
-                items.append(MenuItem(text=username, id=f"unmute_{username}"))
-        items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
-
-        user.show_menu(
-            "unmute_menu",
-            items,
-            multiletter=True,
-            escape_behavior=EscapeBehavior.SELECT_LAST,
+    def _show_unmute_menu(
+        self,
+        user: NetworkUser,
+        query: str = "",
+        page: int = 1,
+        *,
+        focus_page_start: bool = False,
+    ) -> None:
+        """Show searchable active mutes."""
+        self._show_admin_target_menu(
+            user,
+            menu_id="unmute_menu",
+            mode="unmute",
+            action_prefix="unmute",
+            targets=self._search_active_mutes_page(query, page),
+            empty_key="no-muted-users",
+            query=query,
+            focus_page_start=focus_page_start,
         )
-        self.server.user_states[user.username] = {"menu": "unmute_menu"}
 
-    async def _handle_unmute_selection(self, user: NetworkUser, selection_id: str) -> None:
+    async def _handle_unmute_selection(
+        self, user: NetworkUser, selection_id: str, state: dict[str, Any]
+    ) -> None:
         if selection_id == "back":
             self.server._nav_back(user)
+        elif selection_id == "search":
+            self._handle_target_search_selection(user, state)
+        elif self._handle_target_page_selection(user, selection_id, state):
+            return
         elif selection_id.startswith("unmute_"):
             target_username = selection_id[7:]
             await self._perform_unmute(user, target_username)
@@ -1718,4 +2113,10 @@ class AdministrationManager:
             if target_user:
                 target_user.speak_l("you-have-been-unmuted", buffer="system")
 
-        self.server._nav_refresh(admin, self._show_unmute_menu)
+        state = self.server.user_states.get(admin.username, {})
+        self._refresh_admin_target_menu(
+            admin,
+            "unmute",
+            str(state.get("search_query", "")),
+            int(state.get("target_page", 1) or 1),
+        )

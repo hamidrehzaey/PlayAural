@@ -125,6 +125,7 @@ def test_global_menu_shortcuts_prepare_menu_focus_before_sending_packets():
         "on_list_online",
         "on_list_online_with_games",
         "on_open_friends_hub",
+        "on_open_admin_menu",
         "on_open_options",
     ):
         function = _get_main_window_function(function_name)
@@ -194,6 +195,16 @@ def test_voice_shortcuts_toggle_chat_and_microphone_directly():
         _get_main_window_function("on_toggle_voice_mic"),
         "_request_voice_mic_toggle",
     )
+
+
+def test_menu_diff_uses_only_non_empty_unique_ids_for_identity():
+    source = _main_window_source()
+    compute_diff = _get_main_window_function("compute_menu_diff")
+
+    assert "_menu_ids_are_unique_and_stable" in source
+    assert "all(isinstance(item_id, str) and item_id for item_id in item_ids)" in source
+    assert _has_method_call(compute_diff, "_menu_ids_are_unique_and_stable")
+    assert "item_ids.count(old_focused_id) == 1" in source
 
 
 def test_legacy_chat_recreation_and_focus_bounce_helpers_are_removed():

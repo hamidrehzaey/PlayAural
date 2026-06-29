@@ -110,6 +110,7 @@ export default {
   "requesting-player-list": "Requesting online player list...",
   "requesting-game-list": "Requesting player list with games...",
   "requesting-friends-hub": "Opening Friends...",
+  "requesting-admin-menu": "Opening Administration...",
   "requesting-options": "Opening Options...",
 
   "audio-sound": "Sound",

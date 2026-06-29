@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .tick import TickScheduler
-from ..administration.manager import AdministrationManager
+from ..administration.manager import ADMIN_MENU_IDS, AdministrationManager
 from ..network.websocket_server import WebSocketServer, ClientConnection
 from ..persistence.database import Database
 from ..auth.auth import AuthManager, is_valid_email
@@ -32,6 +32,17 @@ from ..games.categories import (
     normalize_categories,
 )
 from ..messages.localization import Localization
+from ..menu_pagination import (
+    DEFAULT_MENU_PAGE_SIZE,
+    MENU_PAGE_IDS,
+    PaginatedMenuPage,
+    clamp_page,
+    is_page_navigation,
+    is_page_refresh,
+    page_for_selection,
+    pagination_menu_items,
+    paginate_sequence,
+)
 from ..documentation.manager import DocumentationManager
 from .smtp_mailer import SmtpMailer
 from ..users.bot import Bot
@@ -58,6 +69,7 @@ TABLE_CREATED_NOTIFICATION_SOUND = "table_created.ogg"
 TABLE_INVITE_NOTIFICATION_SOUND = "table_invite.ogg"
 VOICE_CHAT_JOIN_SOUND = "voice_join.ogg"
 VOICE_CHAT_LEAVE_SOUND = "voice_leave.ogg"
+ONLINE_USERS_PAGE_SIZE = DEFAULT_MENU_PAGE_SIZE
 VOICE_JOIN_AUTHORIZATION_WINDOW_SECONDS = 120
 HOST_RESTART_CONFIRM_MENU = "host_restart_confirm_menu"
 FRIEND_REMOVE_CONFIRM_MENU = "friend_remove_confirm_menu"
@@ -179,18 +191,10 @@ class Server:
         "friends_list_menu", "friend_actions_menu", "friend_requests_menu",
         "friend_request_actions_menu", FRIEND_REMOVE_CONFIRM_MENU,
         "public_profile_menu", "online_users",
-        "online_user_actions_menu", "admin_menu", "account_approval_menu",
-        "pending_user_actions_menu", "promote_admin_menu", "demote_admin_menu",
-        "promote_confirm_menu", "demote_confirm_menu", "kick_menu", "kick_confirm_menu",
-        "broadcast_choice_menu", "ban_menu", "ban_duration_menu", "ban_reason_menu",
-        "unban_menu", "mute_menu", "mute_duration_menu", "mute_reason_menu",
-        "unmute_menu", "manage_motd_menu", "view_motd_menu", "logout_confirm_menu",
+        "online_user_actions_menu", *ADMIN_MENU_IDS, "logout_confirm_menu",
         "documentation_menu", "doc_games_menu", "doc_viewer", "email_input",
         "bio_input", "send_friend_request_input", "send_pm_input",
         "speech_rate_input", "mobile_tts_rate_input", "waiting_for_approval",
-        "smtp_settings_menu", "smtp_encryption_menu", "smtp_setting_input",
-        "admin_broadcast_input", "admin_motd_version_input", "admin_motd_input",
-        "ban_custom_reason_input", "mute_custom_reason_input",
         "host_management_menu", "host_invite_menu", "host_pass_menu",
         "host_kick_menu", "host_kick_ban_menu", HOST_RESTART_CONFIRM_MENU,
         TABLE_MEMBERS_MENU, TABLE_MEMBER_ACTIONS_MENU,
@@ -705,6 +709,8 @@ PlayAural Server
                 await self._handle_list_online_with_games(client)
             elif packet_type == "open_friends_hub":
                 await self._handle_open_friends_hub(client)
+            elif packet_type == "open_admin_menu":
+                await self._handle_open_admin_menu(client)
             elif packet_type == "open_options":
                 await self._handle_open_options(client)
             elif packet_type == "broadcast_cmd":
@@ -1632,9 +1638,16 @@ PlayAural Server
         )
         self._user_states[user.username] = {"menu": "game_category_filter_menu"}
 
-    def _show_tables_menu(self, user: NetworkUser, game_type: str) -> None:
+    def _show_tables_menu(
+        self,
+        user: NetworkUser,
+        game_type: str,
+        page: int = 1,
+        *,
+        focus_page_start: bool = False,
+    ) -> None:
         """Show available tables for a game."""
-        items = self._get_tables_menu_items(user, game_type)
+        items, page_data = self._get_tables_menu_items(user, game_type, page)
         game_class = get_game_class(game_type)
         game_name = (
             Localization.get(user.locale, game_class.get_name_key())
@@ -1647,23 +1660,51 @@ PlayAural Server
             items,
             multiletter=True,
             escape_behavior=EscapeBehavior.SELECT_LAST,
+            position=(
+                self._first_menu_item_position(
+                    items,
+                    lambda item_id: item_id.startswith("table_"),
+                )
+                if focus_page_start
+                else None
+            ),
         )
         self._user_states[user.username] = {
             "menu": "tables_menu",
             "game_type": game_type,
             "game_name": game_name,
+            "tables_page": page_data.page if page_data else 1,
+            "tables_page_count": page_data.total_pages if page_data else 1,
         }
 
-    def _show_active_tables_menu(self, user: NetworkUser) -> None:
+    def _show_active_tables_menu(
+        self,
+        user: NetworkUser,
+        page: int = 1,
+        *,
+        focus_page_start: bool = False,
+    ) -> None:
         """Show available tables across all games."""
-        items = self._get_active_tables_menu_items(user)
+        items, page_data = self._get_active_tables_menu_items(user, page)
         user.show_menu(
             "active_tables_menu",
             items,
             multiletter=True,
             escape_behavior=EscapeBehavior.SELECT_LAST,
+            position=(
+                self._first_menu_item_position(
+                    items,
+                    lambda item_id: item_id.startswith("table_"),
+                )
+                if focus_page_start
+                else None
+            ),
         )
-        self._user_states[user.username] = {"menu": "active_tables_menu"}
+        self._user_states[user.username] = {
+            "menu": "active_tables_menu",
+            "active_tables_page": page_data.page if page_data else 1,
+            "active_tables_page_count": page_data.total_pages if page_data else 1,
+        }
 
     def _show_active_tables_filter_menu(self, user: NetworkUser) -> None:
         """Show menu to select the active tables filter."""
@@ -1682,7 +1723,9 @@ PlayAural Server
         )
         self._user_states[user.username] = {"menu": "active_tables_filter_menu"}
 
-    def _get_tables_menu_items(self, user: NetworkUser, game_type: str) -> list[MenuItem]:
+    def _get_tables_menu_items(
+        self, user: NetworkUser, game_type: str, page: int = 1
+    ) -> tuple[list[MenuItem], PaginatedMenuPage[Any]]:
         """Generate the list of MenuItems for a specific game's tables menu."""
         all_tables = self._tables.get_tables_by_type(game_type)
         tables = []
@@ -1717,7 +1760,13 @@ PlayAural Server
             )
         ]
 
-        for table in tables:
+        page_data = paginate_sequence(
+            tables,
+            page,
+            page_size=DEFAULT_MENU_PAGE_SIZE,
+        )
+
+        for table in page_data.items:
             member_count = len(table.members)
             member_names = [
                 member.username
@@ -1759,10 +1808,31 @@ PlayAural Server
                 )
             )
 
-        items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
-        return items
+        if page_data.total_pages > 1:
+            items.append(
+                MenuItem(
+                    text=Localization.get(
+                        user.locale,
+                        "menu-page-summary",
+                        start=page_data.start_index,
+                        end=page_data.end_index,
+                        total=page_data.total,
+                        page=page_data.page,
+                        pages=page_data.total_pages,
+                    ),
+                    id="page_summary",
+                )
+            )
+            items.extend(pagination_menu_items(user.locale, page_data))
+        else:
+            items.extend(pagination_menu_items(user.locale, page_data))
 
-    def _get_active_tables_menu_items(self, user: NetworkUser) -> list[MenuItem]:
+        items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
+        return items, page_data
+
+    def _get_active_tables_menu_items(
+        self, user: NetworkUser, page: int = 1
+    ) -> tuple[list[MenuItem], PaginatedMenuPage[Any]]:
         """Generate the list of MenuItems for the global active tables menu."""
         all_tables = self._tables.get_all_tables()
         tables = []
@@ -1812,7 +1882,13 @@ PlayAural Server
                 )
             )
 
-        for table in tables:
+        page_data = paginate_sequence(
+            tables,
+            page,
+            page_size=DEFAULT_MENU_PAGE_SIZE,
+        )
+
+        for table in page_data.items:
             game_class = get_game_class(table.game_type)
             game_name = (
                 Localization.get(user.locale, game_class.get_name_key())
@@ -1860,8 +1936,26 @@ PlayAural Server
                     id=f"table_{table.table_id}",
                 )
             )
+        if page_data.total_pages > 1:
+            items.append(
+                MenuItem(
+                    text=Localization.get(
+                        user.locale,
+                        "menu-page-summary",
+                        start=page_data.start_index,
+                        end=page_data.end_index,
+                        total=page_data.total,
+                        page=page_data.page,
+                        pages=page_data.total_pages,
+                    ),
+                    id="page_summary",
+                )
+            )
+            items.extend(pagination_menu_items(user.locale, page_data))
+        else:
+            items.extend(pagination_menu_items(user.locale, page_data))
         items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
-        return items
+        return items, page_data
 
     def on_user_presence_changed(self) -> None:
         """Called when a user logs in or disconnects to refresh social menus."""
@@ -1880,11 +1974,17 @@ PlayAural Server
                     items = self._get_friends_hub_menu_items(user)
                     user.update_menu("friends_hub_menu", items)
                 elif current_menu == "friend_requests_menu":
-                    items = self._get_friend_requests_menu_items(user)
-                    user.update_menu("friend_requests_menu", items)
+                    self._nav_refresh(
+                        user,
+                        self._show_friend_requests_menu,
+                        state.get("friend_requests_page", 1),
+                    )
                 elif current_menu == "friends_list_menu":
-                    items = self._get_friends_list_menu_items(user)
-                    user.update_menu("friends_list_menu", items)
+                    self._nav_refresh(
+                        user,
+                        self._show_friends_list_menu,
+                        state.get("friends_page", 1),
+                    )
             self._refresh_social_presence_menu(user, state)
             self._refresh_table_presence_menu(user, state)
 
@@ -1897,36 +1997,36 @@ PlayAural Server
             current_menu = state.get("menu")
 
             if current_menu == "active_tables_menu":
-                # Check if there are still tables available. If not, we might want to let them
-                # stay in the menu (it will just show 'back'), or kick them out.
-                # Since the client handles empty lists poorly, we can just send the updated items.
-                # If there are no tables, it will just contain 'back'.
-                items = self._get_active_tables_menu_items(user)
-                if len(items) == 1: # Only 'back' is left
-                    # If empty, speak a message and boot them to main menu using show_menu logic
-                    # Or we just let it update to 'back' and they can press escape.
-                    # Let's dynamically update to just show 'back'.
-                    pass
-                user.update_menu("active_tables_menu", items)
+                self._nav_refresh(
+                    user,
+                    self._show_active_tables_menu,
+                    state.get("active_tables_page", 1),
+                )
 
             elif current_menu == "tables_menu":
                 game_type = state.get("game_type")
                 if game_type:
-                    items = self._get_tables_menu_items(user, game_type)
-                    user.update_menu("tables_menu", items)
+                    self._nav_refresh(
+                        user,
+                        self._show_tables_menu,
+                        game_type,
+                        state.get("tables_page", 1),
+                    )
 
     def _refresh_social_presence_menu(self, user: NetworkUser, state: dict) -> None:
         """Refresh open social menus whose contents depend on presence or friendship."""
         current_menu = state.get("menu")
         if current_menu == "friends_list_menu":
-            user.update_menu(
-                "friends_list_menu",
-                self._get_friends_list_menu_items(user),
+            self._nav_refresh(
+                user,
+                self._show_friends_list_menu,
+                state.get("friends_page", 1),
             )
         elif current_menu == "online_users":
-            user.update_menu(
-                "online_users",
-                self._get_online_users_menu_items(user),
+            self._nav_refresh(
+                user,
+                self._show_online_users_menu,
+                state.get("online_users_page", 1),
             )
         elif current_menu == "online_user_actions_menu":
             target_username = state.get("target_username", "")
@@ -3458,16 +3558,53 @@ PlayAural Server
         user.clear_ui()
         self._user_states[user.username] = {"menu": "waiting_for_approval"}
 
-    def _show_saved_tables_menu(self, user: NetworkUser) -> None:
+    def _saved_tables_page(self, username: str, page: int) -> PaginatedMenuPage[Any]:
+        total = self._db.count_user_saved_tables(username)
+        safe_page = clamp_page(page, total, DEFAULT_MENU_PAGE_SIZE)
+        offset = (safe_page - 1) * DEFAULT_MENU_PAGE_SIZE
+        return PaginatedMenuPage(
+            items=self._db.get_user_saved_tables(
+                username,
+                limit=DEFAULT_MENU_PAGE_SIZE,
+                offset=offset,
+            ),
+            total=total,
+            page=safe_page,
+            page_size=DEFAULT_MENU_PAGE_SIZE,
+        )
+
+    def _show_saved_tables_menu(
+        self,
+        user: NetworkUser,
+        page: int = 1,
+        *,
+        focus_page_start: bool = False,
+    ) -> None:
         """Show saved tables menu."""
-        saved = self._db.get_user_saved_tables(user.username)
+        saved = self._saved_tables_page(user.username, page)
 
         items = []
-        if not saved:
+        if not saved.items:
             items.append(MenuItem(text=Localization.get(user.locale, "no-saved-tables"), id=""))
         else:
-            for record in saved:
+            for record in saved.items:
                 items.append(MenuItem(text=record.save_name, id=f"saved_{record.id}"))
+            if saved.total_pages > 1:
+                items.append(
+                    MenuItem(
+                        text=Localization.get(
+                            user.locale,
+                            "menu-page-summary",
+                            start=saved.start_index,
+                            end=saved.end_index,
+                            total=saved.total,
+                            page=saved.page,
+                            pages=saved.total_pages,
+                        ),
+                        id="page_summary",
+                    )
+                )
+        items.extend(pagination_menu_items(user.locale, saved))
         items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
 
         user.show_menu(
@@ -3475,8 +3612,20 @@ PlayAural Server
             items,
             multiletter=True,
             escape_behavior=EscapeBehavior.SELECT_LAST,
+            position=(
+                self._first_menu_item_position(
+                    items,
+                    lambda item_id: item_id.startswith("saved_"),
+                )
+                if focus_page_start
+                else None
+            ),
         )
-        self._user_states[user.username] = {"menu": "saved_tables_menu"}
+        self._user_states[user.username] = {
+            "menu": "saved_tables_menu",
+            "saved_tables_page": saved.page,
+            "saved_tables_page_count": saved.total_pages,
+        }
 
     def _show_saved_table_actions_menu(self, user: NetworkUser, save_id: int) -> None:
         """Show actions for a saved table (restore, delete)."""
@@ -3603,7 +3752,7 @@ PlayAural Server
         elif current_menu == "tables_menu":
             await self._handle_tables_selection(user, selection_id, state)
         elif current_menu == "active_tables_menu":
-            await self._handle_active_tables_selection(user, selection_id)
+            await self._handle_active_tables_selection(user, selection_id, state)
         elif current_menu == "active_tables_filter_menu":
             await self._handle_active_tables_filter_selection(user, selection_id)
         elif current_menu == "join_menu":
@@ -3667,7 +3816,7 @@ PlayAural Server
         elif current_menu == "friends_hub_menu":
             await self._handle_friends_hub_selection(user, selection_id)
         elif current_menu == "friends_list_menu":
-            await self._handle_friends_list_selection(user, selection_id)
+            await self._handle_friends_list_selection(user, selection_id, state)
         elif current_menu == "friend_actions_menu":
             await self._handle_friend_actions_selection(user, selection_id, state)
         elif current_menu == FRIEND_REMOVE_CONFIRM_MENU:
@@ -3675,7 +3824,7 @@ PlayAural Server
                 user, selection_id, state
             )
         elif current_menu == "friend_requests_menu":
-            await self._handle_friend_requests_selection(user, selection_id)
+            await self._handle_friend_requests_selection(user, selection_id, state)
         elif current_menu == "friend_request_actions_menu":
             await self._handle_friend_request_actions_selection(user, selection_id, state)
         elif current_menu == "public_profile_menu":
@@ -3684,14 +3833,7 @@ PlayAural Server
             await self._handle_online_users_selection(user, selection_id, state)
         elif current_menu == "online_user_actions_menu":
             await self._handle_online_user_actions_selection(user, selection_id, state)
-        elif current_menu in [
-            "admin_menu", "account_approval_menu", "pending_user_actions_menu",
-            "promote_admin_menu", "demote_admin_menu", "promote_confirm_menu",
-            "demote_confirm_menu", "kick_menu", "kick_confirm_menu", "broadcast_choice_menu",
-            "ban_menu", "ban_duration_menu", "ban_reason_menu", "unban_menu",
-            "mute_menu", "mute_duration_menu", "mute_reason_menu", "unmute_menu",
-            "manage_motd_menu", "view_motd_menu", "smtp_settings_menu", "smtp_encryption_menu"
-        ]:
+        elif current_menu in ADMIN_MENU_IDS:
             if user.trust_level < 2:
                 return
             await self.admin_manager.handle_menu_selection(user, selection_id, current_menu, state)
@@ -3803,8 +3945,7 @@ PlayAural Server
 
     def _get_friends_hub_menu_items(self, user: NetworkUser) -> list[MenuItem]:
         """Build menu items for the friends hub menu."""
-        pending_requests = self._db.get_pending_incoming_requests(user.uuid)
-        pending_count = len(pending_requests)
+        pending_count = self._db.count_pending_incoming_requests(user.uuid)
 
         req_text = Localization.get(user.locale, "friends-pending-requests", count=pending_count) if pending_count > 0 else Localization.get(user.locale, "friends-no-pending-requests")
 
@@ -3841,16 +3982,18 @@ PlayAural Server
         elif selection_id == "back":
             self._nav_back(user)
 
-    def _get_friends_list_menu_items(self, user: NetworkUser) -> list[MenuItem]:
-        """Build menu items for the friends list menu."""
+    def _build_friends_list_menu_items(
+        self, user: NetworkUser, page: int = 1
+    ) -> tuple[list[MenuItem], PaginatedMenuPage[Any]]:
+        """Build a paginated friends list menu."""
         friend_uuids = self._db.get_friends(user.uuid)
         items = []
+        friends_data = []
 
         if not friend_uuids:
             items.append(MenuItem(text=Localization.get(user.locale, "friends-list-empty"), id=""))
         else:
             # Gather friends and determine their status
-            friends_data = []
             for f_uuid in friend_uuids:
                 f_name = self._db.get_user_name_by_uuid(f_uuid)
                 if f_name:
@@ -3862,7 +4005,13 @@ PlayAural Server
             # Sort: Online first, then alphabetically
             friends_data.sort(key=lambda x: (not x["is_online"], x["name"].lower()))
 
-            for f_data in friends_data:
+            page_data = paginate_sequence(
+                friends_data,
+                page,
+                page_size=DEFAULT_MENU_PAGE_SIZE,
+            )
+
+            for f_data in page_data.items:
                 f_name = f_data["name"]
                 is_online = f_data["is_online"]
 
@@ -3874,27 +4023,97 @@ PlayAural Server
                 display_text = Localization.get(user.locale, "friend-list-entry", username=f_name, status=status)
                 items.append(MenuItem(text=display_text, id=f"friend_{f_name}"))
 
+            if page_data.total_pages > 1:
+                items.append(
+                    MenuItem(
+                        text=Localization.get(
+                            user.locale,
+                            "menu-page-summary",
+                            start=page_data.start_index,
+                            end=page_data.end_index,
+                            total=page_data.total,
+                            page=page_data.page,
+                            pages=page_data.total_pages,
+                        ),
+                        id="page_summary",
+                    )
+                )
+            items.extend(pagination_menu_items(user.locale, page_data))
+            items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
+            return items, page_data
+
+        page_data = paginate_sequence(
+            friends_data,
+            page,
+            page_size=DEFAULT_MENU_PAGE_SIZE,
+        )
+        items.extend(pagination_menu_items(user.locale, page_data))
         items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
+        return items, page_data
+
+    def _get_friends_list_menu_items(
+        self, user: NetworkUser, page: int = 1
+    ) -> list[MenuItem]:
+        """Build menu items for the friends list menu."""
+        items, _ = self._build_friends_list_menu_items(user, page)
         return items
 
-    def _show_friends_list_menu(self, user: NetworkUser) -> None:
+    def _show_friends_list_menu(
+        self,
+        user: NetworkUser,
+        page: int = 1,
+        *,
+        focus_page_start: bool = False,
+    ) -> None:
         """Show the list of accepted friends and their status."""
-        items = self._get_friends_list_menu_items(user)
+        items, page_data = self._build_friends_list_menu_items(user, page)
         user.show_menu(
             "friends_list_menu",
             items,
             multiletter=True,
             escape_behavior=EscapeBehavior.SELECT_LAST,
+            position=(
+                self._first_menu_item_position(
+                    items,
+                    lambda item_id: item_id.startswith("friend_"),
+                )
+                if focus_page_start
+                else None
+            ),
         )
-        self._user_states[user.username] = {"menu": "friends_list_menu"}
+        self._user_states[user.username] = {
+            "menu": "friends_list_menu",
+            "friends_page": page_data.page,
+            "friends_page_count": page_data.total_pages,
+        }
 
-    async def _handle_friends_list_selection(self, user: NetworkUser, selection_id: str) -> None:
+    async def _handle_friends_list_selection(
+        self, user: NetworkUser, selection_id: str, state: dict
+    ) -> None:
         if selection_id == "back":
             self._nav_back(user)
+        elif selection_id in MENU_PAGE_IDS:
+            current_page = int(state.get("friends_page", 1) or 1)
+            page_count = max(1, int(state.get("friends_page_count", 1) or 1))
+            next_page = page_for_selection(selection_id, current_page, page_count)
+            if next_page is None:
+                return
+            if is_page_refresh(selection_id):
+                user.speak_l("menu-list-refreshed", buffer="system")
+            self._nav_refresh(
+                user,
+                self._show_friends_list_menu,
+                next_page,
+                focus_page_start=is_page_navigation(selection_id),
+            )
         elif selection_id.startswith("friend_"):
             target_username = selection_id[7:]
             if not self._get_current_friend_record(user, target_username):
-                self._nav_refresh(user, self._show_friends_list_menu)
+                self._nav_refresh(
+                    user,
+                    self._show_friends_list_menu,
+                    state.get("friends_page", 1),
+                )
                 return
             self._nav_push(user, self._show_friend_actions_menu, target_username)
 
@@ -4120,7 +4339,7 @@ PlayAural Server
         """Show a confirmation prompt before removing a friend."""
         target_record = self._get_current_friend_record(user, target_username)
         if not target_record:
-            self._show_friends_list_menu(user)
+            self._nav_back(user)
             return
 
         user.speak_l(
@@ -4207,36 +4426,105 @@ PlayAural Server
         else:
             self._show_friends_list_menu(user)
 
-    def _get_friend_requests_menu_items(self, user: NetworkUser) -> list[MenuItem]:
+    def _friend_requests_page(
+        self, user: NetworkUser, page: int
+    ) -> PaginatedMenuPage[str]:
+        total = self._db.count_pending_incoming_requests(user.uuid)
+        safe_page = clamp_page(page, total, DEFAULT_MENU_PAGE_SIZE)
+        offset = (safe_page - 1) * DEFAULT_MENU_PAGE_SIZE
+        return PaginatedMenuPage(
+            items=self._db.get_pending_incoming_requests(
+                user.uuid,
+                limit=DEFAULT_MENU_PAGE_SIZE,
+                offset=offset,
+            ),
+            total=total,
+            page=safe_page,
+            page_size=DEFAULT_MENU_PAGE_SIZE,
+        )
+
+    def _get_friend_requests_menu_items(
+        self, user: NetworkUser, page: int = 1
+    ) -> tuple[list[MenuItem], PaginatedMenuPage[str]]:
         """Build menu items for the friend requests menu."""
-        pending_uuids = self._db.get_pending_incoming_requests(user.uuid)
+        pending = self._friend_requests_page(user, page)
         items = []
 
-        if not pending_uuids:
+        if not pending.items:
             items.append(MenuItem(text=Localization.get(user.locale, "no-pending-requests"), id=""))
         else:
-            for r_uuid in pending_uuids:
+            for r_uuid in pending.items:
                 r_name = self._db.get_user_name_by_uuid(r_uuid)
                 if r_name:
                     items.append(MenuItem(text=r_name, id=f"req_{r_name}"))
+            if pending.total_pages > 1:
+                items.append(
+                    MenuItem(
+                        text=Localization.get(
+                            user.locale,
+                            "menu-page-summary",
+                            start=pending.start_index,
+                            end=pending.end_index,
+                            total=pending.total,
+                            page=pending.page,
+                            pages=pending.total_pages,
+                        ),
+                        id="page_summary",
+                    )
+                )
 
+        items.extend(pagination_menu_items(user.locale, pending))
         items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
-        return items
+        return items, pending
 
-    def _show_friend_requests_menu(self, user: NetworkUser) -> None:
+    def _show_friend_requests_menu(
+        self,
+        user: NetworkUser,
+        page: int = 1,
+        *,
+        focus_page_start: bool = False,
+    ) -> None:
         """Show list of pending incoming requests."""
-        items = self._get_friend_requests_menu_items(user)
+        items, pending = self._get_friend_requests_menu_items(user, page)
         user.show_menu(
             "friend_requests_menu",
             items,
             multiletter=True,
             escape_behavior=EscapeBehavior.SELECT_LAST,
+            position=(
+                self._first_menu_item_position(
+                    items,
+                    lambda item_id: item_id.startswith("req_"),
+                )
+                if focus_page_start
+                else None
+            ),
         )
-        self._user_states[user.username] = {"menu": "friend_requests_menu"}
+        self._user_states[user.username] = {
+            "menu": "friend_requests_menu",
+            "friend_requests_page": pending.page,
+            "friend_requests_page_count": pending.total_pages,
+        }
 
-    async def _handle_friend_requests_selection(self, user: NetworkUser, selection_id: str) -> None:
+    async def _handle_friend_requests_selection(
+        self, user: NetworkUser, selection_id: str, state: dict
+    ) -> None:
         if selection_id == "back":
             self._nav_back(user)
+        elif selection_id in MENU_PAGE_IDS:
+            current_page = int(state.get("friend_requests_page", 1) or 1)
+            page_count = max(1, int(state.get("friend_requests_page_count", 1) or 1))
+            next_page = page_for_selection(selection_id, current_page, page_count)
+            if next_page is None:
+                return
+            if is_page_refresh(selection_id):
+                user.speak_l("menu-list-refreshed", buffer="system")
+            self._nav_refresh(
+                user,
+                self._show_friend_requests_menu,
+                next_page,
+                focus_page_start=is_page_navigation(selection_id),
+            )
         elif selection_id.startswith("req_"):
             target_username = selection_id[4:]
             self._nav_push(user, self._show_friend_request_actions_menu, target_username)
@@ -5094,15 +5382,36 @@ PlayAural Server
                 self._auto_join_table(user, table, game_type)
             else:
                 user.speak_l("table-not-exists", buffer="system")
-                self._nav_refresh(user, self._show_tables_menu, game_type)
+                self._nav_refresh(
+                    user,
+                    self._show_tables_menu,
+                    game_type,
+                    state.get("tables_page", 1),
+                )
 
+        elif selection_id in MENU_PAGE_IDS:
+            current_page = int(state.get("tables_page", 1) or 1)
+            page_count = max(1, int(state.get("tables_page_count", 1) or 1))
+            next_page = page_for_selection(selection_id, current_page, page_count)
+            if next_page is None:
+                return
+            if is_page_refresh(selection_id):
+                user.speak_l("menu-list-refreshed", buffer="system")
+            self._nav_refresh(
+                user,
+                self._show_tables_menu,
+                game_type,
+                next_page,
+                focus_page_start=is_page_navigation(selection_id),
+            )
         elif selection_id == "back":
             self._nav_back(user)
 
     async def _handle_active_tables_selection(
-        self, user: NetworkUser, selection_id: str
+        self, user: NetworkUser, selection_id: str, state: dict | None = None
     ) -> None:
         """Handle active tables menu selection."""
+        state = state or self._user_states.get(user.username, {})
         if selection_id == "toggle_filter":
             self._nav_push(user, self._show_active_tables_filter_menu)
             return
@@ -5117,7 +5426,25 @@ PlayAural Server
                 self._auto_join_table(user, table, table.game_type)
             else:
                 user.speak_l("table-not-exists", buffer="system")
-                self._nav_refresh(user, self._show_active_tables_menu)
+                self._nav_refresh(
+                    user,
+                    self._show_active_tables_menu,
+                    state.get("active_tables_page", 1),
+                )
+        elif selection_id in MENU_PAGE_IDS:
+            current_page = int(state.get("active_tables_page", 1) or 1)
+            page_count = max(1, int(state.get("active_tables_page_count", 1) or 1))
+            next_page = page_for_selection(selection_id, current_page, page_count)
+            if next_page is None:
+                return
+            if is_page_refresh(selection_id):
+                user.speak_l("menu-list-refreshed", buffer="system")
+            self._nav_refresh(
+                user,
+                self._show_active_tables_menu,
+                next_page,
+                focus_page_start=is_page_navigation(selection_id),
+            )
         elif selection_id == "back":
             self._nav_back(user)
 
@@ -5158,27 +5485,41 @@ PlayAural Server
         Otherwise joins as spectator.
         """
         game = table.game
+        def refresh_current_table_list() -> None:
+            state = self._user_states.get(user.username, {})
+            menu = state.get("menu")
+            if menu == "active_tables_menu":
+                self._nav_refresh(
+                    user,
+                    self._show_active_tables_menu,
+                    state.get("active_tables_page", 1),
+                )
+            elif menu == "tables_menu":
+                self._nav_refresh(
+                    user,
+                    self._show_tables_menu,
+                    state.get("game_type", game_type),
+                    state.get("tables_page", 1),
+                )
+            else:
+                self._nav_refresh(user, self._show_tables_menu, game_type)
+
         if not game:
             user.speak_l("table-not-exists", buffer="system")
-            self._nav_refresh(user, self._show_tables_menu, game_type)
+            refresh_current_table_list()
             return
 
         user_is_member = any(member.username == user.username for member in table.members)
         if table.is_private and not user_is_member and not allow_private_join:
             user.speak_l("table-private-invite-only", buffer="system")
-            state = self._user_states.get(user.username, {})
-            menu = state.get("menu")
-            if menu == "active_tables_menu":
-                self._nav_refresh(user, self._show_active_tables_menu)
-            elif menu == "tables_menu":
-                self._nav_refresh(user, self._show_tables_menu, state.get("game_type", game_type))
+            refresh_current_table_list()
             return
 
         # Ban check (table-scoped)
         user_record = self._db.get_user(user.username)
         if user_record and table.is_banned(user_record.uuid):
             user.speak_l("table-you-are-banned", buffer="system")
-            self._nav_refresh(user, self._show_tables_menu, game_type)
+            refresh_current_table_list()
             return
 
         table_id = table.table_id
@@ -5197,16 +5538,7 @@ PlayAural Server
         else:
             if self._table_name_conflicts(user, table):
                 user.speak_l("table-name-already-used", buffer="system")
-                state = self._user_states.get(user.username, {})
-                menu = state.get("menu")
-                if menu == "active_tables_menu":
-                    self._nav_refresh(user, self._show_active_tables_menu)
-                elif menu == "tables_menu":
-                    self._nav_refresh(
-                        user,
-                        self._show_tables_menu,
-                        state.get("game_type", game_type),
-                    )
+                refresh_current_table_list()
                 return
 
             # Determine if user can join as player
@@ -6872,7 +7204,25 @@ PlayAural Server
                 self._nav_push(user, self._show_saved_table_actions_menu, save_id)
             except ValueError:
                 # Malformed selection_id (like 'saved_tables') -> refresh menu
-                self._nav_refresh(user, self._show_saved_tables_menu)
+                self._nav_refresh(
+                    user,
+                    self._show_saved_tables_menu,
+                    state.get("saved_tables_page", 1),
+                )
+        elif selection_id in MENU_PAGE_IDS:
+            current_page = int(state.get("saved_tables_page", 1) or 1)
+            page_count = max(1, int(state.get("saved_tables_page_count", 1) or 1))
+            next_page = page_for_selection(selection_id, current_page, page_count)
+            if next_page is None:
+                return
+            if is_page_refresh(selection_id):
+                user.speak_l("menu-list-refreshed", buffer="system")
+            self._nav_refresh(
+                user,
+                self._show_saved_tables_menu,
+                next_page,
+                focus_page_start=is_page_navigation(selection_id),
+            )
         elif selection_id == "back":
             self._nav_back(user)
 
@@ -8477,6 +8827,18 @@ PlayAural Server
             game=game_name,
         )
 
+    @staticmethod
+    def _first_menu_item_position(
+        items: list[MenuItem],
+        predicate: Callable[[str], bool],
+    ) -> int | None:
+        """Return the 1-based position of the first menu item matching a predicate."""
+        for index, item in enumerate(items, start=1):
+            item_id = item.id if isinstance(item, MenuItem) else ""
+            if isinstance(item_id, str) and predicate(item_id):
+                return index
+        return None
+
     def _format_online_users_lines(self, user: NetworkUser) -> list[tuple[str, str]]:
         """Format online users with game names for menu display. Returns tuples of (username, display_text)."""
         lines: list[tuple[str, str]] = []
@@ -8516,43 +8878,115 @@ PlayAural Server
             lines.append(("", Localization.get(user.locale, "online-users-none")))
         return lines
 
-    def _get_online_users_menu_items(self, user: NetworkUser) -> list[MenuItem]:
+    def _get_online_users_menu_items(
+        self, user: NetworkUser, page: int = 1
+    ) -> tuple[list[MenuItem], PaginatedMenuPage[tuple[str, str]] | None]:
         """Generate the list of MenuItems for the interactive online users list."""
         items = [MenuItem(text=Localization.get(user.locale, "close-menu"), id="back")]
 
-        for username, line in self._format_online_users_lines(user):
+        lines = self._format_online_users_lines(user)
+        if lines and not lines[0][0]:
+            items.append(MenuItem(text=lines[0][1], id="online_empty"))
+            page_data = PaginatedMenuPage(
+                items=[],
+                total=0,
+                page=1,
+                page_size=ONLINE_USERS_PAGE_SIZE,
+            )
+            items.extend(pagination_menu_items(user.locale, page_data))
+            return items, page_data
+
+        page_data = paginate_sequence(
+            lines,
+            page,
+            page_size=ONLINE_USERS_PAGE_SIZE,
+        )
+
+        for username, line in page_data.items:
             if not username:
                 # E.g. "No users online"
-                items.append(MenuItem(text=line, id=""))
+                items.append(MenuItem(text=line, id="online_empty"))
             elif username == user.username:
                 # Do not allow opening an action menu for oneself
-                items.append(MenuItem(text=line, id=""))
+                items.append(MenuItem(text=line, id=f"readonly_online_{username}"))
             else:
                 items.append(MenuItem(text=line, id=f"online_{username}"))
 
-        return items
+        if page_data.total_pages > 1:
+            items.append(
+                MenuItem(
+                    text=Localization.get(
+                        user.locale,
+                        "menu-page-summary",
+                        start=page_data.start_index,
+                        end=page_data.end_index,
+                        total=page_data.total,
+                        page=page_data.page,
+                        pages=page_data.total_pages,
+                    ),
+                    id="page_summary",
+                )
+            )
+        items.extend(pagination_menu_items(user.locale, page_data))
+        return items, page_data
 
-    def _show_online_users_menu(self, user: NetworkUser) -> None:
+    def _show_online_users_menu(
+        self,
+        user: NetworkUser,
+        page: int = 1,
+        *,
+        focus_page_start: bool = False,
+    ) -> None:
         """Show interactive online users menu."""
-        items = self._get_online_users_menu_items(user)
+        items, page_data = self._get_online_users_menu_items(user, page)
 
         user.show_menu(
             "online_users",
             items,
             multiletter=True,
             escape_behavior=EscapeBehavior.ESCAPE_EVENT, # Legacy client compat: emit raw escape packet to be caught globally
-            position=2, # Default focus to first user, not the 'Back' button (1-based)
+            position=(
+                self._first_menu_item_position(
+                    items,
+                    lambda item_id: item_id.startswith("online_")
+                    or item_id.startswith("readonly_online_"),
+                )
+                if focus_page_start
+                else None
+            ),
         )
-        self._user_states[user.username] = {"menu": "online_users"}
+        self._user_states[user.username] = {
+            "menu": "online_users",
+            "online_users_page": page_data.page if page_data else 1,
+            "online_users_page_count": page_data.total_pages if page_data else 1,
+        }
 
     async def _handle_online_users_selection(self, user: NetworkUser, selection_id: str, state: dict) -> None:
         """Handle selection from the interactive online users list."""
         if selection_id == "back":
             self._nav_back(user)
+        elif selection_id in MENU_PAGE_IDS:
+            current_page = int(state.get("online_users_page", 1) or 1)
+            page_count = max(1, int(state.get("online_users_page_count", 1) or 1))
+            next_page = page_for_selection(selection_id, current_page, page_count)
+            if next_page is None:
+                return
+            if is_page_refresh(selection_id):
+                user.speak_l("menu-list-refreshed", buffer="system")
+            self._nav_refresh(
+                user,
+                self._show_online_users_menu,
+                next_page,
+                focus_page_start=is_page_navigation(selection_id),
+            )
         elif selection_id.startswith("online_"):
             target_username = selection_id[7:]
             if target_username == user.username:
-                self._nav_refresh(user, self._show_online_users_menu)
+                self._nav_refresh(
+                    user,
+                    self._show_online_users_menu,
+                    state.get("online_users_page", 1),
+                )
                 return
             self._nav_push(user, self._show_online_user_actions_menu, target_username)
 
@@ -8983,7 +9417,7 @@ PlayAural Server
         elif menu == "friends_hub_menu":
             self._show_friends_hub_menu(user)
         elif menu == "friends_list_menu":
-            self._show_friends_list_menu(user)
+            self._show_friends_list_menu(user, frame.get("friends_page", 1))
         elif menu == "friend_actions_menu":
             self._show_friend_actions_menu(user, frame.get("target_username", ""))
         elif menu == FRIEND_REMOVE_CONFIRM_MENU:
@@ -8991,11 +9425,11 @@ PlayAural Server
                 user, frame.get("target_username", "")
             )
         elif menu == "friend_requests_menu":
-            self._show_friend_requests_menu(user)
+            self._show_friend_requests_menu(user, frame.get("friend_requests_page", 1))
         elif menu == "friend_request_actions_menu":
             self._show_friend_request_actions_menu(user, frame.get("target_username", ""))
         elif menu == "online_users":
-            self._show_online_users_menu(user)
+            self._show_online_users_menu(user, frame.get("online_users_page", 1))
         elif menu == "online_user_actions_menu":
             self._show_online_user_actions_menu(user, frame.get("target_username", ""))
         elif menu == "public_profile_menu":
@@ -9005,19 +9439,23 @@ PlayAural Server
         elif menu == "game_category_filter_menu":
             self._show_game_category_filter_menu(user)
         elif menu == "tables_menu":
-            self._show_tables_menu(user, frame.get("game_type", ""))
+            self._show_tables_menu(
+                user,
+                frame.get("game_type", ""),
+                frame.get("tables_page", 1),
+            )
         elif menu == "active_tables_menu":
-            self._show_active_tables_menu(user)
+            self._show_active_tables_menu(user, frame.get("active_tables_page", 1))
         elif menu == "active_tables_filter_menu":
             self._show_active_tables_filter_menu(user)
         elif menu == "saved_tables_menu":
-            self._show_saved_tables_menu(user)
+            self._show_saved_tables_menu(user, frame.get("saved_tables_page", 1))
         elif menu == "saved_table_actions_menu":
             save_id = frame.get("save_id")
             if save_id:
                 self._show_saved_table_actions_menu(user, save_id)
             else:
-                self._show_saved_tables_menu(user)
+                self._show_saved_tables_menu(user, frame.get("saved_tables_page", 1))
         elif menu == "leaderboards_menu":
             self._show_leaderboards_menu(user)
         elif menu == "leaderboard_types_menu":
@@ -9064,17 +9502,31 @@ PlayAural Server
         elif menu == "admin_menu":
             self.admin_manager._show_admin_menu(user)
         elif menu == "account_approval_menu":
-            self.admin_manager._show_account_approval_menu(user)
+            self.admin_manager._show_account_approval_menu(
+                user,
+                frame.get("account_approval_page", 1),
+            )
         elif menu == "pending_user_actions_menu":
             pending_username = frame.get("pending_username", "")
             if pending_username:
                 self.admin_manager._show_pending_user_actions_menu(user, pending_username)
             else:
-                self.admin_manager._show_account_approval_menu(user)
+                self.admin_manager._show_account_approval_menu(
+                    user,
+                    frame.get("account_approval_page", 1),
+                )
         elif menu == "promote_admin_menu":
-            self.admin_manager._show_promote_admin_menu(user)
+            self.admin_manager._show_promote_admin_menu(
+                user,
+                frame.get("search_query", ""),
+                frame.get("target_page", 1),
+            )
         elif menu == "demote_admin_menu":
-            self.admin_manager._show_demote_admin_menu(user)
+            self.admin_manager._show_demote_admin_menu(
+                user,
+                frame.get("search_query", ""),
+                frame.get("target_page", 1),
+            )
         elif menu == "promote_confirm_menu":
             target_username = frame.get("target_username", "")
             if target_username:
@@ -9095,7 +9547,11 @@ PlayAural Server
             else:
                 self.admin_manager._show_admin_menu(user)
         elif menu == "kick_menu":
-            self.admin_manager._show_kick_menu(user)
+            self.admin_manager._show_kick_menu(
+                user,
+                frame.get("search_query", ""),
+                frame.get("target_page", 1),
+            )
         elif menu == "kick_confirm_menu":
             target_username = frame.get("target_username", "")
             if target_username:
@@ -9103,7 +9559,11 @@ PlayAural Server
             else:
                 self.admin_manager._show_kick_menu(user)
         elif menu == "ban_menu":
-            self.admin_manager._show_ban_menu(user)
+            self.admin_manager._show_ban_menu(
+                user,
+                frame.get("search_query", ""),
+                frame.get("target_page", 1),
+            )
         elif menu == "ban_duration_menu":
             target_username = frame.get("target_username", "")
             if target_username:
@@ -9120,9 +9580,17 @@ PlayAural Server
             else:
                 self.admin_manager._show_ban_menu(user)
         elif menu == "unban_menu":
-            self.admin_manager._show_unban_menu(user)
+            self.admin_manager._show_unban_menu(
+                user,
+                frame.get("search_query", ""),
+                frame.get("target_page", 1),
+            )
         elif menu == "mute_menu":
-            self.admin_manager._show_mute_menu(user)
+            self.admin_manager._show_mute_menu(
+                user,
+                frame.get("search_query", ""),
+                frame.get("target_page", 1),
+            )
         elif menu == "mute_duration_menu":
             target_username = frame.get("target_username", "")
             if target_username:
@@ -9139,7 +9607,11 @@ PlayAural Server
             else:
                 self.admin_manager._show_mute_menu(user)
         elif menu == "unmute_menu":
-            self.admin_manager._show_unmute_menu(user)
+            self.admin_manager._show_unmute_menu(
+                user,
+                frame.get("search_query", ""),
+                frame.get("target_page", 1),
+            )
         elif menu == "manage_motd_menu":
             self.admin_manager._show_manage_motd_menu(user)
         elif menu == "view_motd_menu":
@@ -9398,6 +9870,22 @@ PlayAural Server
         if not user:
             return
         self._nav_push(user, self._show_friends_hub_menu)
+
+    async def _handle_open_admin_menu(self, client: ClientConnection) -> None:
+        """Handle Alt+Shift+A global hotkey for authorized administrators."""
+        username = client.username
+        if not username:
+            return
+        user = self._users.get(username)
+        if not user or user.trust_level < 2:
+            return
+        current_menu = self._user_states.get(username, {}).get("menu")
+        if current_menu == "admin_menu":
+            return
+        if current_menu in ADMIN_MENU_IDS:
+            self.admin_manager._return_to_admin_root(user)
+            return
+        self._nav_push(user, self.admin_manager._show_admin_menu)
 
     async def _handle_open_options(self, client: ClientConnection) -> None:
         """Handle Alt+O global hotkey: open the options menu from any context."""

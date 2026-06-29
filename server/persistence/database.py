@@ -441,6 +441,14 @@ class Database:
             ON users(uuid)
         """)
         cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_saved_tables_user_saved_at
+            ON saved_tables(username, saved_at DESC)
+        """)
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_friendships_receiver_status_created
+            ON friendships(receiver_id, status, created_at)
+        """)
+        cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_result_players_result
             ON game_result_players(result_id)
         """)
@@ -1050,12 +1058,34 @@ class Database:
         )
         self._conn.commit()
 
-    def get_pending_users(self) -> list[UserRecord]:
-        """Get all users who are not yet approved."""
+    def count_pending_users(self) -> int:
+        """Count users who are not yet approved."""
         cursor = self._conn.cursor()
-        cursor.execute(
-            "SELECT id, username, password_hash, uuid, locale, preferences_json, trust_level, approved, email, bio, motd_version, gender, registration_date, last_login_date FROM users WHERE approved = 0"
+        cursor.execute("SELECT COUNT(*) AS count FROM users WHERE approved = 0")
+        row = cursor.fetchone()
+        return int(row["count"] if row else 0)
+
+    def get_pending_users(
+        self,
+        *,
+        limit: int | None = None,
+        offset: int = 0,
+    ) -> list[UserRecord]:
+        """Get users who are not yet approved, optionally as a bounded page."""
+        cursor = self._conn.cursor()
+        query = (
+            "SELECT id, username, password_hash, uuid, locale, preferences_json, "
+            "trust_level, approved, email, bio, motd_version, gender, "
+            "registration_date, last_login_date FROM users WHERE approved = 0 "
+            "ORDER BY LOWER(username)"
         )
+        params: tuple[object, ...] = ()
+        if limit is not None:
+            safe_limit = max(1, min(int(limit), 100))
+            safe_offset = max(0, int(offset))
+            query += " LIMIT ? OFFSET ?"
+            params = (safe_limit, safe_offset)
+        cursor.execute(query, params)
         users = []
         for row in cursor.fetchall():
             users.append(UserRecord(
@@ -1159,6 +1189,155 @@ class Database:
                 locale=row["locale"] or "en",
                 preferences_json=row["preferences_json"] or "{}",
                 trust_level=row["trust_level"],
+                approved=bool(row["approved"]) if row["approved"] is not None else False,
+                email=row["email"] or "",
+                bio=row["bio"] or "",
+                motd_version=row["motd_version"] if "motd_version" in row.keys() else 0,
+                gender=row["gender"] if "gender" in row.keys() else "Not set",
+                registration_date=row["registration_date"] if "registration_date" in row.keys() else "",
+                last_login_date=row["last_login_date"] if "last_login_date" in row.keys() else "",
+            ))
+        return users
+
+    def _build_user_search_filters(
+        self,
+        query: str = "",
+        *,
+        approved: bool | None = None,
+        min_trust_level: int | None = None,
+        max_trust_level: int | None = None,
+        exclude_username: str | None = None,
+        exclude_active_bans: bool = False,
+        exclude_active_mutes: bool = False,
+    ) -> tuple[list[str], list[object], str, str]:
+        """Build shared SQL filters for paginated user search/count queries."""
+        now = datetime.now().isoformat()
+        term = query.strip()
+        like = f"%{term}%"
+        prefix = f"{term}%"
+
+        where = ["username LIKE ? COLLATE NOCASE"]
+        params: list[object] = [like]
+        if approved is not None:
+            where.append("approved = ?")
+            params.append(1 if approved else 0)
+        if min_trust_level is not None:
+            where.append("COALESCE(trust_level, 1) >= ?")
+            params.append(min_trust_level)
+        if max_trust_level is not None:
+            where.append("COALESCE(trust_level, 1) <= ?")
+            params.append(max_trust_level)
+        if exclude_username:
+            where.append("username != ? COLLATE NOCASE")
+            params.append(exclude_username)
+        if exclude_active_bans:
+            where.append(
+                """
+                NOT EXISTS (
+                    SELECT 1 FROM bans
+                    WHERE bans.username = users.username
+                    AND (bans.expires_at IS NULL OR bans.expires_at > ?)
+                )
+                """
+            )
+            params.append(now)
+        if exclude_active_mutes:
+            where.append(
+                """
+                NOT EXISTS (
+                    SELECT 1 FROM mutes
+                    WHERE mutes.username = users.username
+                    AND (mutes.expires_at IS NULL OR mutes.expires_at > ?)
+                )
+                """
+            )
+            params.append(now)
+        return where, params, term, prefix
+
+    def count_users(
+        self,
+        query: str = "",
+        *,
+        approved: bool | None = None,
+        min_trust_level: int | None = None,
+        max_trust_level: int | None = None,
+        exclude_username: str | None = None,
+        exclude_active_bans: bool = False,
+        exclude_active_mutes: bool = False,
+    ) -> int:
+        """Count users matching the same filters used by paginated search."""
+        where, params, _, _ = self._build_user_search_filters(
+            query,
+            approved=approved,
+            min_trust_level=min_trust_level,
+            max_trust_level=max_trust_level,
+            exclude_username=exclude_username,
+            exclude_active_bans=exclude_active_bans,
+            exclude_active_mutes=exclude_active_mutes,
+        )
+        cursor = self._conn.cursor()
+        cursor.execute(
+            f"SELECT COUNT(*) AS count FROM users WHERE {' AND '.join(where)}",
+            params,
+        )
+        row = cursor.fetchone()
+        return int(row["count"] if row else 0)
+
+    def search_users(
+        self,
+        query: str = "",
+        *,
+        approved: bool | None = None,
+        min_trust_level: int | None = None,
+        max_trust_level: int | None = None,
+        exclude_username: str | None = None,
+        exclude_active_bans: bool = False,
+        exclude_active_mutes: bool = False,
+        limit: int = 25,
+        offset: int = 0,
+    ) -> list[UserRecord]:
+        """Search users with bounded, SQL-level filtering for large admin menus."""
+        limit = max(1, min(int(limit), 100))
+        offset = max(0, int(offset))
+        where, params, term, prefix = self._build_user_search_filters(
+            query,
+            approved=approved,
+            min_trust_level=min_trust_level,
+            max_trust_level=max_trust_level,
+            exclude_username=exclude_username,
+            exclude_active_bans=exclude_active_bans,
+            exclude_active_mutes=exclude_active_mutes,
+        )
+        cursor = self._conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT id, username, password_hash, uuid, locale, preferences_json,
+                   trust_level, approved, email, bio, motd_version, gender,
+                   registration_date, last_login_date
+            FROM users
+            WHERE {' AND '.join(where)}
+            ORDER BY
+                CASE
+                    WHEN username = ? COLLATE NOCASE THEN 0
+                    WHEN username LIKE ? COLLATE NOCASE THEN 1
+                    ELSE 2
+                END,
+                LOWER(username)
+            LIMIT ?
+            OFFSET ?
+            """,
+            (*params, term, prefix, limit, offset),
+        )
+        users = []
+        for row in cursor.fetchall():
+            users.append(UserRecord(
+                id=row["id"],
+                username=row["username"],
+                password_hash=row["password_hash"],
+                uuid=row["uuid"],
+                locale=row["locale"] or "en",
+                preferences_json=row["preferences_json"] or "{}",
+                trust_level=row["trust_level"] if row["trust_level"] is not None else 1,
                 approved=bool(row["approved"]) if row["approved"] is not None else False,
                 email=row["email"] or "",
                 bio=row["bio"] or "",
@@ -1324,6 +1503,62 @@ class Database:
         )
         return [row["username"] for row in cursor.fetchall()]
 
+    def count_active_banned_users(self, query: str = "") -> int:
+        """Count currently banned usernames matching an optional search term."""
+        now = datetime.now().isoformat()
+        term = query.strip()
+        cursor = self._conn.cursor()
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS count
+            FROM (
+                SELECT DISTINCT username
+                FROM bans
+                WHERE (expires_at IS NULL OR expires_at > ?)
+                  AND username LIKE ? COLLATE NOCASE
+            )
+            """,
+            (now, f"%{term}%"),
+        )
+        row = cursor.fetchone()
+        return int(row["count"] if row else 0)
+
+    def search_active_banned_users(
+        self,
+        query: str = "",
+        *,
+        limit: int = 25,
+        offset: int = 0,
+    ) -> list[str]:
+        """Search currently banned usernames without loading the full ban list."""
+        now = datetime.now().isoformat()
+        term = query.strip()
+        limit = max(1, min(int(limit), 100))
+        offset = max(0, int(offset))
+        cursor = self._conn.cursor()
+        cursor.execute(
+            """
+            SELECT username
+            FROM (
+                SELECT DISTINCT username
+                FROM bans
+                WHERE (expires_at IS NULL OR expires_at > ?)
+                  AND username LIKE ? COLLATE NOCASE
+            )
+            ORDER BY
+                CASE
+                    WHEN username = ? COLLATE NOCASE THEN 0
+                    WHEN username LIKE ? COLLATE NOCASE THEN 1
+                    ELSE 2
+                END,
+                LOWER(username)
+            LIMIT ?
+            OFFSET ?
+            """,
+            (now, f"%{term}%", term, f"{term}%", limit, offset),
+        )
+        return [row["username"] for row in cursor.fetchall()]
+
     # ==================== Mute operations ====================
 
     def mute_user(self, username: str, admin_username: str, reason: str, expires_at: str | None) -> MuteRecord:
@@ -1398,6 +1633,62 @@ class Database:
         cursor.execute(
             "SELECT DISTINCT username FROM mutes WHERE expires_at IS NULL OR expires_at > ?",
             (now,)
+        )
+        return [row["username"] for row in cursor.fetchall()]
+
+    def count_active_muted_users(self, query: str = "") -> int:
+        """Count currently muted usernames matching an optional search term."""
+        now = datetime.now().isoformat()
+        term = query.strip()
+        cursor = self._conn.cursor()
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS count
+            FROM (
+                SELECT DISTINCT username
+                FROM mutes
+                WHERE (expires_at IS NULL OR expires_at > ?)
+                  AND username LIKE ? COLLATE NOCASE
+            )
+            """,
+            (now, f"%{term}%"),
+        )
+        row = cursor.fetchone()
+        return int(row["count"] if row else 0)
+
+    def search_active_muted_users(
+        self,
+        query: str = "",
+        *,
+        limit: int = 25,
+        offset: int = 0,
+    ) -> list[str]:
+        """Search currently muted usernames without loading the full mute list."""
+        now = datetime.now().isoformat()
+        term = query.strip()
+        limit = max(1, min(int(limit), 100))
+        offset = max(0, int(offset))
+        cursor = self._conn.cursor()
+        cursor.execute(
+            """
+            SELECT username
+            FROM (
+                SELECT DISTINCT username
+                FROM mutes
+                WHERE (expires_at IS NULL OR expires_at > ?)
+                  AND username LIKE ? COLLATE NOCASE
+            )
+            ORDER BY
+                CASE
+                    WHEN username = ? COLLATE NOCASE THEN 0
+                    WHEN username LIKE ? COLLATE NOCASE THEN 1
+                    ELSE 2
+                END,
+                LOWER(username)
+            LIMIT ?
+            OFFSET ?
+            """,
+            (now, f"%{term}%", term, f"{term}%", limit, offset),
         )
         return [row["username"] for row in cursor.fetchall()]
 
@@ -1553,13 +1844,33 @@ class Database:
             saved_at=saved_at,
         )
 
-    def get_user_saved_tables(self, username: str) -> list[SavedTableRecord]:
-        """Get all saved tables for a user."""
+    def count_user_saved_tables(self, username: str) -> int:
+        """Count saved tables for a user without loading every row."""
         cursor = self._conn.cursor()
         cursor.execute(
-            "SELECT * FROM saved_tables WHERE username = ? ORDER BY saved_at DESC",
+            "SELECT COUNT(*) AS count FROM saved_tables WHERE username = ?",
             (username,),
         )
+        row = cursor.fetchone()
+        return int(row["count"] if row else 0)
+
+    def get_user_saved_tables(
+        self,
+        username: str,
+        *,
+        limit: int | None = None,
+        offset: int = 0,
+    ) -> list[SavedTableRecord]:
+        """Get saved tables for a user, optionally limited for paginated menus."""
+        cursor = self._conn.cursor()
+        query = "SELECT * FROM saved_tables WHERE username = ? ORDER BY saved_at DESC"
+        params: list[object] = [username]
+        if limit is not None:
+            safe_limit = max(1, int(limit))
+            safe_offset = max(0, int(offset))
+            query += " LIMIT ? OFFSET ?"
+            params.extend([safe_limit, safe_offset])
+        cursor.execute(query, tuple(params))
         records = []
         for row in cursor.fetchall():
             records.append(
@@ -2108,13 +2419,37 @@ class Database:
                 friends.append(row["requester_id"])
         return friends
 
-    def get_pending_incoming_requests(self, user_id: str) -> list[str]:
-        """Get a list of UUIDs who sent a pending friend request to this user."""
+    def count_pending_incoming_requests(self, user_id: str) -> int:
+        """Count pending incoming friend requests without loading every row."""
         cursor = self._conn.cursor()
         cursor.execute("""
-            SELECT requester_id FROM friendships
+            SELECT COUNT(*) AS count FROM friendships
             WHERE receiver_id = ? AND status = 'pending'
         """, (user_id,))
+        row = cursor.fetchone()
+        return int(row["count"] if row else 0)
+
+    def get_pending_incoming_requests(
+        self,
+        user_id: str,
+        *,
+        limit: int | None = None,
+        offset: int = 0,
+    ) -> list[str]:
+        """Get UUIDs who sent a pending friend request to this user."""
+        cursor = self._conn.cursor()
+        query = """
+            SELECT requester_id FROM friendships
+            WHERE receiver_id = ? AND status = 'pending'
+            ORDER BY created_at ASC, requester_id ASC
+        """
+        params: list[object] = [user_id]
+        if limit is not None:
+            safe_limit = max(1, int(limit))
+            safe_offset = max(0, int(offset))
+            query += " LIMIT ? OFFSET ?"
+            params.extend([safe_limit, safe_offset])
+        cursor.execute(query, tuple(params))
         return [row["requester_id"] for row in cursor.fetchall()]
 
     def add_notification(self, user_id: str, source_username: str, event_type: str) -> None:
