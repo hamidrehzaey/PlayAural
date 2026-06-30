@@ -3,13 +3,16 @@ game-name-sorry = Sorry!
 sorry-set-rules-profile = Rules profile: { $profile }
 sorry-select-rules-profile = Choose a rules profile
 sorry-option-changed-rules-profile = Rules profile set to { $profile }.
+sorry-desc-rules-profile = Chooses the Sorry rules profile, including the classic 00390 deck or the newer A5065-style core rules.
 sorry-rules-profile-classic-00390 = Classic 00390
 sorry-rules-profile-a5065-core = A5065 Core
 
 sorry-toggle-auto-apply-single-move = Auto apply single move: { $enabled }
 sorry-option-changed-auto-apply-single-move = Auto apply single move set to { $enabled }.
+sorry-desc-auto-apply-single-move = When enabled, a card with only one legal move is applied automatically.
 sorry-toggle-faster-setup-one-pawn-out = Faster setup (one pawn out): { $enabled }
 sorry-option-changed-faster-setup-one-pawn-out = Faster setup set to { $enabled }.
+sorry-desc-faster-setup-one-pawn-out = Starts each player with one pawn already out to reduce early waiting.
 sorry-error-unsupported-rules-profile = The selected Sorry rules profile "{ $profile }" is not supported. Choose Classic 00390 or A5065 Core before starting.
 
 sorry-draw-card = Draw card

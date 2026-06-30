@@ -68,6 +68,7 @@ ageofheroes-set-max-hand = Maximum hand size: { $cards } cards
 
 # Option change announcements
 ageofheroes-option-changed-victory-cities = Victory requires { $cities } cities.
+ageofheroes-desc-victory-cities = How many cities a side must control to win Age of Heroes (default 5, range 3-7).
 ageofheroes-option-changed-victory-monument = Monument completion threshold set to { $progress }%.
 ageofheroes-option-changed-max-hand = Maximum hand size set to { $cards } cards.
 

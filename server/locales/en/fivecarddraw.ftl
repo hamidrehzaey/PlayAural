@@ -3,26 +3,32 @@ game-name-fivecarddraw = Poker Five Card Draw
 draw-set-starting-chips = Starting chips: { $count }
 draw-enter-starting-chips = Enter starting chips
 draw-option-changed-starting-chips = Starting chips set to { $count }.
+fivecarddraw-desc-starting-chips = Each player's opening Five Card Draw stack, from 100 to 1,000,000 chips. Default: 20,000.
 
 draw-set-ante = Ante: { $count }
 draw-enter-ante = Enter ante amount
 draw-option-changed-ante = Ante set to { $count }.
+fivecarddraw-desc-ante = Forced contribution each active player posts before every hand, from 0 to 1,000,000 chips. Default: 100. It must be lower than the starting stack.
 
 draw-set-turn-timer = Turn timer: { $mode }
 draw-select-turn-timer = Select turn timer
 draw-option-changed-turn-timer = Turn timer set to { $mode }.
+fivecarddraw-desc-turn-timer = Optional time limit for each betting or draw decision: 5, 10, 15, 20, 30, 45, 60, or 90 seconds, or Unlimited. Default: Unlimited.
 
 draw-set-raise-mode = Raise mode: { $mode }
 draw-select-raise-mode = Select raise mode
 draw-option-changed-raise-mode = Raise mode set to { $mode }.
+fivecarddraw-desc-raise-mode = Raise limit style: No limit, Pot limit, or Double pot limit. Default: No limit. Pot-based modes require an ante greater than 0 so the first betting round can open normally.
 
 draw-set-max-raises = Maximum raises per betting round: { $count }
 draw-enter-max-raises = Enter maximum raises per betting round (0 for unlimited)
 draw-option-changed-max-raises = Maximum raises per betting round set to { $count }.
+fivecarddraw-desc-max-raises = Maximum raises allowed in one betting round, from 0 to 10. Set 0 for no raise cap. Default: 0.
 
 draw-set-draw-limit = Draw rule: { $mode }
 draw-select-draw-limit = Select the draw rule
 draw-option-changed-draw-limit = Draw rule set to { $mode }.
+fivecarddraw-desc-draw-limit = Draw rule: exchange up to 3 cards, or allow 4 cards only when keeping an Ace. Default: up to 3 cards.
 draw-limit-three-cards = Up to 3 cards (standard)
 draw-limit-four-with-ace = Up to 4 cards when keeping an ace
 

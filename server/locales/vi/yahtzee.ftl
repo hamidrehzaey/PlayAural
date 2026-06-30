@@ -89,6 +89,7 @@ yahtzee-winners-tie = Hòa nhau! { $players } đều ghi được { $score } đi
 yahtzee-set-rounds = Số ván chơi: { $rounds }
 yahtzee-enter-rounds = Nhập số ván chơi (1-10):
 yahtzee-option-changed-rounds = Số ván chơi đã được đặt là { $rounds }.
+yahtzee-desc-num-games = Số bảng điểm Yahtzee hoàn chỉnh sẽ chơi trước khi so tổng cuối cùng (mặc định 1, phạm vi 1-10).
 
 yahtzee-no-rolls-left = Bạn không còn lần gieo nào; hãy chọn một mục ghi điểm còn trống để kết thúc lượt.
 yahtzee-roll-first = Hãy gieo xúc xắc trước khi chọn mục ghi điểm.

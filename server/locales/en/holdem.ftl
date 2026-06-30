@@ -3,34 +3,42 @@ game-name-holdem = Poker Texas Hold'em
 holdem-set-starting-chips = Starting chips: { $count }
 holdem-enter-starting-chips = Enter starting chips
 holdem-option-changed-starting-chips = Starting chips set to { $count }.
+holdem-desc-starting-chips = Each player's opening Texas Hold'em stack, from 100 to 1,000,000 chips. Default: 20,000.
 
 holdem-set-big-blind = Big blind: { $count }
 holdem-enter-big-blind = Enter big blind
 holdem-option-changed-big-blind = Big blind set to { $count }.
+holdem-desc-big-blind = Base big blind amount, from 1 to 1,000,000 chips. Default: 200. It must be lower than the starting stack.
 
 holdem-set-ante = Ante: { $count }
 holdem-enter-ante = Enter ante
 holdem-option-changed-ante = Ante set to { $count }.
+holdem-desc-ante = Optional forced contribution each active player posts once antes are active, from 0 to 1,000,000 chips. Default: 0.
 
 holdem-set-ante-start = Ante starts at level: { $count }
 holdem-enter-ante-start = Enter blind level to enable ante
 holdem-option-changed-ante-start = Ante start level set to { $count }.
+holdem-desc-ante-start-level = Blind level where antes begin, from 0 to 20. Default: 0, which means a positive ante is active from the first hand.
 
 holdem-set-turn-timer = Turn timer: { $mode }
 holdem-select-turn-timer = Select turn timer
 holdem-option-changed-turn-timer = Turn timer set to { $mode }.
+holdem-desc-turn-timer = Optional time limit for each Hold'em decision: 5, 10, 15, 20, 30, 45, 60, or 90 seconds, or Unlimited. Default: Unlimited.
 
 holdem-set-blind-timer = Blind timer: { $mode }
 holdem-select-blind-timer = Select blind timer
 holdem-option-changed-blind-timer = Blind timer set to { $mode }.
+holdem-desc-blind-timer = Minutes between blind increases: 5, 10, 15, 20, or 30. Default: 20 minutes.
 
 holdem-set-raise-mode = Raise mode: { $mode }
 holdem-select-raise-mode = Select raise mode
 holdem-option-changed-raise-mode = Raise mode set to { $mode }.
+holdem-desc-raise-mode = Raise limit style: No limit, Pot limit, or Double pot limit. Default: No limit.
 
 holdem-set-max-raises = Maximum raises per betting round: { $count }
 holdem-enter-max-raises = Enter maximum raises per betting round (0 for unlimited)
 holdem-option-changed-max-raises = Maximum raises per betting round set to { $count }.
+holdem-desc-max-raises = Maximum raises allowed in one betting round, from 0 to 10. Set 0 for no raise cap. Default: 0.
 
 holdem-error-big-blind-too-high = The big blind ({ $blind } chips) must be lower than the starting stack ({ $chips } chips).
 holdem-error-ante-too-high = The ante ({ $ante } chips) must be lower than the starting stack ({ $chips } chips).

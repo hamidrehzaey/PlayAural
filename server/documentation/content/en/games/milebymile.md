@@ -103,7 +103,7 @@ If you select a card that cannot currently be played, the game explains the exac
 
 \* \*\*Reshuffle Discard Pile:\*\* Whether the discard pile is reshuffled when the draw pile runs out (default on).
 
-\* \*\*Karma Rule:\*\* Whether playing a hazard on someone backfires if you have no matching safety (default off).
+\* \*\*Karma Rule:\*\* Enables karma cards and shunning (default off). If an attacker and target both still have karma, the attack is neutralized and both sides lose karma. A side that has lost karma can only attack another side that has also lost karma. This option requires at least 3 cars or teams.
 
 \* \*\*Rig Game:\*\* Adjust the deck composition (no duplicates, 2x attacks, 2x defenses, or none).
 

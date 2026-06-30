@@ -1,4 +1,5 @@
 game-name-pig = Pig
+pig-desc-team-mode = Chơi cá nhân hoặc theo một cách chia đội được hỗ trợ. Cả đội dùng chung một tổng điểm và thắng ngay khi một thành viên giữ đủ điểm.
 
 pig-roll = Gieo xúc xắc
 pig-hold = Giữ { $points } điểm
@@ -78,16 +79,15 @@ pig-action-resolving = Xúc xắc vẫn đang lăn. Hãy chờ kết quả.
 pig-no-turn-points = Hãy gieo xúc xắc ít nhất một lần trước khi giữ điểm.
 pig-need-more-points = Bạn đang có { $current } điểm lượt, nhưng bàn này yêu cầu ít nhất { $required } điểm mới được giữ.
 
+pig-desc-target-score = Người chơi hoặc đội đầu tiên giữ đủ tổng điểm này sẽ thắng ngay (mặc định 100, phạm vi 10-1000).
 pig-set-min-bank = Mức giữ tối thiểu: { $points } điểm
 pig-set-dice-sides = Số mặt xúc xắc: { $sides }
 pig-enter-min-bank = Nhập số điểm lượt tối thiểu cần có để được giữ điểm:
 pig-enter-dice-sides = Nhập số mặt của xúc xắc:
 pig-option-changed-min-bank = Mức giữ tối thiểu đã đổi thành { $points } điểm.
+pig-desc-min-bank = Số điểm lượt cần có trước khi được phép Giữ điểm. Đặt là 0 để chơi theo luật Pig tiêu chuẩn (mặc định 0, phạm vi 0-999). Mức này phải thấp hơn điểm mục tiêu.
 pig-option-changed-dice = Xúc xắc giờ có { $sides } mặt.
-pig-desc-target-score = Người chơi hoặc đội đầu tiên giữ đủ tổng điểm này sẽ thắng ngay.
-pig-desc-min-bank = Số điểm lượt cần có trước khi được phép Giữ điểm. Đặt là 0 để chơi theo luật Pig tiêu chuẩn.
-pig-desc-dice-sides = Số mặt của một viên xúc xắc. Pig tiêu chuẩn dùng xúc xắc sáu mặt; gieo trúng mặt 1 luôn làm mất điểm lượt.
-pig-desc-team-mode = Chơi cá nhân hoặc dùng chung một tổng điểm với đồng đội. Đội thắng ngay khi một thành viên giữ đủ điểm.
+pig-desc-dice-sides = Số mặt của một viên xúc xắc (mặc định 6, phạm vi 4-20). Gieo trúng mặt 1 luôn làm mất điểm lượt.
 
 pig-error-target-out-of-range = Điểm đích { $value } không hợp lệ. Hãy chọn từ { $min } đến { $max }.
 pig-error-min-bank-out-of-range = Mức giữ tối thiểu { $value } không hợp lệ. Hãy chọn từ { $min } đến { $max }.

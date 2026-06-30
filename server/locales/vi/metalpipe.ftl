@@ -48,8 +48,8 @@ metalpipe-end-winners = Người thắng: { $players }.
 metalpipe-line-format = { $player}: { $status }
 
 metalpipe-set-multiple-bonks = Phang liên hoàn: { $enabled }
-metalpipe-desc-multiple-bonks = Khi bật, cây ống tiếp tục chọn người vung ống và mục tiêu cho đến khi chỉ còn một người đứng vững. Mặc định: tắt.
 metalpipe-option-changed-multiple-bonks = Phang liên hoàn đã được đặt thành { $enabled }.
+metalpipe-desc-multiple-bonks = Khi bật, cây ống tiếp tục chọn người vung ống và mục tiêu cho đến khi chỉ còn một người đứng vững. Mặc định: tắt.
 metalpipe-set-allow-self-bonk = Cho phép tự phang: { $enabled }
-metalpipe-desc-allow-self-bonk = Khi bật, người được chọn để vung ống cũng có thể trở thành mục tiêu. Mặc định: bật.
 metalpipe-option-changed-allow-self-bonk = Cho phép tự phang đã được đặt thành { $enabled }.
+metalpipe-desc-allow-self-bonk = Khi bật, người được chọn để vung ống cũng có thể trở thành mục tiêu. Mặc định: bật.

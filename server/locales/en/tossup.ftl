@@ -158,12 +158,12 @@ tossup-select-rules-variant = Select the dice and bust rules:
 tossup-option-changed-rules = Rules changed to { $variant }.
 tossup-desc-rules-variant = Classic uses three green faces, two yellow faces, and one red face per die; a roll with no green and at least one red is a bust. Forgiving gives all three colors equal odds and busts only on all red.
 
+tossup-desc-target-score = The game enters its final response turns after a player banks more than this score (default 100, range 20-500).
 tossup-set-starting-dice = Dice per set: { $count }
 tossup-enter-starting-dice = Enter the number of dice in each fresh set:
 tossup-option-changed-dice = Dice per set changed to { $count }.
-tossup-desc-starting-dice = Choose how many dice begin each turn and return after every die becomes green. The published game uses 10.
+tossup-desc-starting-dice = Choose how many dice begin each turn and return after every die becomes green (default 10, range 5-20).
 
-tossup-desc-target-score = The game enters its final response turns after a player banks more than this score. The published game uses 100.
 
 tossup-rules-standard = Classic
 tossup-rules-PlayAural = Forgiving

@@ -934,11 +934,16 @@ class OptionsHandlerMixin:
             return []
         return super().get_all_visible_actions(player)
 
+    @staticmethod
+    def _conventional_option_description_key(game_type: str, option_name: str) -> str:
+        """Return the standard custom description key for a game option."""
+        return f"{game_type}-desc-{option_name.replace('_', '-')}"
+
     def _speak_option_description(self, player: "Player", menu_item_id: str) -> bool:
         """Speak an option's description when space is pressed on it.
 
         Extracts the option name from the focused menu item id (e.g. set_X /
-        toggle_X) and speaks explicit option help or a code-derived fallback.
+        toggle_X) and speaks explicit, convention-based, or generated help.
         Returns True if help was spoken.
         """
         if not hasattr(self, "options"):
@@ -960,16 +965,36 @@ class OptionsHandlerMixin:
         if meta.description:
             user.speak_l(meta.description, buffer="system")
         else:
-            user.speak(
-                meta.get_description(
-                    user.locale,
-                    current_value,
-                    game=self,
-                    player=player,
-                ),
-                buffer="system",
+            description_key = self._conventional_option_description_key(
+                self.get_type(), option_name
             )
+            if Localization.has_message(user.locale, description_key):
+                user.speak_l(description_key, buffer="system")
+            else:
+                user.speak(
+                    meta.get_description(
+                        user.locale,
+                        current_value,
+                        game=self,
+                        player=player,
+                    ),
+                    buffer="system",
+                )
         return True
+
+    def _option_description_key(self, option_name: str) -> str | None:
+        """Return the explicit or conventional description key for an option."""
+        if not hasattr(self, "options"):
+            return None
+        meta = get_option_meta(type(self.options), option_name)
+        if meta is None:
+            return None
+        if meta.description:
+            return meta.description
+        key = self._conventional_option_description_key(self.get_type(), option_name)
+        if Localization.has_message("en", key):
+            return key
+        return None
 
     def _handle_option_change(self, option_name: str, value: str) -> None:
         """Handle a declarative option change (for int/menu options).

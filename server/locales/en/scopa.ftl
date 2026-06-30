@@ -72,6 +72,7 @@ scopa-hint-match =  -> { $card }
 scopa-hint-multi =  -> { $count } cards
 
 scopa-enter-target-score = Enter target score (1-121)
+scopa-desc-target-score = Score needed to win Scopa (default 11, range 1-121).
 scopa-set-cards-per-deal = Cards per deal: { $cards }
 scopa-enter-cards-per-deal = Enter cards per deal (1-10)
 scopa-set-decks = Number of decks: { $decks }
@@ -81,6 +82,7 @@ scopa-toggle-hints = Show capture hints: { $enabled }
 scopa-set-mechanic = Scopa mechanic: { $mechanic }
 scopa-select-mechanic = Select scopa mechanic
 scopa-toggle-instant-win = Instant win on scopa: { $enabled }
+scopa-desc-team-mode = Chooses individual play or fixed team sizes for Scopa.
 scopa-toggle-team-scoring = Pool team cards for scoring: { $enabled }
 scopa-toggle-inverse = Inverse mode (reach target = elimination): { $enabled }
 scopa-toggle-manual = Manual capture selection: { $enabled }
@@ -89,17 +91,29 @@ scopa-toggle-primiera = Traditional Primiera scoring: { $enabled }
 scopa-toggle-napola = Napola (Diamond sequence): { $enabled }
 
 scopa-option-changed-cards = Cards per deal set to { $cards }.
+scopa-desc-cards-per-deal = How many cards each player receives per Scopa deal (default 3, range 1-10).
 scopa-option-changed-decks = Number of decks set to { $decks }.
+scopa-desc-number-of-decks = How many 40-card Scopa decks are shuffled together (default 1, range 1-6).
 scopa-option-changed-escoba = Escoba { $enabled }.
+scopa-desc-escoba = Switches captures to Escoba rules, where the played card and captured table cards must total 15.
 scopa-option-changed-hints = Capture hints { $enabled }.
+scopa-desc-show-capture-hints = Shows which table cards each hand card can capture.
 scopa-option-changed-mechanic = Scopa mechanic set to { $mechanic }.
+scopa-desc-scopa-mechanic = Chooses normal sweep scoring, no Scopa points, or Only Scopas scoring.
 scopa-option-changed-instant = Instant win on scopa { $enabled }.
+scopa-desc-instant-win-scopas = When enabled, a valid Scopa immediately wins the game. This cannot be combined with No Scopas or Inverse Scopa.
 scopa-option-changed-team-scoring = Team card scoring { $enabled }.
+scopa-desc-team-card-scoring = Controls whether teammates combine captured cards for end-of-round scoring. If disabled in a team game, each player's captures are evaluated separately and any points won are added to that player's team.
 scopa-option-changed-inverse = Inverse mode { $enabled }.
+scopa-desc-inverse-scopa = Inverts the goal so reaching the target score eliminates a player or team.
 scopa-option-changed-manual = Manual capture selection { $enabled }.
+scopa-desc-manual-selection = Lets players choose a capture combination manually when more than one legal capture exists.
 scopa-option-changed-asso = Asso piglia tutto { $enabled }.
+scopa-desc-asso-piglia-tutto = Enables Ace takes all: an Ace can sweep the table unless another Ace is already present. This cannot be combined with Escoba.
 scopa-option-changed-primiera = Traditional Primiera scoring { $enabled }.
+scopa-desc-primiera-scoring = Enables traditional Primiera scoring; when off, the game uses the simpler Most Sevens variant.
 scopa-option-changed-napola = Napola { $enabled }.
+scopa-desc-napola = Awards bonus points for capturing a continuous Diamond sequence starting with the Ace.
 
 scopa-mechanic-normal = Normal
 scopa-mechanic-no_scopas = No Scopas

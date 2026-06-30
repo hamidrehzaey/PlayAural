@@ -3,26 +3,32 @@ game-name-colorgame = Color Game
 colorgame-set-starting-bankroll = Starting bankroll: { $amount }
 colorgame-enter-starting-bankroll = Enter starting bankroll:
 colorgame-option-changed-starting-bankroll = Starting bankroll set to { $amount }.
+colorgame-desc-starting-bankroll = How many chips each player starts Color Game with (default 100, range 10-1000).
 
 colorgame-set-minimum-bet = Minimum bet: { $amount }
 colorgame-enter-minimum-bet = Enter minimum bet:
 colorgame-option-changed-minimum-bet = Minimum bet set to { $amount }.
+colorgame-desc-minimum-bet = The smallest bet allowed on a color each round (default 1, range 1-100).
 
 colorgame-set-maximum-total-bet = Maximum total bet per round: { $amount }
 colorgame-enter-maximum-total-bet = Enter the maximum total bet per round:
 colorgame-option-changed-maximum-total-bet = Maximum total bet per round set to { $amount }.
+colorgame-desc-maximum-total-bet = Maximum total chips one player may risk in a Color Game round (default 20, range 1-1000). It must be at least the minimum bet and no higher than the starting bankroll; a player's real cap is also limited by their current bankroll.
 
 colorgame-set-betting-timer = Betting timer: { $seconds } seconds
 colorgame-enter-betting-timer = Enter betting timer in seconds:
 colorgame-option-changed-betting-timer = Betting timer set to { $seconds } seconds.
+colorgame-desc-betting-timer-seconds = How long the betting phase lasts each round (default 15 seconds, range 5-60).
 
 colorgame-set-round-limit = Round limit: { $count }
 colorgame-enter-round-limit = Enter round limit:
 colorgame-option-changed-round-limit = Round limit set to { $count }.
+colorgame-desc-round-limit = Maximum number of Color Game rounds before the winner is decided (default 20, range 1-100).
 
 colorgame-set-win-condition = Win condition: { $mode }
 colorgame-select-win-condition = Select the win condition:
 colorgame-option-changed-win-condition = Win condition set to { $mode }.
+colorgame-desc-win-condition = Chooses whether Color Game ends with the last player standing or the highest bankroll after the round limit.
 colorgame-win-condition-last-player = Last player standing
 colorgame-win-condition-highest-bankroll = Highest bankroll at the round limit
 

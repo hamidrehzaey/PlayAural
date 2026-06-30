@@ -72,6 +72,7 @@ scopa-hint-match =  -> { $card }
 scopa-hint-multi =  -> { $count } lá bài
 
 scopa-enter-target-score = Nhập điểm mục tiêu (1-121)
+scopa-desc-target-score = Mốc điểm cần đạt để thắng Scopa (mặc định 11, phạm vi 1-121).
 scopa-set-cards-per-deal = Số bài mỗi lần chia: { $cards }
 scopa-enter-cards-per-deal = Nhập số bài mỗi lần chia (1-10)
 scopa-set-decks = Số bộ bài: { $decks }
@@ -81,6 +82,7 @@ scopa-toggle-hints = Hiển thị gợi ý nước ăn bài: { $enabled }
 scopa-set-mechanic = Cơ chế Scopa: { $mechanic }
 scopa-select-mechanic = Chọn cơ chế Scopa
 scopa-toggle-instant-win = Thắng ngay khi được Scopa: { $enabled }
+scopa-desc-team-mode = Chọn chơi cá nhân hoặc chia đội cố định trong Scopa.
 scopa-toggle-team-scoring = Gộp bài của đội để tính điểm: { $enabled }
 scopa-toggle-inverse = Chế độ Đảo ngược (đạt điểm mục tiêu = bị loại): { $enabled }
 scopa-toggle-manual = Chọn nước ăn bài thủ công: { $enabled }
@@ -89,17 +91,29 @@ scopa-toggle-primiera = Tính điểm Primiera truyền thống: { $enabled }
 scopa-toggle-napola = Napola (Dây Rô): { $enabled }
 
 scopa-option-changed-cards = Số bài mỗi lần chia đã đặt là { $cards }.
+scopa-desc-cards-per-deal = Số lá mỗi người chơi nhận trong mỗi lần chia Scopa (mặc định 3, phạm vi 1-10).
 scopa-option-changed-decks = Số bộ bài đã đặt là { $decks }.
+scopa-desc-number-of-decks = Số bộ bài Scopa 40 lá được xào chung (mặc định 1, phạm vi 1-6).
 scopa-option-changed-escoba = Escoba { $enabled }.
+scopa-desc-escoba = Chuyển sang luật bắt bài Escoba, nơi lá đánh ra và các lá bàn bị bắt phải cộng đúng 15.
 scopa-option-changed-hints = Gợi ý nước ăn bài { $enabled }.
+scopa-desc-show-capture-hints = Hiển thị các lá trên bàn mà từng lá trên tay có thể bắt.
 scopa-option-changed-mechanic = Cơ chế Scopa đã đặt là { $mechanic }.
+scopa-desc-scopa-mechanic = Chọn tính điểm quét bàn bình thường, không tính điểm Scopa, hoặc chỉ tính điểm Scopa.
 scopa-option-changed-instant = Thắng ngay khi được Scopa { $enabled }.
+scopa-desc-instant-win-scopas = Khi bật, một lần Scopa hợp lệ sẽ thắng ngay cả ván. Tùy chọn này không thể dùng cùng Không Scopa hoặc Scopa Đảo ngược.
 scopa-option-changed-team-scoring = Tính điểm bài theo đội { $enabled }.
+scopa-desc-team-card-scoring = Quy định đồng đội có gộp bài đã bắt để tính điểm cuối vòng hay không. Nếu tắt trong trò chơi theo đội, bài đã bắt của từng người được xét riêng, và điểm người đó giành được sẽ cộng cho đội của họ.
 scopa-option-changed-inverse = Chế độ Đảo ngược { $enabled }.
+scopa-desc-inverse-scopa = Đảo mục tiêu để người hoặc đội đạt mốc điểm bị loại.
 scopa-option-changed-manual = Chọn nước ăn bài thủ công { $enabled }.
+scopa-desc-manual-selection = Cho phép người chơi tự chọn tổ hợp bắt bài khi có nhiều tổ hợp hợp lệ.
 scopa-option-changed-asso = Asso piglia tutto { $enabled }.
+scopa-desc-asso-piglia-tutto = Bật luật Át ăn tất cả: lá Át có thể quét cả bàn trừ khi trên bàn đã có một lá Át. Tùy chọn này không thể dùng cùng Escoba.
 scopa-option-changed-primiera = Tính điểm Primiera truyền thống { $enabled }.
+scopa-desc-primiera-scoring = Bật cách tính Primiera truyền thống; khi tắt, trò chơi dùng biến thể Đa số lá 7 đơn giản hơn.
 scopa-option-changed-napola = Napola { $enabled }.
+scopa-desc-napola = Thưởng điểm khi bắt được chuỗi rô liên tục bắt đầu từ Át.
 
 scopa-mechanic-normal = Bình thường
 scopa-mechanic-no_scopas = Không tính điểm Scopa

@@ -65,14 +65,17 @@ farkle-no-turn = Hiện không có ai đang chơi lượt.
 farkle-set-target-score = Điểm mục tiêu: { $score }
 farkle-enter-target-score = Nhập điểm mục tiêu (500-5000):
 farkle-option-changed-target = Điểm mục tiêu đã đặt là { $score }.
+farkle-desc-target-score = Mốc điểm cần đạt để kích hoạt các lượt cuối của Farkle và có thể thắng (mặc định 1000, phạm vi 500-5000).
 
 farkle-set-entrance-score = Điểm nhập cuộc tối thiểu: { $score }
 farkle-enter-entrance-score = Nhập điểm nhập cuộc tối thiểu (0-5000):
 farkle-option-changed-entrance = Điểm nhập cuộc tối thiểu đã đặt là { $score }.
+farkle-desc-min-entrance-score = Điểm lượt tối thiểu cần có để chốt điểm đầu tiên của người chơi (mặc định 50, phạm vi 0-5000). Mức này không được cao hơn mốc điểm thắng.
 
 farkle-set-bank-score = Điểm chốt tối thiểu: { $score }
 farkle-enter-bank-score = Nhập điểm chốt tối thiểu (0-5000):
 farkle-option-changed-bank = Điểm chốt tối thiểu đã đặt là { $score }.
+farkle-desc-min-bank-score = Điểm lượt tối thiểu cần có trước khi được Chốt điểm sau khi người chơi đã vào bảng điểm (mặc định 30, phạm vi 0-5000). Mức này không được cao hơn mốc điểm thắng.
 
 farkle-error-entrance-above-target = Điểm nhập cuộc tối thiểu ({ $entrance }) không được cao hơn điểm mục tiêu ({ $target }).
 farkle-error-bank-above-target = Điểm chốt tối thiểu ({ $bank }) không được cao hơn điểm mục tiêu ({ $target }).

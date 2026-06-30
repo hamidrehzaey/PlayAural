@@ -80,5 +80,6 @@ senet-error-exactly-two-players = Senet cần đúng 2 người chơi đang tham
 senet-option-bot-difficulty = Độ khó bot: { $bot_difficulty }
 senet-option-select-bot-difficulty = Chọn độ khó bot
 senet-option-changed-bot-difficulty = Độ khó bot đã được đặt thành { $bot_difficulty }.
+senet-desc-bot-difficulty = Chọn cách bot Senet đi cờ: Ngẫu nhiên đi khá thoáng, còn Đơn giản ưu tiên nước an toàn và chiến thuật hơn.
 senet-difficulty-random = Ngẫu nhiên
 senet-difficulty-simple = Đơn giản

@@ -80,5 +80,6 @@ senet-error-exactly-two-players = Senet requires exactly 2 active players. Curre
 senet-option-bot-difficulty = Bot difficulty: { $bot_difficulty }
 senet-option-select-bot-difficulty = Select bot difficulty
 senet-option-changed-bot-difficulty = Bot difficulty set to { $bot_difficulty }.
+senet-desc-bot-difficulty = Chooses how Senet bots move: Random plays loosely, while Simple favors safer tactical moves.
 senet-difficulty-random = Random
 senet-difficulty-simple = Simple

@@ -275,5 +275,7 @@ ludo-last-roll = Lần gieo gần nhất: { $roll }
 ludo-set-max-sixes = Số lần 6 liên tiếp tối đa: { $max_consecutive_sixes }
 ludo-enter-max-sixes = Nhập số lần 6 liên tiếp tối đa
 ludo-option-changed-max-sixes = Số lần 6 liên tiếp tối đa đã đổi thành { $max_consecutive_sixes }.
+ludo-desc-max-consecutive-sixes = Số lần gieo 6 liên tiếp tối đa trước khi lượt bị phạt hoặc chuyển đi (mặc định 3, phạm vi 0-5).
 ludo-set-safe-start-squares = Ô xuất phát an toàn: { $enabled }
 ludo-option-changed-safe-start-squares = Ô xuất phát an toàn đã đổi thành { $enabled }.
+ludo-desc-safe-start-squares = Quy định ô xuất phát của mỗi người chơi có được xem là ô an toàn hay không.

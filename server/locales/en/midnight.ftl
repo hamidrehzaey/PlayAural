@@ -58,6 +58,7 @@ midnight-game-tie = It is a game tie. { $players } each finished with { $wins } 
 midnight-set-rounds = Rounds to play: { $rounds }
 midnight-enter-rounds = Enter number of rounds to play:
 midnight-option-changed-rounds = Rounds to play changed to { $rounds }
+midnight-desc-rounds = Number of Midnight rounds to play before final scoring (default 5, range 1-20).
 midnight-error-rounds-out-of-range = Midnight supports { $min } to { $max } rounds. Current setting: { $rounds }.
 
 midnight-need-to-roll = Roll the dice before choosing dice to keep.

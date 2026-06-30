@@ -56,6 +56,7 @@ lrc-last-roll-player = Lần gieo gần nhất của { $player } là { $results 
 lrc-set-starting-chips = Số chip ban đầu: { $count }
 lrc-enter-starting-chips = Nhập số chip ban đầu:
 lrc-option-changed-starting-chips = Đã đặt số chip ban đầu thành { $count }.
+leftrightcenter-desc-starting-chips = Số chip ban đầu của mỗi người trong Trái, Giữa, Phải (mặc định 3, phạm vi 1-10).
 lrc-error-starting-chips-invalid = Số chip ban đầu phải từ { $min } đến { $max }; giá trị hiện tại là { $count }.
 
 lrc-line-format = { $player }: { $chips } chip

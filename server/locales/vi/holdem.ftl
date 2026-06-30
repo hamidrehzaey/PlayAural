@@ -3,34 +3,42 @@ game-name-holdem = Poker Texas Hold'em
 holdem-set-starting-chips = Số chip ban đầu: { $count }
 holdem-enter-starting-chips = Nhập số chip ban đầu
 holdem-option-changed-starting-chips = Số chip ban đầu đã được đặt là { $count }.
+holdem-desc-starting-chips = Số chip ban đầu mỗi người có khi vào trận Poker Texas Hold'em, từ 100 đến 1.000.000. Mặc định: 20.000.
 
 holdem-set-big-blind = Mù lớn: { $count }
 holdem-enter-big-blind = Nhập tiền mù lớn
 holdem-option-changed-big-blind = Tiền mù lớn đã được đặt là { $count }.
+holdem-desc-big-blind = Mức mù lớn cơ bản, từ 1 đến 1.000.000. Mặc định: 200. Mức này phải thấp hơn số chip ban đầu.
 
 holdem-set-ante = Cược góp: { $count }
 holdem-enter-ante = Nhập tiền cược góp
 holdem-option-changed-ante = Tiền cược góp đã được đặt là { $count }.
+holdem-desc-ante = Khoản Cược góp tùy chọn mỗi người chơi còn hoạt động phải đóng khi Cược góp đã có hiệu lực, từ 0 đến 1.000.000. Mặc định: 0.
 
 holdem-set-ante-start = Cược góp bắt đầu từ cấp: { $count }
 holdem-enter-ante-start = Nhập cấp độ mù để bắt đầu có cược góp
 holdem-option-changed-ante-start = Cấp độ bắt đầu cược góp đã được đặt là { $count }.
+holdem-desc-ante-start-level = Cấp mù nơi Cược góp bắt đầu có hiệu lực, từ 0 đến 20. Mặc định: 0, nghĩa là Cược góp có hiệu lực từ ván đầu tiên khi mức Cược góp lớn hơn 0.
 
 holdem-set-turn-timer = Thời gian mỗi lượt: { $mode }
 holdem-select-turn-timer = Chọn thời gian mỗi lượt
 holdem-option-changed-turn-timer = Thời gian mỗi lượt đã được đặt là { $mode }.
+holdem-desc-turn-timer = Giới hạn thời gian tùy chọn cho mỗi quyết định Poker Texas Hold'em: 5, 10, 15, 20, 30, 45, 60 hoặc 90 giây, hoặc Không giới hạn. Mặc định: Không giới hạn.
 
 holdem-set-blind-timer = Thời gian tăng mù: { $mode }
 holdem-select-blind-timer = Chọn thời gian tăng mù
 holdem-option-changed-blind-timer = Thời gian tăng mù đã được đặt là { $mode }.
+holdem-desc-blind-timer = Số phút giữa các lần tăng mù: 5, 10, 15, 20 hoặc 30. Mặc định: 20 phút.
 
 holdem-set-raise-mode = Chế độ tố: { $mode }
 holdem-select-raise-mode = Chọn chế độ tố
 holdem-option-changed-raise-mode = Chế độ tố đã được đặt là { $mode }.
+holdem-desc-raise-mode = Kiểu giới hạn tố: Không giới hạn, Giới hạn theo hũ hoặc Giới hạn gấp đôi hũ. Mặc định: Không giới hạn.
 
 holdem-set-max-raises = Số lần tố tối đa trong mỗi vòng cược: { $count }
 holdem-enter-max-raises = Nhập số lần tố tối đa trong mỗi vòng cược (0 để không giới hạn)
 holdem-option-changed-max-raises = Số lần tố tối đa trong mỗi vòng cược đã được đặt là { $count }.
+holdem-desc-max-raises = Số lần tố tối đa trong một vòng cược, từ 0 đến 10. Đặt 0 để không giới hạn số lần tố. Mặc định: 0.
 
 holdem-error-big-blind-too-high = Mù lớn ({ $blind } chip) phải thấp hơn số chip ban đầu ({ $chips } chip).
 holdem-error-ante-too-high = Cược góp ({ $ante } chip) phải thấp hơn số chip ban đầu ({ $chips } chip).

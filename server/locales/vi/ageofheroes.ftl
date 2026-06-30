@@ -1,4 +1,4 @@
-# Thông báo trò chơi Age of Heroes
+# Thông báo trò chơi Kỷ Nguyên Anh Hùng
 # Trò chơi bài xây dựng nền văn minh dành cho 2-6 người chơi
 
 # Tên trò chơi
@@ -68,6 +68,7 @@ ageofheroes-set-max-hand = Số bài tối đa trên tay: { $cards } lá
 
 # Thông báo thay đổi tùy chọn
 ageofheroes-option-changed-victory-cities = Điều kiện thắng: cần { $cities } thành phố.
+ageofheroes-desc-victory-cities = Số thành phố một phe cần kiểm soát để thắng Kỷ Nguyên Anh Hùng (mặc định 5, phạm vi 3-7).
 ageofheroes-option-changed-victory-monument = Điều kiện thắng: hoàn thành { $progress }% kỳ quan.
 ageofheroes-option-changed-max-hand = Số bài tối đa trên tay đã đặt là { $cards } lá.
 

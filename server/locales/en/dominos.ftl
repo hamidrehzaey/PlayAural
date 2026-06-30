@@ -1,24 +1,30 @@
 game-name-dominos = Dominos
+dominos-desc-team-mode = Play individually, or use any valid even team arrangement supported by the current player count.
 
 # Options
 dominos-set-target-score = Target score: { $score }
 dominos-enter-target-score = Enter target score
 dominos-option-changed-target-score = Target score set to { $score }.
+dominos-desc-target-score = Score target needed to win Dominos (default 100, range 20-500).
 
 dominos-set-draw-mode = Mode: { $mode }
 dominos-select-draw-mode = Select mode
 dominos-option-changed-draw-mode = Mode set to { $mode }.
+dominos-desc-draw-mode = Chooses Draw mode, where players draw from the boneyard, or Block mode, where blocked players pass.
 
 dominos-set-domino-set = Domino set: { $domino_set }
 dominos-select-domino-set = Select domino set
 dominos-option-changed-domino-set = Domino set changed to { $domino_set }.
+dominos-desc-domino-set = Domino set size. Double-6 supports up to 5 players, Double-9 supports up to 7 players, and Double-12 supports up to 12 players. Default: Double-6.
 
 dominos-set-spinner = Spinner: { $enabled }
 dominos-option-changed-spinner = Spinner set to { $enabled }.
+dominos-desc-spinner-enabled = Controls whether an opening double creates a four-way spinner. Default: On.
 
 dominos-set-opening-rule = Opening rule: { $opening_rule }
 dominos-select-opening-rule = Select opening rule
 dominos-option-changed-opening-rule = Opening rule set to { $opening_rule }.
+dominos-desc-opening-rule = Chooses how the first tile of each Dominos round is selected.
 
 # Option choice labels
 dominos-mode-draw = Draw

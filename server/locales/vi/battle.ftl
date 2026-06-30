@@ -3,33 +3,42 @@ game-name-battle = Đấu Trường Chiến Kỹ
 battle-set-game-mode = Chế độ chơi: { $mode }
 battle-select-game-mode = Chọn chế độ chơi:
 battle-option-changed-game-mode = Đã đổi chế độ chơi thành { $mode }.
+battle-desc-game-mode = Chọn thể thức Đấu Trường Chiến Kỹ: số đấu sĩ cố định, Đấu đội, Hỗn Chiến Loạn Đấu, Ảnh Gương, đấu trường, sinh tồn hoặc đợt sóng.
 
+battle-desc-team-mode = Chọn chơi cá nhân hoặc chia đội cố định. Tùy chọn này dùng cho Đấu đội và phải khớp số người hiện có.
 battle-set-turn-mode = Chế độ lượt: { $mode }
 battle-select-turn-mode = Chọn chế độ lượt:
 battle-option-changed-turn-mode = Đã đổi chế độ lượt thành { $mode }.
+battle-desc-turn-mode = Chọn thứ tự lượt: Sáng kiến sắp theo tốc độ mỗi vòng, còn Luân phiên dùng vòng lượt cố định.
 
 battle-set-balance-mode = Chế độ cân bằng: { $enabled }
 battle-option-changed-balance-mode = Đã đổi chế độ cân bằng thành { $enabled }.
+battle-desc-balance-mode = Khi bật, đấu sĩ lệch khỏi chuẩn cân bằng sẽ được đặt lại trước giao chiến thành 50 máu, 0 tấn công, 0 phòng thủ và 100 tốc độ.
 
 battle-set-unlimited-selection-limit = Giới hạn đấu sĩ trong chế độ tự do: { $count }
 battle-enter-unlimited-selection-limit = Nhập giới hạn đấu sĩ cho các chế độ chọn tự do:
 battle-option-changed-unlimited-selection-limit = Đã đổi giới hạn đấu sĩ trong chế độ tự do thành { $count }.
+battle-desc-unlimited-selection-limit = Số đấu sĩ mỗi người được chọn trong các chế độ chọn tự do như Hỗn Chiến Loạn Đấu, Đấu đội, đấu trường, sinh tồn và đợt sóng (mặc định 3, phạm vi 1-6).
 
 battle-set-classic-enemy-preset = Mẫu địch cổ điển: { $preset }
 battle-select-classic-enemy-preset = Chọn mẫu địch cổ điển:
 battle-option-changed-classic-enemy-preset = Đã đổi mẫu địch cổ điển thành { $preset }.
+battle-desc-classic-enemy-preset = Chọn mẫu kẻ địch cố định chỉ dùng trong Đấu trường cổ điển, Sinh tồn cổ điển và Đợt sóng cổ điển.
 
 battle-set-arena-difficulty = Độ khó đấu trường: { $difficulty }
 battle-select-arena-difficulty = Chọn độ khó đấu trường:
 battle-option-changed-arena-difficulty = Đã đổi độ khó đấu trường thành { $difficulty }.
+battle-desc-arena-difficulty = Đặt độ nguy hiểm của đối thủ được tạo trong đấu trường, sinh tồn và đợt sóng, từ Dễ đến Tối thượng.
 
 battle-set-survival-target = Mục tiêu sinh tồn: { $count }
 battle-enter-survival-target = Nhập số mạng cần hạ gục để thắng, 0 là vô tận:
 battle-option-changed-survival-target = Đã đổi mục tiêu sinh tồn thành { $count }.
+battle-desc-survival-target = Số kẻ địch cần hạ trong Sinh tồn hoặc Đợt sóng. Đặt 0 để chơi vô tận, không có mục tiêu hạ gục cố định (phạm vi 0-10000).
 
 battle-set-survival-heal-percent = Phần trăm hồi máu sinh tồn: { $percent }
 battle-enter-survival-heal-percent = Nhập phần trăm hồi máu sinh tồn:
 battle-option-changed-survival-heal-percent = Đã đổi phần trăm hồi máu sinh tồn thành { $percent }.
+battle-desc-survival-heal-percent = Phần trăm máu tối đa mà đấu sĩ đồng minh còn sống hồi sau mỗi lần thay kẻ địch trong Sinh tồn hoặc sau mỗi đợt sóng đã quét sạch (mặc định 0%, phạm vi 0-100).
 
 battle-mode-free-for-all = Hỗn Chiến Loạn Đấu
 battle-mode-one-each = Mỗi người 1 đấu sĩ

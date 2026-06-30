@@ -3,13 +3,16 @@ game-name-sorry = Sorry!
 sorry-set-rules-profile = Luật chơi: { $profile }
 sorry-select-rules-profile = Chọn bộ luật
 sorry-option-changed-rules-profile = Luật chơi đã đổi thành { $profile }.
+sorry-desc-rules-profile = Chọn bộ luật Sorry, gồm bộ bài cổ điển 00390 hoặc luật lõi kiểu A5065 mới hơn.
 sorry-rules-profile-classic-00390 = Bản cổ điển 00390
 sorry-rules-profile-a5065-core = Bản A5065 Core
 
 sorry-toggle-auto-apply-single-move = Tự đi khi chỉ có một nước: { $enabled }
 sorry-option-changed-auto-apply-single-move = Tự đi khi chỉ có một nước đã đổi thành { $enabled }.
+sorry-desc-auto-apply-single-move = Khi bật, lá bài chỉ có một nước hợp lệ sẽ được tự động áp dụng.
 sorry-toggle-faster-setup-one-pawn-out = Khởi đầu nhanh (ra sẵn một quân): { $enabled }
 sorry-option-changed-faster-setup-one-pawn-out = Khởi đầu nhanh đã đổi thành { $enabled }.
+sorry-desc-faster-setup-one-pawn-out = Bắt đầu với mỗi người đã có một quân ra ngoài để giảm thời gian chờ đầu ván.
 sorry-error-unsupported-rules-profile = Bộ luật Sorry "{ $profile }" không được hỗ trợ. Hãy chọn Classic 00390 hoặc A5065 Core trước khi bắt đầu.
 
 sorry-draw-card = Rút thẻ

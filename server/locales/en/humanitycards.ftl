@@ -4,28 +4,28 @@ game-name-humanitycards = Cards Against Humanity
 
 # Options
 hc-set-winning-score = Winning score: { $score }
-hc-desc-winning-score = The number of winning cards a player needs to collect to win the match.
 hc-enter-winning-score = Enter winning score:
 hc-option-changed-winning-score = Winning score set to { $score }.
+hc-desc-winning-score = The number of winning cards a player needs to collect to win the match (default 7, range 3-20).
 
 hc-set-hand-size = Hand size: { $count }
-hc-desc-hand-size = How many answer cards each player holds after each refill. Larger hands give more choices but make rounds take longer.
 hc-enter-hand-size = Enter hand size:
 hc-option-changed-hand-size = Hand size set to { $count }.
+hc-desc-hand-size = How many answer cards each player holds after each refill (default 10, range 5-15). Larger hands give more choices but make rounds take longer.
 
 hc-set-card-packs = Card packs ({ $count } of { $total } selected)
-hc-desc-card-packs = Choose which answer and prompt packs are shuffled into the game. At least one pack must stay selected.
 hc-option-changed-card-packs = Card pack selection changed.
+hc-desc-card-packs = Choose which answer and prompt packs are shuffled into the game. At least one pack must stay selected.
 
 hc-set-czar-selection = Card Czar selection: { $mode }
-hc-desc-czar-selection = Controls who judges each round: rotating in seating order, randomly chosen, or the most recent round winner.
 hc-select-czar-selection = Select Card Czar selection mode
 hc-option-changed-czar-selection = Card Czar selection set to { $mode }.
+hc-desc-czar-selection = Controls who judges each round: rotating in seating order, randomly chosen, or the most recent round winner.
 
 hc-set-num-judges = Number of judges: { $count }
-hc-desc-num-judges = How many Card Czars judge each round. Multiple judges must agree through the game's judge flow before a winner is chosen.
 hc-enter-num-judges = Enter number of judges:
 hc-option-changed-num-judges = Number of judges set to { $count }.
+hc-desc-num-judges = How many Card Czars judge each round (default 1, range 1-3). The count must be lower than the player count so at least one non-judge can submit; with multiple judges, any judge can pick the winner.
 
 hc-czar-rotating = Rotating
 hc-czar-random = Random

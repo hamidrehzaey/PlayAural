@@ -3,10 +3,12 @@ game-name-crazyeights = Crazy Eights
 crazyeights-set-winning-score = Winning score: { $score }
 crazyeights-enter-winning-score = Enter winning score
 crazyeights-option-changed-winning-score = Winning score set to { $score }.
+crazyeights-desc-winning-score = Score target that ends the Crazy Eights match. Default: 500. Range: 1 to 10,000.
 
 crazyeights-set-turn-timer = Turn timer: { $mode }
 crazyeights-select-turn-timer = Select turn timer
 crazyeights-option-changed-turn-timer = Turn timer set to { $mode }.
+crazyeights-desc-turn-timer = Optional time limit for each Crazy Eights turn: 5, 10, 15, 20, 30, 45, 60, or 90 seconds, or Unlimited. Default: Unlimited.
 
 crazyeights-draw = Draw
 crazyeights-pass = Pass

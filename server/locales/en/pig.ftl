@@ -1,4 +1,5 @@
 game-name-pig = Pig
+pig-desc-team-mode = Play individually or in a supported team arrangement. A team shares one score and wins immediately when a member holds enough points.
 
 pig-roll = Roll the die
 pig-hold = Hold { $points } points
@@ -78,16 +79,15 @@ pig-action-resolving = The die is still rolling. Wait for the result.
 pig-no-turn-points = Roll the die at least once before holding.
 pig-need-more-points = You have { $current } turn points, but this table requires at least { $required } before holding.
 
+pig-desc-target-score = The first player or team to hold this many total points wins immediately (default 100, range 10-1000).
 pig-set-min-bank = Minimum hold: { $points }
 pig-set-dice-sides = Die sides: { $sides }
 pig-enter-min-bank = Enter the minimum turn points required to hold:
 pig-enter-dice-sides = Enter the number of sides on the die:
 pig-option-changed-min-bank = Minimum hold changed to { $points } points.
+pig-desc-min-bank = The number of turn points required before Hold becomes available. Set this to 0 for standard Pig (default 0, range 0-999). It must stay below the target score.
 pig-option-changed-dice = The die now has { $sides } sides.
-pig-desc-target-score = The first player or team to hold this many total points wins immediately.
-pig-desc-min-bank = The number of turn points required before Hold becomes available. Set this to 0 for standard Pig.
-pig-desc-dice-sides = The number of sides on the single die. Standard Pig uses a six-sided die; rolling 1 always loses the turn total.
-pig-desc-team-mode = Play individually or share one score with teammates. A team wins immediately when a member holds enough points.
+pig-desc-dice-sides = The number of sides on the single die (default 6, range 4-20). Rolling 1 always loses the turn total.
 
 pig-error-target-out-of-range = Target score { $value } is invalid. Choose a value from { $min } to { $max }.
 pig-error-min-bank-out-of-range = Minimum hold { $value } is invalid. Choose a value from { $min } to { $max }.

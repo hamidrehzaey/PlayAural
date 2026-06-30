@@ -54,8 +54,10 @@ snakes-finish-exact-stay = Exact roll; stay put after an overshoot
 snakes-set-finish-rule = Finish rule: { $rule }
 snakes-select-finish-rule = Select the finish rule
 snakes-option-changed-finish-rule = Finish rule changed to { $rule }.
+snakesandladders-desc-finish-rule = Chooses whether overshooting square 100 bounces backward or leaves the player waiting for an exact roll.
 snakes-set-extra-turn-six = Extra turn on 6: { $enabled }
 snakes-option-changed-extra-turn-six = Extra turn on 6 changed to { $enabled }.
+snakesandladders-desc-extra-turn-on-six = Controls whether rolling a six grants another turn.
 
 snakes-error-roll-not-playing = You can roll the die only after a Snakes and Ladders game has started.
 snakes-error-roll-not-your-turn = You cannot roll yet because another player is taking their turn. Wait until the turn passes to you.

@@ -5,72 +5,91 @@ game-name-blackjack = Blackjack
 blackjack-set-rules-profile = Hồ sơ luật chơi: { $profile }
 blackjack-select-rules-profile = Chọn hồ sơ luật chơi
 blackjack-option-changed-rules-profile = Hồ sơ luật chơi đã đổi thành { $profile }.
+blackjack-desc-rules-profile = Áp dụng một bộ luật Blackjack dựng sẵn: Vegas, Châu Âu hoặc Thân thiện.
 
 blackjack-set-starting-chips = Chip khởi điểm: { $count }
 blackjack-enter-starting-chips = Nhập số chip khởi điểm
 blackjack-option-changed-starting-chips = Chip khởi điểm đã đổi thành { $count }.
+blackjack-desc-starting-chips = Số chip mỗi người chơi bắt đầu tại bàn Blackjack (mặc định 500, phạm vi 50-1000000).
 
 blackjack-set-base-bet = Cược cơ bản: { $count }
 blackjack-enter-base-bet = Nhập mức cược cơ bản
 blackjack-option-changed-base-bet = Mức cược cơ bản đã đổi thành { $count }.
+blackjack-desc-base-bet = Mức cược mặc định được gợi ý giữa các ván Blackjack (mặc định 10, phạm vi 1-100000).
 blackjack-enter-bet = Nhập mức cược bằng chip
 blackjack-option-changed-bet = Mức cược đã đổi thành { $count } chip.
 
 blackjack-set-table-min-bet = Cược tối thiểu của bàn: { $count }
 blackjack-enter-table-min-bet = Nhập mức cược tối thiểu của bàn
 blackjack-option-changed-table-min-bet = Cược tối thiểu của bàn đã đổi thành { $count }.
+blackjack-desc-table-min-bet = Mức cược Blackjack nhỏ nhất được phép (mặc định 5, phạm vi 1-100000).
 
 blackjack-set-table-max-bet = Cược tối đa của bàn: { $count }
 blackjack-enter-table-max-bet = Nhập mức cược tối đa của bàn
 blackjack-option-changed-table-max-bet = Cược tối đa của bàn đã đổi thành { $count }.
+blackjack-desc-table-max-bet = Mức cược Blackjack lớn nhất được phép (mặc định 100, phạm vi 1-100000).
 
 blackjack-set-deck-count = Số lượng bộ bài: { $count }
 blackjack-enter-deck-count = Nhập số lượng bộ bài
 blackjack-option-changed-deck-count = Số lượng bộ bài đã đổi thành { $count }.
+blackjack-desc-deck-count = Số bộ bài 52 lá tiêu chuẩn được xào vào hộp bài Blackjack (mặc định 4, phạm vi 1-8).
 
 blackjack-set-dealer-soft-17 = Nhà cái rút thêm khi 17 mềm: { $enabled }
 blackjack-option-changed-dealer-soft-17 = Nhà cái rút thêm khi 17 mềm đã được { $enabled }.
+blackjack-desc-dealer-hits-soft-17 = Quy định nhà cái có phải rút thêm ở 17 mềm, chẳng hạn Át cộng 6, hay không.
 
 blackjack-set-dealer-peek-blackjack = Nhà cái kiểm tra Blackjack: { $enabled }
 blackjack-option-changed-dealer-peek-blackjack = Nhà cái kiểm tra Blackjack đã được { $enabled }.
+blackjack-desc-dealer-peeks-blackjack = Quy định nhà cái có kiểm tra Blackjack khi lộ Át hoặc lá trị giá 10 hay không.
 
 blackjack-set-players-cards-face-up = Bài người chơi lật ngửa: { $enabled }
 blackjack-option-changed-players-cards-face-up = Bài người chơi lật ngửa đã được { $enabled }.
+blackjack-desc-players-cards-face-up = Quy định bài của người chơi có công khai cho cả bàn hay không.
 
 blackjack-set-allow-insurance = Cược bảo hiểm và Hòa tiền: { $enabled }
 blackjack-option-changed-allow-insurance = Cược bảo hiểm và Hòa tiền đã được { $enabled }.
+blackjack-desc-allow-insurance = Quy định có mở bảo hiểm và ăn chắc tiền khi nhà cái lộ Át hay không.
 
 blackjack-set-allow-late-surrender = Cho phép Bỏ bài muộn: { $enabled }
 blackjack-option-changed-allow-late-surrender = Bỏ bài muộn đã được { $enabled }.
+blackjack-desc-allow-late-surrender = Quy định người chơi có được đầu hàng trước khi rút bài hay không; tùy chọn này cần luật nhà cái kiểm tra bài.
 
 blackjack-set-blackjack-payout = Tỷ lệ trả thưởng Blackjack: { $mode }
 blackjack-select-blackjack-payout = Chọn tỷ lệ trả thưởng Blackjack
 blackjack-option-changed-blackjack-payout = Tỷ lệ trả thưởng Blackjack đã đổi thành { $mode }.
+blackjack-desc-blackjack-payout = Đặt tỷ lệ trả thưởng cho Blackjack tự nhiên: 3 ăn 2, 6 ăn 5 hoặc ăn bằng tiền cược.
 
 blackjack-set-double-down-rule = Luật Gấp đôi: { $mode }
 blackjack-select-double-down-rule = Chọn luật Gấp đôi
 blackjack-option-changed-double-down-rule = Luật Gấp đôi đã đổi thành { $mode }.
+blackjack-desc-double-down-rule = Quy định tổng bài ban đầu nào được gấp đôi cược: bất kỳ hai lá, chỉ 9-11, hoặc chỉ 10-11.
 
 blackjack-set-allow-double-after-split = Gấp đôi sau khi Tách bài: { $enabled }
 blackjack-option-changed-allow-double-after-split = Gấp đôi sau khi Tách bài đã được { $enabled }.
+blackjack-desc-allow-double-after-split = Quy định tay bài sau khi tách có được gấp đôi cược hay không.
 
 blackjack-set-split-rule = Luật Tách bài: { $mode }
 blackjack-select-split-rule = Chọn luật Tách bài
 blackjack-option-changed-split-rule = Luật Tách bài đã đổi thành { $mode }.
+blackjack-desc-split-rule = Quy định tách bài cần cùng hạng chính xác hay chỉ cần cùng giá trị.
 
 blackjack-set-max-split-hands = Số tụ tối đa khi Tách bài: { $count }
 blackjack-enter-max-split-hands = Nhập số tụ tối đa khi Tách bài
 blackjack-option-changed-max-split-hands = Số tụ tối đa khi Tách bài đã đổi thành { $count }.
+blackjack-desc-max-split-hands = Số tay tối đa một người chơi có thể tạo bằng cách tách bài (mặc định 2, phạm vi 1-2).
 
 blackjack-set-split-aces-one-card = Tách 2 lá Át chỉ được rút 1 lá: { $enabled }
 blackjack-option-changed-split-aces-one-card = Luật rút 1 lá khi tách Át đã được { $enabled }.
+blackjack-desc-split-aces-one-card-only = Quy định mỗi Át đã tách chỉ nhận đúng một lá rồi dừng hay không.
 
 blackjack-set-split-aces-blackjack = Tách 2 lá Át có thể tính là Blackjack: { $enabled }
 blackjack-option-changed-split-aces-blackjack = Luật Blackjack khi tách Át đã được { $enabled }.
+blackjack-desc-split-aces-count-as-blackjack = Quy định Át cộng lá trị giá 10 sau khi tách Át có tính là Blackjack tự nhiên hay không.
 
 blackjack-set-turn-timer = Đồng hồ tính giờ: { $mode }
 blackjack-select-turn-timer = Chọn đồng hồ tính giờ
 blackjack-option-changed-turn-timer = Đồng hồ tính giờ đã đổi thành { $mode }.
+blackjack-desc-turn-timer = Giới hạn thời gian tùy chọn cho mỗi quyết định Blackjack; chọn Không giới hạn để bỏ hẹn giờ.
 
 blackjack-rules-profile-vegas = Vegas
 blackjack-rules-profile-european = Châu Âu

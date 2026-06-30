@@ -19,43 +19,55 @@ uno-card-wild-four = Wild Draw Four
 uno-set-winning-score = Score limit: { $score }
 uno-enter-winning-score = Enter score limit
 uno-option-changed-winning-score = Score limit set to { $score }.
+uno-desc-winning-score = Score limit used by the selected UNO scoring mode (default 300, range 10-2000).
 
 uno-set-scoring-mode = Scoring: { $mode }
 uno-select-scoring-mode = Select scoring mode
 uno-option-changed-scoring-mode = Scoring set to { $mode }.
+uno-desc-scoring-mode = Chooses whether the first player to reach the limit wins, or players at the limit are eliminated.
 uno-scoring-first = First to limit wins
 uno-scoring-elimination = Elimination
 
 uno-set-skip-after-draw = Draw penalties skip turn: { $enabled }
 uno-option-changed-skip-after-draw = Draw penalties skip turn { $enabled }.
+uno-desc-skip-after-draw = Controls whether Draw Two and Wild Draw Four penalties also skip the target's turn.
 
 uno-set-responses = Stacking responses: { $enabled }
 uno-option-changed-responses = Stacking responses { $enabled }.
+uno-desc-responses = Allows players to stack draw cards in response to Draw Two or Wild Draw Four penalties.
 
 uno-set-advanced-responses = Advanced responses: { $enabled }
 uno-option-changed-advanced-responses = Advanced responses { $enabled }.
+uno-desc-advanced-responses = Allows extra defensive responses to draw stacks, such as matching Skip, Reverse, or Wild cards. Requires Stacking responses.
 
 uno-set-wait-for-draw-responses = Wait for draw responses: { $enabled }
 uno-option-changed-wait-for-draw-responses = Wait for draw responses { $enabled }.
+uno-desc-wait-for-draw-responses = If the last card creates a draw stack, waits for the next player to respond or draw before scoring the round. Requires Stacking responses.
 
 uno-set-bluff = Wild Draw Four challenges: { $enabled }
 uno-option-changed-bluff = Wild Draw Four challenges { $enabled }.
+uno-desc-bluff = Enables Wild Draw Four challenge rules for illegal plays.
 
 uno-set-straights = Straights: { $enabled }
 uno-option-changed-straights = Straights { $enabled }.
+uno-desc-straights = Lets a player continue out of turn with the next or previous number of the same color after a number card.
 
 uno-set-interceptions = Interceptions: { $enabled }
 uno-option-changed-interceptions = Interceptions { $enabled }.
+uno-desc-interceptions = Lets players jump in out of turn with an exact matching card. Invalid attempts add 3 penalty points.
 
 uno-set-super-interceptions = Super interceptions: { $enabled }
 uno-option-changed-super-interceptions = Super interceptions { $enabled }.
+uno-desc-super-interceptions = Expands interceptions to match number or action symbol even when the color differs. Requires Interceptions.
 
 uno-set-zero-seven = Zero / seven rule: { $enabled }
 uno-option-changed-zero-seven = Zero / seven rule { $enabled }.
+uno-desc-zero-seven-rule = Enables the house rule where 0 rotates everyone's hands and 7 lets the player swap hands or decline.
 
 uno-set-free-draws = Free draws per turn: { $count }
 uno-enter-free-draws = Enter free draws per turn
 uno-option-changed-free-draws = Free draws per turn set to { $count }.
+uno-desc-free-draws = How many times a human player may draw despite holding a playable card (default 0, range 0-999).
 
 # Option validation
 uno-error-advanced-responses-require-responses = Advanced responses require Stacking responses to be enabled.

@@ -56,9 +56,11 @@ bunko-error-winning-mode-invalid = Bunko không hỗ trợ cách tính thắng "
 bunko-set-round-count = Số vòng: { $count }
 bunko-enter-round-count = Nhập số vòng chơi:
 bunko-option-changed-round-count = Số vòng đã đổi thành { $count }.
+bunko-desc-round-count = Số vòng Bunko sẽ chơi trước khi xác định người thắng (mặc định 6, phạm vi 1-12).
 
 bunko-set-winning-mode = Cách tính thắng: { $mode }
 bunko-select-winning-mode = Chọn cách tính thắng:
 bunko-option-changed-winning-mode = Cách tính thắng đã đổi thành { $mode }.
+bunko-desc-winning-mode = Chọn xếp hạng người thắng Bunko theo số vòng thắng hoặc theo tổng điểm.
 bunko-winning-mode-round-wins = số vòng thắng
 bunko-winning-mode-total-score = tổng điểm

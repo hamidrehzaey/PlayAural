@@ -3,14 +3,17 @@ game-name-tienlen = Tiến Lên
 tienlen-set-variant = Biến thể: { $choice }
 tienlen-select-variant = Chọn biến thể Tiến Lên:
 tienlen-option-changed-variant = Đã đổi biến thể thành { $choice }.
+tienlen-desc-variant = Chọn luật Tiến Lên miền Nam hoặc miền Bắc.
 
 tienlen-set-coin-target = Mốc xu: { $choice }
 tienlen-select-coin-target = Chọn mốc xu để thắng trận:
 tienlen-option-changed-coin-target = Mốc xu thắng trận đã đổi thành { $choice }.
+tienlen-desc-match-length = Mốc xu để kết thúc trận Tiến Lên: 50, 100 hoặc 200 xu. Mặc định: 50.
 
 tienlen-set-turn-timer = Thời gian mỗi lượt: { $choice }
 tienlen-select-turn-timer = Chọn thời gian mỗi lượt:
 tienlen-option-changed-turn-timer = Đã đổi thời gian mỗi lượt thành { $choice }.
+tienlen-desc-turn-timer = Giới hạn thời gian tùy chọn cho mỗi lượt Tiến Lên: Không giới hạn, 10, 15, 20, 30, 45, 60 hoặc 90 giây. Mặc định: Không giới hạn.
 
 tienlen-variant-south = Tiến Lên Miền Nam
 tienlen-variant-north = Tiến Lên Miền Bắc

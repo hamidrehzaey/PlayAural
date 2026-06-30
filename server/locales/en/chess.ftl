@@ -3,6 +3,7 @@ game-name-chess = Chess
 chess-set-time-control = Time control: { $control }
 chess-select-time-control = Choose a time control
 chess-option-changed-time-control = Time control set to { $control }.
+chess-desc-time-control = Chooses the chess clock, from untimed play to bullet, blitz, rapid, or classical controls.
 chess-time-untimed = Untimed
 chess-time-bullet-1-0 = Bullet 1+0
 chess-time-bullet-2-1 = Bullet 2+1
@@ -16,13 +17,16 @@ chess-time-classical-30-0 = Classical 30+0
 chess-set-draw-handling = Draw handling: { $mode }
 chess-select-draw-handling = Choose draw handling
 chess-option-changed-draw-handling = Draw handling set to { $mode }.
+chess-desc-draw-handling = Chooses whether automatic draw rules end the game immediately or require a player to claim the draw.
 chess-draw-handling-automatic = Automatic
 chess-draw-handling-claim-required = Claim required
 
 chess-toggle-draw-offers = Allow draw offers: { $enabled }
 chess-option-changed-draw-offers = Allow draw offers set to { $enabled }.
+chess-desc-allow-draw-offers = Controls whether players may offer and respond to agreed draws.
 chess-toggle-undo-requests = Allow undo requests: { $enabled }
 chess-option-changed-undo-requests = Allow undo requests set to { $enabled }.
+chess-desc-allow-undo-requests = Controls whether players may request takebacks that the opponent can accept or decline.
 chess-error-invalid-time-control = The selected time control "{ $control }" is not supported for Chess.
 chess-error-invalid-draw-handling = The selected draw handling mode "{ $mode }" is not supported for Chess.
 

@@ -110,20 +110,26 @@ rb-line-format = { $rank }. { $player }: { $points }
 rb-set-min-take = Số bóng rút tối thiểu mỗi lượt: { $count }
 rb-enter-min-take = Nhập số bóng rút tối thiểu mỗi lượt, từ 1 đến 5:
 rb-option-changed-min-take = Đã đặt số bóng rút tối thiểu mỗi lượt là { $count }.
+rollingballs-desc-min-take = Số bóng tối thiểu người chơi phải lấy trong một lượt (mặc định 1, phạm vi 1-5).
 rb-set-max-take = Số bóng rút tối đa mỗi lượt: { $count }
 rb-enter-max-take = Nhập số bóng rút tối đa mỗi lượt, từ 1 đến 5:
 rb-option-changed-max-take = Đã đặt số bóng rút tối đa mỗi lượt là { $count }.
+rollingballs-desc-max-take = Số bóng tối đa người chơi được lấy trong một lượt (mặc định 3, phạm vi 1-5). Trò chơi không thể bắt đầu nếu mức này thấp hơn số bóng tối thiểu.
 rb-set-view-pipe-limit = Lượt xem nội dung mới cho mỗi người: { $count }
 rb-enter-view-pipe-limit = Nhập số lượt xem nội dung mới cho mỗi người, từ 0 đến 100; nhập 0 để tắt:
 rb-option-changed-view-pipe-limit = Đã đặt số lượt xem nội dung mới cho mỗi người là { $count }.
+rollingballs-desc-view-pipe-limit = Số bóng sắp tới có thể xem trước trong ống. Đặt 0 để tắt xem trước (mặc định 5, phạm vi 0-100).
 rb-set-reshuffle-limit = Số lần xáo cho mỗi người: { $count }
 rb-enter-reshuffle-limit = Nhập số lần xáo cho mỗi người, từ 0 đến 100; nhập 0 để tắt:
 rb-option-changed-reshuffle-limit = Đã đặt số lần xáo cho mỗi người là { $count }.
+rollingballs-desc-reshuffle-limit = Số lần xào lại có sẵn trước khi ống bóng cạn (mặc định 3, phạm vi 0-100).
 rb-set-reshuffle-penalty = Điểm phạt mỗi lần xáo: { $points } điểm
 rb-enter-reshuffle-penalty = Nhập điểm phạt mỗi lần xáo, từ 0 đến 5 điểm:
 rb-option-changed-reshuffle-penalty = Đã đặt điểm phạt mỗi lần xáo là { $points } điểm.
+rollingballs-desc-reshuffle-penalty = Điểm phạt áp dụng khi dùng xào lại (mặc định 1, phạm vi 0-5). Tùy chọn này chỉ xuất hiện khi người chơi có lượt xào lại.
 rb-set-ball-packs = Bộ bóng (đã chọn { $count } trên { $total })
 rb-option-changed-ball-packs = Đã thay đổi các bộ bóng được chọn.
+rollingballs-desc-ball-packs = Chọn các bộ bóng theo chủ đề được đưa vào ống. Phải giữ lại ít nhất một bộ.
 
 # Lý do vô hiệu hóa và kiểm tra thiết lập
 rb-draw-resolving = Hãy chờ lượt công bố bóng hiện tại của { $player } kết thúc rồi mới thực hiện hành động khác với ống.

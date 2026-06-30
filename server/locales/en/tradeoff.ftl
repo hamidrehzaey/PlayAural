@@ -82,5 +82,5 @@ tradeoff-no-dice-key-phase = Number keys are only used while choosing trades or 
 tradeoff-set-target = Target score: { $score }
 tradeoff-enter-target = Enter target score:
 tradeoff-option-changed-target = Target score set to { $score }.
-tradeoff-desc-target-score = The total score a player must reach or pass after a scoring round to win.
+tradeoff-desc-target-score = The total score a player must reach or pass after a scoring round to win (default 60, range 30-500).
 tradeoff-error-target-out-of-range = Target score { $score } is outside the allowed range of { $min } to { $max }.

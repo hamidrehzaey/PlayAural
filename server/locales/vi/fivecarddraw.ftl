@@ -3,26 +3,32 @@ game-name-fivecarddraw = Poker Rút năm lá
 draw-set-starting-chips = Số chip ban đầu: { $count }
 draw-enter-starting-chips = Nhập số chip ban đầu
 draw-option-changed-starting-chips = Số chip ban đầu đã được đặt là { $count }.
+fivecarddraw-desc-starting-chips = Số chip ban đầu mỗi người có khi vào trận Poker Rút năm lá, từ 100 đến 1.000.000. Mặc định: 20.000.
 
 draw-set-ante = Cược góp: { $count }
 draw-enter-ante = Nhập mức cược góp
 draw-option-changed-ante = Cược góp đã được đặt là { $count }.
+fivecarddraw-desc-ante = Khoản Cược góp bắt buộc mỗi người chơi còn hoạt động phải đóng trước mỗi ván, từ 0 đến 1.000.000. Mặc định: 100. Mức này phải thấp hơn số chip ban đầu.
 
 draw-set-turn-timer = Thời gian mỗi lượt: { $mode }
 draw-select-turn-timer = Chọn thời gian mỗi lượt
 draw-option-changed-turn-timer = Thời gian mỗi lượt đã được đặt là { $mode }.
+fivecarddraw-desc-turn-timer = Giới hạn thời gian tùy chọn cho mỗi quyết định cược hoặc đổi bài: 5, 10, 15, 20, 30, 45, 60 hoặc 90 giây, hoặc Không giới hạn. Mặc định: Không giới hạn.
 
 draw-set-raise-mode = Chế độ tố: { $mode }
 draw-select-raise-mode = Chọn chế độ tố
 draw-option-changed-raise-mode = Chế độ tố đã được đặt là { $mode }.
+fivecarddraw-desc-raise-mode = Kiểu giới hạn tố: Không giới hạn, Giới hạn theo hũ hoặc Giới hạn gấp đôi hũ. Mặc định: Không giới hạn. Các chế độ dựa trên hũ cần Cược góp lớn hơn 0 để vòng cược đầu tiên mở bình thường.
 
 draw-set-max-raises = Số lần tố tối đa trong mỗi vòng cược: { $count }
 draw-enter-max-raises = Nhập số lần tố tối đa trong mỗi vòng cược (0 để không giới hạn)
 draw-option-changed-max-raises = Số lần tố tối đa trong mỗi vòng cược đã được đặt là { $count }.
+fivecarddraw-desc-max-raises = Số lần tố tối đa trong một vòng cược, từ 0 đến 10. Đặt 0 để không giới hạn số lần tố. Mặc định: 0.
 
 draw-set-draw-limit = Luật đổi bài: { $mode }
 draw-select-draw-limit = Chọn luật đổi bài
 draw-option-changed-draw-limit = Luật đổi bài đã được đặt là { $mode }.
+fivecarddraw-desc-draw-limit = Luật đổi bài: đổi tối đa 3 lá, hoặc cho phép đổi 4 lá chỉ khi giữ lại một lá Át. Mặc định: tối đa 3 lá.
 draw-limit-three-cards = Tối đa 3 lá (luật chuẩn)
 draw-limit-four-with-ace = Tối đa 4 lá khi giữ lại một lá Át
 

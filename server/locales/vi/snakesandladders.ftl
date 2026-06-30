@@ -54,8 +54,10 @@ snakes-finish-exact-stay = Phải gieo đúng; đi quá thì đứng yên
 snakes-set-finish-rule = Luật về đích: { $rule }
 snakes-select-finish-rule = Chọn luật về đích
 snakes-option-changed-finish-rule = Luật về đích đã đổi thành { $rule }.
+snakesandladders-desc-finish-rule = Chọn gieo vượt ô 100 sẽ bật lùi lại hay người chơi phải chờ đúng số để về đích.
 snakes-set-extra-turn-six = Thêm lượt khi gieo được 6: { $enabled }
 snakes-option-changed-extra-turn-six = Tùy chọn thêm lượt khi gieo được 6 đã đổi thành { $enabled }.
+snakesandladders-desc-extra-turn-on-six = Quy định gieo được 6 có được thêm lượt nữa hay không.
 
 snakes-error-roll-not-playing = Bạn chỉ có thể gieo xúc xắc sau khi ván Rắn và Thang bắt đầu.
 snakes-error-roll-not-your-turn = Bạn chưa thể gieo vì đang là lượt của người khác. Hãy chờ đến lượt mình.

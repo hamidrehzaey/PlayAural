@@ -1,18 +1,8 @@
 game-name-pusoydos = Pusoy Dos
 
 # =============================================================================
-# Option descriptions
 # =============================================================================
 
-pusoydos-desc-game-mode = Elimination: win rounds to go out, last player is the loser. Losses: last-place finishers accumulate strikes, first to the limit loses. Points: round winner collects penalty points from losers, first to the target wins. Points Elimination: losers collect their own penalty points, hit the limit and you're out, last one standing wins.
-pusoydos-desc-rounds-to-win = How many rounds a player must win before they are eliminated as a winner.
-pusoydos-desc-target-score = The point total a player must reach to win the game (points mode) or be eliminated (points elimination mode).
-pusoydos-desc-turn-timer = Time limit per turn. Set to unlimited for no limit.
-pusoydos-desc-allow-2-in-straights = Whether the 2 can be used in straights (e.g. A-2-3-4-5).
-pusoydos-desc-instant-wins = Whether special dealt hands (Dragon, Four 2s, Six Pairs) win the round instantly. This cannot be combined with card passing.
-pusoydos-desc-card-passing = Whether cards are exchanged between winners and losers after dealing. This cannot be combined with instant wins.
-pusoydos-desc-penalty-tier = How aggressively remaining cards are penalized at the end of a round.
-pusoydos-desc-penalty-per-two = Whether each 2 remaining in hand doubles the penalty.
 
 # =============================================================================
 # Option labels and prompts
@@ -21,6 +11,7 @@ pusoydos-desc-penalty-per-two = Whether each 2 remaining in hand doubles the pen
 pusoydos-set-game-mode = Game Mode: { $choice }
 pusoydos-select-game-mode = Select game mode:
 pusoydos-option-changed-game-mode = Game mode set to { $choice }.
+pusoydos-desc-game-mode = Elimination: win rounds to go out, last player is the loser. Losses: last-place finishers accumulate strikes, first to the limit loses. Points: round winner collects penalty points from losers, first to the target wins. Points Elimination: losers collect their own penalty points, hit the limit and you're out, last one standing wins.
 
 pusoydos-mode-elimination = Elimination
 pusoydos-mode-losses = Losses
@@ -30,19 +21,22 @@ pusoydos-mode-points-elimination = Points Elimination
 pusoydos-set-rounds-to-win = Rounds to Win: { $count }
 pusoydos-enter-rounds-to-win = Enter rounds needed to be eliminated (min: 1, max: 10):
 pusoydos-option-changed-rounds-to-win = Rounds to win set to { $count }.
+pusoydos-desc-rounds-to-win = Elimination mode only: how many rounds a player must win before leaving the game as a winner (default 2, range 1-10).
 
-pusoydos-desc-losses-to-lose = How many last-place finishes before a player loses the game.
 pusoydos-set-losses-to-lose = Losses to Lose: { $count }
 pusoydos-enter-losses-to-lose = Enter losses needed to lose (min: 1, max: 10):
 pusoydos-option-changed-losses-to-lose = Losses to lose set to { $count }.
+pusoydos-desc-losses-to-lose = Losses mode only: how many last-place finishes a player can take before losing the game (default 3, range 1-10).
 
 pusoydos-set-target-score = Target Score: { $score }
 pusoydos-enter-target-score = Enter target score (min: 10, max: 10000):
 pusoydos-option-changed-target-score = Target score set to { $score }.
+pusoydos-desc-target-score = Points modes only: score threshold for winning in Points mode, or elimination in Points Elimination mode (default 100, range 10-10000).
 
 pusoydos-set-turn-timer = Turn Timer: { $choice }
 pusoydos-select-turn-timer = Select turn timer duration:
 pusoydos-option-changed-turn-timer = Turn timer set to { $choice }.
+pusoydos-desc-turn-timer = Per-turn time limit: Unlimited, 10, 15, 20, 30, 45, 60, or 90 seconds. Default: Unlimited.
 
 pusoydos-timer-10 = 10 Seconds
 pusoydos-timer-15 = 15 Seconds
@@ -55,13 +49,16 @@ pusoydos-timer-unlimited = Unlimited
 
 pusoydos-set-allow-2-in-straights = Allow 2 in Straights: { $enabled }
 pusoydos-option-changed-allow-2-in-straights = Allow 2 in straights set to { $enabled }.
+pusoydos-desc-allow-2-in-straights = Whether the 2 can be used in straights (e.g. A-2-3-4-5).
 
 pusoydos-set-instant-wins = Instant Wins: { $enabled }
 pusoydos-option-changed-instant-wins = Instant wins set to { $enabled }.
+pusoydos-desc-instant-wins = Whether special dealt hands (Dragon, Four 2s, Six Pairs) win the round instantly. This cannot be combined with card passing.
 
 pusoydos-set-card-passing = Card Passing: { $choice }
 pusoydos-select-card-passing = Select card passing mode:
 pusoydos-option-changed-card-passing = Card passing set to { $choice }.
+pusoydos-desc-card-passing = Card exchange between winners and losers after dealing: Off, Simple, or Full. Full passing requires exactly 2 or 4 players, and passing cannot be combined with instant wins.
 
 pusoydos-passing-off = Off
 pusoydos-passing-simple = Simple (1st and last swap 1 card)
@@ -70,6 +67,7 @@ pusoydos-passing-full = Full (1st/last swap 2, 2nd/3rd swap 1)
 pusoydos-set-penalty-tier = Penalty Tier: { $choice }
 pusoydos-select-penalty-tier = Select penalty tier:
 pusoydos-option-changed-penalty-tier = Penalty tier set to { $choice }.
+pusoydos-desc-penalty-tier = Points modes only: how aggressively remaining cards are penalized at the end of a round.
 
 pusoydos-penalty-standard = Standard (10+ cards: x2, 13 cards: x3)
 pusoydos-penalty-aggressive = Aggressive (8-9: x2, 10-12: x3, 13: x4)
@@ -77,6 +75,7 @@ pusoydos-penalty-flat = Flat (1 point per card, no multiplier)
 
 pusoydos-set-penalty-per-two = Penalty per 2 Held: { $enabled }
 pusoydos-option-changed-penalty-per-two = Penalty per 2 held set to { $enabled }.
+pusoydos-desc-penalty-per-two = Points modes only: each 2 left in a losing hand doubles that hand's penalty.
 
 # =============================================================================
 # Game flow announcements

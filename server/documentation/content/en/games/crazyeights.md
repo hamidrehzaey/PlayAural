@@ -64,6 +64,14 @@ The game continues until a player reaches the winning score (configurable up to 
 
 
 
+\*\*Customizable Options\*\*
+
+\* \*\*Winning Score:\*\* Score target that ends the match. Default: 500. Range: 1 to 10,000.
+
+\* \*\*Turn Timer:\*\* Optional time limit for each turn. Choices: 5, 10, 15, 20, 30, 45, 60, or 90 seconds, or Unlimited. Default: Unlimited.
+
+
+
 \*\*Keyboard Shortcuts\*\*
 
 

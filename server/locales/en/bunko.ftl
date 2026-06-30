@@ -80,9 +80,11 @@ bunko-error-winning-mode-invalid = Bunko does not support the winning mode "{ $m
 bunko-set-round-count = Rounds: { $count }
 bunko-enter-round-count = Enter the number of rounds:
 bunko-option-changed-round-count = Number of rounds changed to { $count }.
+bunko-desc-round-count = How many Bunko rounds are played before the winner is decided (default 6, range 1-12).
 
 bunko-set-winning-mode = Winning mode: { $mode }
 bunko-select-winning-mode = Select the winning mode:
 bunko-option-changed-winning-mode = Winning mode changed to { $mode }.
+bunko-desc-winning-mode = Chooses whether Bunko winners are ranked by rounds won or by total score.
 bunko-winning-mode-round-wins = round wins
 bunko-winning-mode-total-score = total score

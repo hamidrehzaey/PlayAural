@@ -3,6 +3,7 @@ game-name-chess = Cờ vua
 chess-set-time-control = Kiểm soát thời gian: { $control }
 chess-select-time-control = Chọn kiểu thời gian
 chess-option-changed-time-control = Đã đổi kiểu thời gian thành { $control }.
+chess-desc-time-control = Chọn đồng hồ cờ vua, từ không tính giờ đến bullet, blitz, rapid hoặc classical.
 chess-time-untimed = Không giới hạn
 chess-time-bullet-1-0 = Bullet 1+0
 chess-time-bullet-2-1 = Bullet 2+1
@@ -16,13 +17,16 @@ chess-time-classical-30-0 = Classical 30+0
 chess-set-draw-handling = Xử lý cờ hòa: { $mode }
 chess-select-draw-handling = Chọn cách xử lý cờ hòa
 chess-option-changed-draw-handling = Đã đổi cách xử lý cờ hòa thành { $mode }.
+chess-desc-draw-handling = Chọn luật hòa tự động kết thúc ván ngay hay cần người chơi yêu cầu hòa.
 chess-draw-handling-automatic = Tự động
 chess-draw-handling-claim-required = Phải yêu cầu
 
 chess-toggle-draw-offers = Cho phép đề nghị cờ hòa: { $enabled }
 chess-option-changed-draw-offers = Cho phép đề nghị cờ hòa: { $enabled }.
+chess-desc-allow-draw-offers = Quy định người chơi có thể đề nghị hòa và phản hồi đề nghị hòa hay không.
 chess-toggle-undo-requests = Cho phép xin đi lại: { $enabled }
 chess-option-changed-undo-requests = Cho phép xin đi lại: { $enabled }.
+chess-desc-allow-undo-requests = Quy định người chơi có thể xin đi lại để đối thủ chấp nhận hoặc từ chối hay không.
 chess-error-invalid-time-control = Kiểu thời gian "{ $control }" không được hỗ trợ trong Cờ vua.
 chess-error-invalid-draw-handling = Cách xử lý cờ hòa "{ $mode }" không được hỗ trợ trong Cờ vua.
 

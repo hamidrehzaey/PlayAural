@@ -234,6 +234,21 @@ class Localization:
         return result
 
     @classmethod
+    def _message_exists_in_bundle(cls, locale: str, message_id: str) -> bool:
+        """Return whether a message or attribute exists without formatting it."""
+        bundle = cls._get_bundle(locale)
+        base_id, _, attribute = message_id.partition(".")
+        try:
+            message = bundle.get_message(base_id)
+        except KeyError:
+            return False
+        if message is None:
+            return False
+        if attribute:
+            return message.attributes.get(attribute) is not None
+        return message.value is not None
+
+    @classmethod
     def get(cls, locale: str, message_id: str, **kwargs) -> str:
         """
         Get a localized message.
@@ -258,6 +273,19 @@ class Localization:
         except Exception:
             pass
         return message_id
+
+    @classmethod
+    def has_message(cls, locale: str, message_id: str) -> bool:
+        """Return whether a message exists in the resolved locale or English fallback."""
+        try:
+            resolved_locale = cls.resolve_locale(locale)
+            if cls._message_exists_in_bundle(resolved_locale, message_id):
+                return True
+            if resolved_locale != DEFAULT_LOCALE:
+                return cls._message_exists_in_bundle(DEFAULT_LOCALE, message_id)
+        except Exception:
+            return False
+        return False
 
     @classmethod
     def _babel_locale(cls, locale: str) -> str:

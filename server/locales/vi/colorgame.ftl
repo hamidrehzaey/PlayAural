@@ -3,26 +3,32 @@ game-name-colorgame = Xúc xắc màu
 colorgame-set-starting-bankroll = Vốn khởi điểm: { $amount }
 colorgame-enter-starting-bankroll = Nhập vốn khởi điểm:
 colorgame-option-changed-starting-bankroll = Vốn khởi điểm đã đổi thành { $amount }.
+colorgame-desc-starting-bankroll = Số chip mỗi người chơi bắt đầu trong Xúc xắc màu (mặc định 100, phạm vi 10-1000).
 
 colorgame-set-minimum-bet = Mức cược tối thiểu: { $amount }
 colorgame-enter-minimum-bet = Nhập mức cược tối thiểu:
 colorgame-option-changed-minimum-bet = Mức cược tối thiểu đã đổi thành { $amount }.
+colorgame-desc-minimum-bet = Mức cược nhỏ nhất được phép trên một màu mỗi vòng (mặc định 1, phạm vi 1-100).
 
 colorgame-set-maximum-total-bet = Tổng cược tối đa mỗi vòng: { $amount }
 colorgame-enter-maximum-total-bet = Nhập tổng cược tối đa cho mỗi vòng:
 colorgame-option-changed-maximum-total-bet = Tổng cược tối đa mỗi vòng đã đổi thành { $amount }.
+colorgame-desc-maximum-total-bet = Tổng chip tối đa một người chơi được mạo hiểm trong một vòng Xúc xắc màu (mặc định 20, phạm vi 1-1000). Mức này phải không thấp hơn cược tối thiểu và không cao hơn vốn khởi điểm; giới hạn thật của mỗi người còn bị chặn bởi số chip họ đang có.
 
 colorgame-set-betting-timer = Thời gian đặt cược: { $seconds } giây
 colorgame-enter-betting-timer = Nhập thời gian đặt cược tính bằng giây:
 colorgame-option-changed-betting-timer = Thời gian đặt cược đã đổi thành { $seconds } giây.
+colorgame-desc-betting-timer-seconds = Thời lượng giai đoạn đặt cược mỗi vòng (mặc định 15 giây, phạm vi 5-60).
 
 colorgame-set-round-limit = Giới hạn số vòng: { $count }
 colorgame-enter-round-limit = Nhập giới hạn số vòng:
 colorgame-option-changed-round-limit = Giới hạn số vòng đã đổi thành { $count }.
+colorgame-desc-round-limit = Số vòng Xúc xắc màu tối đa trước khi xác định người thắng (mặc định 20, phạm vi 1-100).
 
 colorgame-set-win-condition = Cách tính thắng: { $mode }
 colorgame-select-win-condition = Chọn cách tính thắng:
 colorgame-option-changed-win-condition = Cách tính thắng đã đổi thành { $mode }.
+colorgame-desc-win-condition = Chọn Xúc xắc màu kết thúc khi chỉ còn người cuối cùng, hoặc ai có quỹ tiền cao nhất sau giới hạn vòng.
 colorgame-win-condition-last-player = Trụ lại cuối cùng
 colorgame-win-condition-highest-bankroll = Nhiều vốn nhất khi hết số vòng
 

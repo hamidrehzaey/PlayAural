@@ -4,10 +4,11 @@ milebymile-set-distance = Quãng đường đua: { $miles } dặm
 milebymile-enter-distance = Nhập quãng đường đua (300-3000)
 milebymile-set-winning-score = Điểm thắng: { $score } điểm
 milebymile-enter-winning-score = Nhập điểm thắng (1000-10000)
+milebymile-desc-team-mode = Chơi cá nhân hoặc dùng một cách chia đội hợp lệ với số người hiện có.
 milebymile-toggle-perfect-crossing = Yêu cầu về đích chính xác: { $enabled }
 milebymile-toggle-stacking = Cho phép tấn công cộng dồn: { $enabled }
 milebymile-toggle-reshuffle = Xào lại bài đã bỏ: { $enabled }
-milebymile-toggle-karma = Luật Nghiệp chướng: { $enabled }
+milebymile-toggle-karma = Luật Nghiệp: { $enabled }
 milebymile-set-rig = Sắp xếp bộ bài: { $rig }
 milebymile-select-rig = Chọn kiểu sắp xếp bộ bài
 milebymile-rig-none = Không
@@ -16,12 +17,19 @@ milebymile-rig-2x-attacks = Tấn công x2
 milebymile-rig-2x-defenses = Phòng thủ x2
 
 milebymile-option-changed-distance = Quãng đường đua được đặt là { $miles } dặm.
+milebymile-desc-round-distance = Quãng đường mục tiêu cho mỗi cuộc đua (mặc định 1.000 dặm, phạm vi 300-3.000). Nếu bật về đích chính xác, quãng đường này phải chia hết cho 25.
 milebymile-option-changed-winning = Điểm thắng được đặt là { $score } điểm.
+milebymile-desc-winning-score = Tổng điểm cần đạt để thắng trận Đường Đua Nghìn Dặm (mặc định 5.000, phạm vi 1.000-10.000).
 milebymile-option-changed-crossing = Yêu cầu về đích chính xác { $enabled }.
+milebymile-desc-only-allow-perfect-crossing = Khi bật, người chơi phải đạt đúng quãng đường mục tiêu; không thể đánh lá quãng đường khiến xe vượt quá đích.
 milebymile-option-changed-stacking = Cho phép tấn công cộng dồn { $enabled }.
+milebymile-desc-allow-stacking-attacks = Khi bật, nhiều bẫy có thể ảnh hưởng cùng một xe thay vì bị chặn bởi bẫy đang có.
 milebymile-option-changed-reshuffle = Xào lại bài đã bỏ { $enabled }.
-milebymile-option-changed-karma = Luật Nghiệp chướng { $enabled }.
+milebymile-desc-reshuffle-discard-pile = Khi bật, chồng bài bỏ sẽ được xào lại vào chồng rút khi chồng rút hết.
+milebymile-option-changed-karma = Luật Nghiệp { $enabled }.
+milebymile-desc-karma-rule = Bật lá Nghiệp và trạng thái bị tẩy chay. Nếu hai bên còn Nghiệp tấn công nhau, đòn tấn công bị vô hiệu hóa; bên đã mất Nghiệp chỉ có thể tấn công mục tiêu cũng đã mất Nghiệp. Cần ít nhất 3 xe hoặc đội.
 milebymile-option-changed-rig = Kiểu sắp xếp bộ bài được đặt là { $rig }.
+milebymile-desc-rig-game = Biến thể thành phần bộ bài: bình thường, không trùng lá, gấp đôi bẫy hoặc gấp đôi bài phòng thủ.
 
 milebymile-status = { $score_info }, { $miles } dặm, Sự cố: { $problems }, Bảo hộ: { $safeties }
 
@@ -158,7 +166,7 @@ milebymile-no-dirty-trick-window = Không có cơ hội đánh Đòn Phản Côn
 milebymile-not-your-dirty-trick = Đây không phải cơ hội đánh Đòn Phản Công của đội bạn.
 milebymile-between-races = Hãy đợi cuộc đua tiếp theo bắt đầu.
 
-milebymile-error-karma-needs-three-teams = Luật Nghiệp chướng yêu cầu ít nhất 3 xe hoặc đội khác nhau.
+milebymile-error-karma-needs-three-teams = Luật Nghiệp yêu cầu ít nhất 3 xe hoặc đội khác nhau.
 milebymile-error-perfect-distance-step = Về đích chính xác yêu cầu cự ly vòng đua chia hết cho 25, vì mọi lá dặm đường đều là bội số của 25.
 
 milebymile-line-format = { $rank }. { $name }: { $points }

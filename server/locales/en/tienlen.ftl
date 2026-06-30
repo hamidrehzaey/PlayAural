@@ -3,14 +3,17 @@ game-name-tienlen = Tien Len
 tienlen-set-variant = Variant: { $choice }
 tienlen-select-variant = Select Tien Len variant:
 tienlen-option-changed-variant = Variant set to { $choice }.
+tienlen-desc-variant = Chooses Southern or Northern Tiến Lên rules.
 
 tienlen-set-coin-target = Coin target: { $choice }
 tienlen-select-coin-target = Select match coin target:
 tienlen-option-changed-coin-target = Coin target set to { $choice }.
+tienlen-desc-match-length = Coin target for ending the Tiến Lên match: 50, 100, or 200 coins. Default: 50.
 
 tienlen-set-turn-timer = Turn Timer: { $choice }
 tienlen-select-turn-timer = Select turn timer duration:
 tienlen-option-changed-turn-timer = Turn timer set to { $choice }.
+tienlen-desc-turn-timer = Optional time limit for each Tiến Lên turn: Unlimited, 10, 15, 20, 30, 45, 60, or 90 seconds. Default: Unlimited.
 
 tienlen-variant-south = Southern Tien Len
 tienlen-variant-north = Northern Tien Len

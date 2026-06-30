@@ -1,4 +1,4 @@
-# Backgammon localization
+# Bản dịch Cờ thỏ cáo
 
 game-name-backgammon = Cờ thỏ cáo
 
@@ -176,6 +176,8 @@ backgammon-difficulty-simple = Đơn giản
 backgammon-option-match-length = Độ dài trận: { $match_length }
 backgammon-option-select-match-length = Đặt độ dài trận (1-25)
 backgammon-option-changed-match-length = Độ dài trận đã được đặt thành { $match_length }.
+backgammon-desc-match-length = Số điểm cần đạt để thắng trận Cờ thỏ cáo (mặc định 1, phạm vi 1-25). Giá trị 1 là ván đơn, không dùng khối nhân đôi.
 backgammon-option-bot-difficulty = Độ khó bot: { $bot_difficulty }
 backgammon-option-select-bot-difficulty = Chọn độ khó bot
 backgammon-option-changed-bot-difficulty = Độ khó bot đã được đặt thành { $bot_difficulty }.
+backgammon-desc-bot-difficulty = Chọn cách bot đi cờ: Ngẫu nhiên đi các nước hợp lệ khá thoáng, còn Đơn giản ưu tiên các nước chiến thuật hơn.

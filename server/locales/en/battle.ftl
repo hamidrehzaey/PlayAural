@@ -3,33 +3,42 @@ game-name-battle = Battle
 battle-set-game-mode = Game mode: { $mode }
 battle-select-game-mode = Select a game mode:
 battle-option-changed-game-mode = Game mode changed to { $mode }.
+battle-desc-game-mode = Chooses the Battle format: fixed fighter counts, Team Battle, Chaos Free For All, Spitting Image, arena, survival, or wave modes.
 
+battle-desc-team-mode = Chooses individual play or fixed team sizes. This is used by Team Battle and must fit the current player count.
 battle-set-turn-mode = Turn mode: { $mode }
 battle-select-turn-mode = Select a turn mode:
 battle-option-changed-turn-mode = Turn mode changed to { $mode }.
+battle-desc-turn-mode = Chooses turn order: Initiative sorts combatants by speed each round, while Round Robin follows a fixed rotation.
 
 battle-set-balance-mode = Balance mode: { $enabled }
 battle-option-changed-balance-mode = Balance mode changed to { $enabled }.
+battle-desc-balance-mode = When enabled, fighters outside the balanced baseline are reset before combat to 50 health, 0 attack, 0 defense, and 100 speed.
 
 battle-set-unlimited-selection-limit = Unlimited-mode fighter limit: { $count }
 battle-enter-unlimited-selection-limit = Enter the fighter limit for unlimited modes:
 battle-option-changed-unlimited-selection-limit = Unlimited-mode fighter limit changed to { $count }.
+battle-desc-unlimited-selection-limit = How many fighters each player may select in unlimited-selection modes such as Chaos Free For All, Team Battle, arenas, survival, and waves (default 3, range 1-6).
 
 battle-set-classic-enemy-preset = Classic enemy preset: { $preset }
 battle-select-classic-enemy-preset = Select the classic enemy preset:
 battle-option-changed-classic-enemy-preset = Classic enemy preset changed to { $preset }.
+battle-desc-classic-enemy-preset = Chooses the fixed enemy preset used only by Classic Arena, Classic Survival, and Classic Waves.
 
 battle-set-arena-difficulty = Arena difficulty: { $difficulty }
 battle-select-arena-difficulty = Select arena difficulty:
 battle-option-changed-arena-difficulty = Arena difficulty changed to { $difficulty }.
+battle-desc-arena-difficulty = Sets how dangerous generated arena, survival, and wave opponents are, from Easy through Ultimate.
 
 battle-set-survival-target = Survival target: { $count }
 battle-enter-survival-target = Enter the survival target (0 for endless):
 battle-option-changed-survival-target = Survival target changed to { $count }.
+battle-desc-survival-target = How many enemies must be defeated in Survival or Waves. Set 0 for endless play with no fixed defeat target (range 0-10000).
 
 battle-set-survival-heal-percent = Survival heal percent: { $percent }
 battle-enter-survival-heal-percent = Enter the survival heal percent:
 battle-option-changed-survival-heal-percent = Survival heal percent changed to { $percent }.
+battle-desc-survival-heal-percent = Percentage of maximum health living allied fighters recover after each survival replacement or cleared wave (default 0%, range 0-100).
 
 battle-mode-free-for-all = Chaos Free For All
 battle-mode-one-each = 1 Each

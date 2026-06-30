@@ -4,17 +4,21 @@ game-name-battleship = Battleship
 battleship-set-grid-size = Combat zone: { $size }
 battleship-select-grid-size = Select combat zone size
 battleship-option-changed-grid-size = Combat zone set to { $size }.
+battleship-desc-grid-size = Chooses the ocean grid size for Battleship; larger grids create longer searches.
 
 battleship-set-placement-mode = Deployment: { $mode }
 battleship-select-placement-mode = Select deployment mode
 battleship-option-changed-placement-mode = Deployment mode set to { $mode }.
+battleship-desc-placement-mode = Chooses whether ships are placed automatically or manually before the battle starts.
 
 battleship-set-replay-on-hit = Extra salvo on hit: { $enabled }
 battleship-option-changed-replay-on-hit = Extra salvo on hit set to { $enabled }.
+battleship-desc-replay-on-hit = When enabled, a player who scores a hit immediately takes another shot.
 
 battleship-set-turn-timer = Turn timer: { $seconds }
 battleship-select-turn-timer = Select turn timer
 battleship-option-changed-turn-timer = Turn timer set to { $seconds }.
+battleship-desc-turn-timer = Optional time limit for each Battleship turn; if time runs out, the game fires at a random coordinate. Choose Unlimited for no timer.
 
 # Option choice labels
 battleship-grid-6x6 = 6 by 6

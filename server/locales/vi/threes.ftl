@@ -62,7 +62,7 @@ threes-tie-you-brief = Bạn hòa với { $players } ở { $score }.
 threes-set-rounds = Số vòng: { $rounds }
 threes-enter-rounds = Nhập số vòng:
 threes-option-changed-rounds = Số vòng đã được đặt thành { $rounds }.
-threes-desc-rounds = Số vòng sẽ chơi. Mỗi người chơi một lượt trong mỗi vòng, và tổng điểm thấp nhất sẽ thắng.
+threes-desc-rounds = Số vòng sẽ chơi (mặc định 10, phạm vi 1-20). Mỗi người chơi một lượt trong mỗi vòng, và tổng điểm thấp nhất sẽ thắng.
 
 threes-error-roll-not-playing = Bạn không thể gieo vì Ba điểm chưa bắt đầu.
 threes-error-roll-no-turn = Bạn không thể gieo vì hiện không có lượt chơi đang hoạt động.

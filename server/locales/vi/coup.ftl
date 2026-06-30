@@ -1,4 +1,4 @@
-# Coup game messages
+# Thông báo trò chơi Đảo Chính
 # Note: Common messages like round-start, turn-start are in games.ftl
 
 game-name-coup = Đảo Chính
@@ -129,7 +129,9 @@ coup-end-line = { $rank }. { $name } ({ $status }) đang có { $coins } xu. Các
 coup-set-mandatory-coup = Ngưỡng xu bắt buộc Đảo chính là { $coins }
 coup-enter-mandatory-coup = Nhập số xu bắt buộc phải Đảo chính từ 10 đến 20:
 coup-option-changed-mandatory-coup = Ngưỡng Đảo chính bắt buộc đã thay đổi.
+coup-desc-mandatory-coup-threshold = Số xu khiến người chơi bắt buộc phải đảo chính thay vì chọn hành động khác (mặc định 10, phạm vi 10-20).
 
 coup-set-timer-duration = Thời gian chờ phản ứng là { $seconds } giây
 coup-enter-timer-duration = Nhập thời gian cho phép Thách thức hoặc Chặn từ 3 đến 15 giây:
 coup-option-changed-timer = Thời gian chờ đã thay đổi.
+coup-desc-timer-duration-seconds = Thời gian dành cho phản ứng và thách thức có hẹn giờ trong Đảo Chính (mặc định 7 giây, phạm vi 3-15).

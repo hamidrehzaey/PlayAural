@@ -110,20 +110,26 @@ rb-line-format = { $rank }. { $player }: { $points }
 rb-set-min-take = Minimum balls per turn: { $count }
 rb-enter-min-take = Enter the minimum balls per turn, from 1 to 5:
 rb-option-changed-min-take = Minimum balls per turn set to { $count }.
+rollingballs-desc-min-take = Minimum number of balls a player must take on a turn (default 1, range 1-5).
 rb-set-max-take = Maximum balls per turn: { $count }
 rb-enter-max-take = Enter the maximum balls per turn, from 1 to 5:
 rb-option-changed-max-take = Maximum balls per turn set to { $count }.
+rollingballs-desc-max-take = Maximum number of balls a player may take on a turn (default 3, range 1-5). The game cannot start if this is lower than the minimum.
 rb-set-view-pipe-limit = New pipe previews per player: { $count }
 rb-enter-view-pipe-limit = Enter new pipe previews per player, from 0 to 100; 0 disables previews:
 rb-option-changed-view-pipe-limit = New pipe previews per player set to { $count }.
+rollingballs-desc-view-pipe-limit = How many upcoming balls can be previewed from the pipe. Set 0 to disable previews (default 5, range 0-100).
 rb-set-reshuffle-limit = Reshuffles per player: { $count }
 rb-enter-reshuffle-limit = Enter reshuffles per player, from 0 to 100; 0 disables reshuffling:
 rb-option-changed-reshuffle-limit = Reshuffles per player set to { $count }.
+rollingballs-desc-reshuffle-limit = How many reshuffles are available before the pipe is exhausted (default 3, range 0-100).
 rb-set-reshuffle-penalty = Reshuffle penalty: { $points } points
 rb-enter-reshuffle-penalty = Enter the reshuffle penalty, from 0 to 5 points:
 rb-option-changed-reshuffle-penalty = Reshuffle penalty set to { $points } points.
+rollingballs-desc-reshuffle-penalty = Score penalty applied when a reshuffle is used (default 1, range 0-5). This option appears only when reshuffles are available.
 rb-set-ball-packs = Ball sets ({ $count } of { $total } selected)
 rb-option-changed-ball-packs = Ball set selection changed.
+rollingballs-desc-ball-packs = Choose which themed ball sets are included in the pipe. At least one pack must stay selected.
 
 # Contextual disabled reasons and setup validation
 rb-draw-resolving = Wait until { $player }'s current ball draw finishes before starting another pipe action.

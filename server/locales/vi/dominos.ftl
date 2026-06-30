@@ -1,24 +1,30 @@
 game-name-dominos = Đô-mi-nô
+dominos-desc-team-mode = Chơi cá nhân, hoặc dùng một cách chia đội chẵn hợp lệ với số người hiện có.
 
 # Tùy chọn
 dominos-set-target-score = Điểm mục tiêu: { $score }
 dominos-enter-target-score = Nhập điểm mục tiêu
 dominos-option-changed-target-score = Đã đặt điểm mục tiêu thành { $score }.
+dominos-desc-target-score = Mốc điểm cần đạt để thắng Đô-mi-nô (mặc định 100, phạm vi 20-500).
 
 dominos-set-draw-mode = Chế độ: { $mode }
 dominos-select-draw-mode = Chọn chế độ
 dominos-option-changed-draw-mode = Đã đặt chế độ thành { $mode }.
+dominos-desc-draw-mode = Chọn chế độ Bốc, nơi người chơi bốc từ chồng bài úp, hoặc Chặn, nơi người bị kẹt phải bỏ lượt.
 
 dominos-set-domino-set = Bộ cờ: { $domino_set }
 dominos-select-domino-set = Chọn bộ cờ
 dominos-option-changed-domino-set = Đã đổi bộ cờ thành { $domino_set }.
+dominos-desc-domino-set = Cỡ bộ domino. Đôi-6 hỗ trợ tối đa 5 người, Đôi-9 hỗ trợ tối đa 7 người, và Đôi-12 hỗ trợ tối đa 12 người. Mặc định: Đôi-6.
 
 dominos-set-spinner = Mở bốn nhánh: { $enabled }
 dominos-option-changed-spinner = Đã đặt luật mở bốn nhánh thành { $enabled }.
+dominos-desc-spinner-enabled = Quy định quân đôi mở đầu có tạo thành quân xoay bốn nhánh hay không. Mặc định: Bật.
 
 dominos-set-opening-rule = Luật mở đầu: { $opening_rule }
 dominos-select-opening-rule = Chọn luật mở đầu
 dominos-option-changed-opening-rule = Đã đặt luật mở đầu thành { $opening_rule }.
+dominos-desc-opening-rule = Chọn cách xác định quân mở đầu cho mỗi vòng Đô-mi-nô.
 
 # Nhãn lựa chọn
 dominos-mode-draw = Rút

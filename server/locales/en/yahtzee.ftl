@@ -146,6 +146,7 @@ yahtzee-winners-tie = It's a tie! { $players } all scored { $score } points!
 yahtzee-set-rounds = Number of games: { $rounds }
 yahtzee-enter-rounds = Enter number of games (1-10):
 yahtzee-option-changed-rounds = Number of games set to { $rounds }.
+yahtzee-desc-num-games = How many complete Yahtzee scorecards are played before final totals are compared (default 1, range 1-10).
 
 yahtzee-no-rolls-left = You have no rolls left; choose an open scoring category to finish your turn.
 yahtzee-roll-first = Roll the dice before choosing a scoring category.

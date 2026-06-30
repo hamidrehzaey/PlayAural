@@ -98,6 +98,7 @@ lrc-last-roll-player = { $player } last rolled { $results }.
 lrc-set-starting-chips = Starting chips: { $count }
 lrc-enter-starting-chips = Enter starting chips:
 lrc-option-changed-starting-chips = Starting chips set to { $count }.
+leftrightcenter-desc-starting-chips = How many chips each Left Right Center player starts with (default 3, range 1-10).
 lrc-error-starting-chips-invalid = Starting chips must be between { $min } and { $max }; the current value is { $count }.
 
 lrc-line-format = { $player }: { $chips } { $chips ->

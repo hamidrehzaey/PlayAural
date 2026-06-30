@@ -4,17 +4,21 @@ game-name-battleship = Tàu Chiến
 battleship-set-grid-size = Vùng tác chiến: { $size }
 battleship-select-grid-size = Chọn kích thước vùng tác chiến
 battleship-option-changed-grid-size = Đã đặt vùng tác chiến thành { $size }.
+battleship-desc-grid-size = Chọn kích thước vùng biển trong Tàu Chiến; lưới lớn hơn khiến việc dò tìm kéo dài hơn.
 
 battleship-set-placement-mode = Triển khai: { $mode }
 battleship-select-placement-mode = Chọn chế độ triển khai
 battleship-option-changed-placement-mode = Đã đặt chế độ triển khai thành { $mode }.
+battleship-desc-placement-mode = Chọn đặt tàu tự động hoặc tự đặt thủ công trước khi trận bắt đầu.
 
 battleship-set-replay-on-hit = Tiếp tục khai hỏa khi trúng: { $enabled }
 battleship-option-changed-replay-on-hit = Đã đặt tiếp tục khai hỏa khi trúng thành { $enabled }.
+battleship-desc-replay-on-hit = Khi bật, người bắn trúng được bắn thêm ngay một lượt.
 
 battleship-set-turn-timer = Thời gian lượt: { $seconds }
 battleship-select-turn-timer = Chọn thời gian lượt
 battleship-option-changed-turn-timer = Đã đặt thời gian lượt thành { $seconds }.
+battleship-desc-turn-timer = Giới hạn thời gian tùy chọn cho mỗi lượt trong Tàu Chiến; nếu hết giờ, trò chơi sẽ bắn vào một tọa độ ngẫu nhiên. Chọn Không giới hạn để bỏ hẹn giờ.
 
 # Nhãn lựa chọn
 battleship-grid-6x6 = 6 x 6

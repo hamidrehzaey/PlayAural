@@ -35,6 +35,9 @@ hello = Bonjour, { $name }.
     assert Localization.get("fr", "only-english") == "English fallback"
     assert Localization.get("zz", "only-english") == "English fallback"
     assert Localization.get("fr", "missing-key") == "missing-key"
+    assert Localization.has_message("fr", "hello") is True
+    assert Localization.has_message("fr", "only-english") is True
+    assert Localization.has_message("fr", "missing-key") is False
     assert Localization.resolve_locale("fr-CA") == "fr"
     assert Localization.resolve_locale("zz") == DEFAULT_LOCALE
 

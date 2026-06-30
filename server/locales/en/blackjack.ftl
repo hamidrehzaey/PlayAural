@@ -5,72 +5,91 @@ game-name-blackjack = Blackjack
 blackjack-set-rules-profile = Rules profile: { $profile }
 blackjack-select-rules-profile = Select rules profile
 blackjack-option-changed-rules-profile = Rules profile set to { $profile }.
+blackjack-desc-rules-profile = Applies a preset Blackjack rules package: Vegas, European, or Friendly.
 
 blackjack-set-starting-chips = Starting chips: { $count }
 blackjack-enter-starting-chips = Enter starting chips
 blackjack-option-changed-starting-chips = Starting chips set to { $count }.
+blackjack-desc-starting-chips = How many chips each player starts with at the Blackjack table (default 500, range 50-1000000).
 
 blackjack-set-base-bet = Base bet: { $count }
 blackjack-enter-base-bet = Enter base bet
 blackjack-option-changed-base-bet = Base bet set to { $count }.
+blackjack-desc-base-bet = The default bet offered between Blackjack hands (default 10, range 1-100000).
 blackjack-enter-bet = Enter your chip bet
 blackjack-option-changed-bet = Bet set to { $count } chips.
 
 blackjack-set-table-min-bet = Table minimum bet: { $count }
 blackjack-enter-table-min-bet = Enter table minimum bet
 blackjack-option-changed-table-min-bet = Table minimum bet set to { $count }.
+blackjack-desc-table-min-bet = The smallest allowed Blackjack bet (default 5, range 1-100000).
 
 blackjack-set-table-max-bet = Table maximum bet: { $count }
 blackjack-enter-table-max-bet = Enter table maximum bet
 blackjack-option-changed-table-max-bet = Table maximum bet set to { $count }.
+blackjack-desc-table-max-bet = The largest allowed Blackjack bet (default 100, range 1-100000).
 
 blackjack-set-deck-count = Deck count: { $count }
 blackjack-enter-deck-count = Enter deck count
 blackjack-option-changed-deck-count = Deck count set to { $count }.
+blackjack-desc-deck-count = How many standard 52-card decks are shuffled into the Blackjack shoe (default 4, range 1-8).
 
 blackjack-set-dealer-soft-17 = Dealer hits soft 17: { $enabled }
 blackjack-option-changed-dealer-soft-17 = Dealer hits soft 17 set to { $enabled }.
+blackjack-desc-dealer-hits-soft-17 = Controls whether the dealer must draw on soft 17, such as Ace plus 6.
 
 blackjack-set-dealer-peek-blackjack = Dealer peeks for blackjack: { $enabled }
 blackjack-option-changed-dealer-peek-blackjack = Dealer peek for blackjack set to { $enabled }.
+blackjack-desc-dealer-peeks-blackjack = Controls whether the dealer checks for Blackjack when showing an Ace or ten-value card.
 
 blackjack-set-players-cards-face-up = Player cards face up: { $enabled }
 blackjack-option-changed-players-cards-face-up = Player cards face up set to { $enabled }.
+blackjack-desc-players-cards-face-up = Controls whether player cards are public to the whole table.
 
 blackjack-set-allow-insurance = Offer insurance and even money: { $enabled }
 blackjack-option-changed-allow-insurance = Insurance and even money set to { $enabled }.
+blackjack-desc-allow-insurance = Controls whether insurance and even-money choices are offered when the dealer shows an Ace.
 
 blackjack-set-allow-late-surrender = Allow late surrender: { $enabled }
 blackjack-option-changed-allow-late-surrender = Late surrender set to { $enabled }.
+blackjack-desc-allow-late-surrender = Controls whether players may surrender before hitting; this requires dealer peek rules.
 
 blackjack-set-blackjack-payout = Blackjack payout: { $mode }
 blackjack-select-blackjack-payout = Select blackjack payout
 blackjack-option-changed-blackjack-payout = Blackjack payout set to { $mode }.
+blackjack-desc-blackjack-payout = Sets the payout for a natural Blackjack: 3 to 2, 6 to 5, or even money.
 
 blackjack-set-double-down-rule = Double down rule: { $mode }
 blackjack-select-double-down-rule = Select double down rule
 blackjack-option-changed-double-down-rule = Double down rule set to { $mode }.
+blackjack-desc-double-down-rule = Controls which starting totals may double down: any two cards, 9-11 only, or 10-11 only.
 
 blackjack-set-allow-double-after-split = Double after split: { $enabled }
 blackjack-option-changed-allow-double-after-split = Double after split set to { $enabled }.
+blackjack-desc-allow-double-after-split = Controls whether split hands may double down.
 
 blackjack-set-split-rule = Split rule: { $mode }
 blackjack-select-split-rule = Select split rule
 blackjack-option-changed-split-rule = Split rule set to { $mode }.
+blackjack-desc-split-rule = Controls whether a split requires the same exact rank or only the same card value.
 
 blackjack-set-max-split-hands = Maximum split hands: { $count }
 blackjack-enter-max-split-hands = Enter maximum split hands
 blackjack-option-changed-max-split-hands = Maximum split hands set to { $count }.
+blackjack-desc-max-split-hands = Maximum number of hands a player may create by splitting (default 2, range 1-2).
 
 blackjack-set-split-aces-one-card = Split aces draw one card only: { $enabled }
 blackjack-option-changed-split-aces-one-card = Split aces one-card rule set to { $enabled }.
+blackjack-desc-split-aces-one-card-only = Controls whether each split Ace receives exactly one card and then stands.
 
 blackjack-set-split-aces-blackjack = Split aces can count as blackjack: { $enabled }
 blackjack-option-changed-split-aces-blackjack = Split aces blackjack rule set to { $enabled }.
+blackjack-desc-split-aces-count-as-blackjack = Controls whether Ace plus ten-value after splitting Aces counts as a natural Blackjack.
 
 blackjack-set-turn-timer = Turn timer: { $mode }
 blackjack-select-turn-timer = Select turn timer
 blackjack-option-changed-turn-timer = Turn timer set to { $mode }.
+blackjack-desc-turn-timer = Optional time limit for each Blackjack decision; choose Unlimited for no timer.
 
 blackjack-rules-profile-vegas = Vegas
 blackjack-rules-profile-european = European

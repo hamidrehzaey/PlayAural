@@ -22,43 +22,55 @@ uno-card-wild-four = Đổi màu Rút Bốn
 uno-set-winning-score = Giới hạn điểm: { $score }
 uno-enter-winning-score = Nhập giới hạn điểm
 uno-option-changed-winning-score = Giới hạn điểm đã được đặt là { $score }.
+uno-desc-winning-score = Mốc điểm được chế độ tính điểm UNO đã chọn sử dụng (mặc định 300, phạm vi 10-2000).
 
 uno-set-scoring-mode = Cách tính điểm: { $mode }
 uno-select-scoring-mode = Chọn cách tính điểm
 uno-option-changed-scoring-mode = Cách tính điểm đã được đặt là { $mode }.
+uno-desc-scoring-mode = Chọn người đầu tiên đạt mốc sẽ thắng, hoặc người chạm mốc sẽ bị loại.
 uno-scoring-first = Ai đạt giới hạn trước thì thắng
 uno-scoring-elimination = Loại trực tiếp
 
 uno-set-skip-after-draw = Hình phạt rút bài làm mất lượt: { $enabled }
 uno-option-changed-skip-after-draw = Hình phạt rút bài làm mất lượt { $enabled }.
+uno-desc-skip-after-draw = Quy định phạt Rút Hai và Rút Bốn có làm người bị phạt mất lượt hay không.
 
 uno-set-responses = Chồng lá rút: { $enabled }
 uno-option-changed-responses = Chồng lá rút { $enabled }.
+uno-desc-responses = Cho phép người chơi chồng lá rút để đáp lại phạt Rút Hai hoặc Rút Bốn.
 
 uno-set-advanced-responses = Phản đòn nâng cao: { $enabled }
 uno-option-changed-advanced-responses = Phản đòn nâng cao { $enabled }.
+uno-desc-advanced-responses = Cho phép thêm phản ứng phòng thủ với chồng rút, như lá Chặn, Đổi chiều hoặc Đổi màu hợp lệ. Cần bật Chồng lá rút.
 
 uno-set-wait-for-draw-responses = Chờ phản đòn khi hết bài: { $enabled }
 uno-option-changed-wait-for-draw-responses = Chờ phản đòn khi hết bài { $enabled }.
+uno-desc-wait-for-draw-responses = Nếu lá cuối tạo chồng rút, chờ người kế tiếp phản ứng hoặc rút bài trước khi tính điểm vòng. Cần bật Chồng lá rút.
 
 uno-set-bluff = Thách thức Đổi màu Rút Bốn: { $enabled }
 uno-option-changed-bluff = Thách thức Đổi màu Rút Bốn { $enabled }.
+uno-desc-bluff = Bật luật thách thức Rút Bốn khi nghi ngờ đánh sai luật.
 
 uno-set-straights = Đánh liên tiếp: { $enabled }
 uno-option-changed-straights = Đánh liên tiếp { $enabled }.
+uno-desc-straights = Cho phép người vừa đánh lá số tiếp tục chen lượt bằng số liền trước hoặc liền sau cùng màu.
 
 uno-set-interceptions = Cướp lượt: { $enabled }
 uno-option-changed-interceptions = Cướp lượt { $enabled }.
+uno-desc-interceptions = Cho phép người chơi chen lượt bằng lá trùng chính xác. Thử sai sẽ cộng 3 điểm phạt.
 
 uno-set-super-interceptions = Cướp lượt nâng cao: { $enabled }
 uno-option-changed-super-interceptions = Cướp lượt nâng cao { $enabled }.
+uno-desc-super-interceptions = Mở rộng chen lượt để trùng số hoặc ký hiệu hành động ngay cả khi khác màu. Cần bật Chen lượt.
 
 uno-set-zero-seven = Luật số 0 và 7: { $enabled }
 uno-option-changed-zero-seven = Luật số 0 và 7 { $enabled }.
+uno-desc-zero-seven-rule = Bật luật nhà: lá 0 xoay tay bài mọi người, lá 7 cho người đánh đổi tay bài với người khác hoặc bỏ qua.
 
 uno-set-free-draws = Số lần rút tự do mỗi lượt: { $count }
 uno-enter-free-draws = Nhập số lần rút tự do mỗi lượt
 uno-option-changed-free-draws = Số lần rút tự do mỗi lượt đã được đặt là { $count }.
+uno-desc-free-draws = Số lần một người chơi thật được rút dù đang có lá đánh được (mặc định 0, phạm vi 0-999).
 
 # Option validation
 uno-error-advanced-responses-require-responses = Muốn bật Phản đòn nâng cao thì trước hết phải bật Chồng lá rút.

@@ -58,6 +58,7 @@ midnight-game-tie = Trò chơi hòa. { $players } cùng kết thúc với { $win
 midnight-set-rounds = Số vòng chơi: { $rounds }
 midnight-enter-rounds = Nhập số vòng chơi:
 midnight-option-changed-rounds = Số vòng chơi đã đổi thành { $rounds }
+midnight-desc-rounds = Số vòng 1-4-24 sẽ chơi trước khi tính tổng cuối cùng (mặc định 5, phạm vi 1-20).
 midnight-error-rounds-out-of-range = 1-4-24 hỗ trợ từ { $min } đến { $max } vòng. Thiết lập hiện tại: { $rounds }.
 
 midnight-need-to-roll = Hãy gieo xúc xắc trước khi chọn viên để giữ.

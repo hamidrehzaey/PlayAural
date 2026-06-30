@@ -126,7 +126,9 @@ coup-end-line = { $rank }. { $name } ({ $status }) - { $coins } coins. Cards: { 
 coup-set-mandatory-coup = Mandatory Coup Coin Threshold ({ $coins })
 coup-enter-mandatory-coup = Enter coins required to force a Coup (10 - 20):
 coup-option-changed-mandatory-coup = Mandatory Coup threshold changed.
+coup-desc-mandatory-coup-threshold = Coin total at which a player must Coup instead of choosing another action (default 10, range 10-20).
 
 coup-set-timer-duration = Interrupt Timer Duration ({ $seconds }s)
 coup-enter-timer-duration = Enter duration for Challenge/Block window (3 - 15 seconds):
 coup-option-changed-timer = Timer duration changed.
+coup-desc-timer-duration-seconds = Time allowed for timed Coup reactions and challenges (default 7 seconds, range 3-15).

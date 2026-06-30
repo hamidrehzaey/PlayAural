@@ -82,5 +82,5 @@ tradeoff-no-dice-key-phase = Phím số chỉ dùng khi đang chọn đổi xúc
 tradeoff-set-target = Điểm mục tiêu: { $score }
 tradeoff-enter-target = Nhập điểm mục tiêu:
 tradeoff-option-changed-target = Điểm mục tiêu đã đặt là { $score }.
-tradeoff-desc-target-score = Tổng điểm một người chơi cần đạt hoặc vượt qua sau một vòng tính điểm để thắng.
+tradeoff-desc-target-score = Tổng điểm một người chơi cần đạt hoặc vượt qua sau một vòng tính điểm để thắng (mặc định 60, phạm vi 30-500).
 tradeoff-error-target-out-of-range = Điểm mục tiêu { $score } nằm ngoài phạm vi cho phép từ { $min } đến { $max }.

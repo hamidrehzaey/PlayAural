@@ -4,6 +4,7 @@ milebymile-set-distance = Race distance: { $miles } miles
 milebymile-enter-distance = Enter race distance (300-3000)
 milebymile-set-winning-score = Winning score: { $score } points
 milebymile-enter-winning-score = Enter winning score (1000-10000)
+milebymile-desc-team-mode = Play individually or in a team arrangement supported by the current player count.
 milebymile-toggle-perfect-crossing = Require exact finish: { $enabled }
 milebymile-toggle-stacking = Allow stacking attacks: { $enabled }
 milebymile-toggle-reshuffle = Reshuffle discard pile: { $enabled }
@@ -16,12 +17,19 @@ milebymile-rig-2x-attacks = 2x Attacks
 milebymile-rig-2x-defenses = 2x Defenses
 
 milebymile-option-changed-distance = Race distance set to { $miles } miles.
+milebymile-desc-round-distance = Target distance for each race (default 1,000 miles, range 300-3,000). If exact finish is enabled, this distance must be divisible by 25.
 milebymile-option-changed-winning = Winning score set to { $score } points.
+milebymile-desc-winning-score = Total score needed to win the Mile by Mile match (default 5,000, range 1,000-10,000).
 milebymile-option-changed-crossing = Require exact finish { $enabled }.
+milebymile-desc-only-allow-perfect-crossing = When enabled, a player must reach the race target exactly; distance cards that would pass the finish cannot be played.
 milebymile-option-changed-stacking = Allow stacking attacks { $enabled }.
+milebymile-desc-allow-stacking-attacks = When enabled, multiple hazards can affect the same car instead of being blocked by an existing hazard.
 milebymile-option-changed-reshuffle = Reshuffle discard pile { $enabled }.
+milebymile-desc-reshuffle-discard-pile = When enabled, the discard pile is shuffled back into the draw deck when the deck runs out.
 milebymile-option-changed-karma = Karma rule { $enabled }.
+milebymile-desc-karma-rule = Enables karma cards and shunning. Attacking while both sides have karma neutralizes the attack; a shunned attacker can only target another shunned side. Requires at least 3 cars or teams.
 milebymile-option-changed-rig = Deck rigging set to { $rig }.
+milebymile-desc-rig-game = Optional deck composition variant: normal, no duplicate cards, double attacks, or double defenses.
 
 milebymile-status = { $score_info }, { $miles } miles, Problems: { $problems }, Safeties: { $safeties }
 

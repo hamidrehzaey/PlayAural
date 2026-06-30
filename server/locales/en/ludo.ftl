@@ -287,5 +287,7 @@ ludo-last-roll = Last roll: { $roll }
 ludo-set-max-sixes = Max consecutive sixes: { $max_consecutive_sixes }
 ludo-enter-max-sixes = Enter max consecutive sixes
 ludo-option-changed-max-sixes = Max consecutive sixes set to { $max_consecutive_sixes }.
+ludo-desc-max-consecutive-sixes = How many consecutive sixes a player may roll before the turn is penalized or passed (default 3, range 0-5).
 ludo-set-safe-start-squares = Safe start squares: { $enabled }
 ludo-option-changed-safe-start-squares = Safe start squares set to { $enabled }.
+ludo-desc-safe-start-squares = Controls whether each player's start square is treated as a safe square.
