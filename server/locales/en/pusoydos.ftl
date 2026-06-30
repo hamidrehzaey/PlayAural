@@ -36,7 +36,7 @@ pusoydos-desc-target-score = Points modes only: score threshold for winning in P
 pusoydos-set-turn-timer = Turn Timer: { $choice }
 pusoydos-select-turn-timer = Select turn timer duration:
 pusoydos-option-changed-turn-timer = Turn timer set to { $choice }.
-pusoydos-desc-turn-timer = Per-turn time limit: Unlimited, 10, 15, 20, 30, 45, 60, or 90 seconds. Default: Unlimited.
+pusoydos-desc-turn-timer = Per-turn time limit: Unlimited, 10, 15, 20, 30, 45, 60, or 90 seconds (default Unlimited).
 
 pusoydos-timer-10 = 10 Seconds
 pusoydos-timer-15 = 15 Seconds

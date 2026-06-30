@@ -49,7 +49,7 @@ metalpipe-line-format = { $player}: { $status }
 
 metalpipe-set-multiple-bonks = Multiple bonks: { $enabled }
 metalpipe-option-changed-multiple-bonks = Multiple bonks set to { $enabled }.
-metalpipe-desc-multiple-bonks = When enabled, the pipe keeps choosing bonkers and targets until only one player remains. Default: off.
+metalpipe-desc-multiple-bonks = When enabled, the pipe keeps choosing bonkers and targets until only one player remains (default off).
 metalpipe-set-allow-self-bonk = Allow self-bonk: { $enabled }
 metalpipe-option-changed-allow-self-bonk = Allow self-bonk set to { $enabled }.
-metalpipe-desc-allow-self-bonk = When enabled, the randomly chosen bonker can also become the target. Default: on.
+metalpipe-desc-allow-self-bonk = When enabled, the randomly chosen bonker can also become the target (default on).

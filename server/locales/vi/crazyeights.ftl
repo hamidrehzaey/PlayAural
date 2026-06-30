@@ -3,12 +3,12 @@ game-name-crazyeights = Crazy Eights
 crazyeights-set-winning-score = Điểm chiến thắng: { $score }
 crazyeights-enter-winning-score = Nhập điểm chiến thắng
 crazyeights-option-changed-winning-score = Điểm chiến thắng đã được đặt là { $score }.
-crazyeights-desc-winning-score = Mốc điểm kết thúc trận Crazy Eights. Mặc định: 500. Phạm vi: 1 đến 10.000.
+crazyeights-desc-winning-score = Mốc điểm kết thúc trận Crazy Eights (mặc định 500, phạm vi 1-10000).
 
 crazyeights-set-turn-timer = Thời gian mỗi lượt: { $mode }
 crazyeights-select-turn-timer = Chọn thời gian mỗi lượt
 crazyeights-option-changed-turn-timer = Thời gian mỗi lượt đã được đặt là { $mode }.
-crazyeights-desc-turn-timer = Giới hạn thời gian tùy chọn cho mỗi lượt Crazy Eights: 5, 10, 15, 20, 30, 45, 60 hoặc 90 giây, hoặc Không giới hạn. Mặc định: Không giới hạn.
+crazyeights-desc-turn-timer = Giới hạn thời gian tùy chọn cho mỗi lượt Crazy Eights: 5, 10, 15, 20, 30, 45, 60 hoặc 90 giây, hoặc Không giới hạn (mặc định Không giới hạn).
 
 crazyeights-draw = Rút bài
 crazyeights-pass = Bỏ lượt

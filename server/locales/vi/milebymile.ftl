@@ -27,7 +27,7 @@ milebymile-desc-allow-stacking-attacks = Khi bật, nhiều bẫy có thể ản
 milebymile-option-changed-reshuffle = Xào lại bài đã bỏ { $enabled }.
 milebymile-desc-reshuffle-discard-pile = Khi bật, chồng bài bỏ sẽ được xào lại vào chồng rút khi chồng rút hết.
 milebymile-option-changed-karma = Luật Nghiệp { $enabled }.
-milebymile-desc-karma-rule = Bật lá Nghiệp và trạng thái bị tẩy chay. Nếu hai bên còn Nghiệp tấn công nhau, đòn tấn công bị vô hiệu hóa; bên đã mất Nghiệp chỉ có thể tấn công mục tiêu cũng đã mất Nghiệp. Cần ít nhất 3 xe hoặc đội.
+milebymile-desc-karma-rule = Quy định có dùng lá Nghiệp và trạng thái bị tẩy chay hay không. Nếu hai bên còn Nghiệp tấn công nhau, đòn tấn công bị vô hiệu hóa; bên đã mất Nghiệp chỉ có thể tấn công mục tiêu cũng đã mất Nghiệp. Cần ít nhất 3 xe hoặc đội.
 milebymile-option-changed-rig = Kiểu sắp xếp bộ bài được đặt là { $rig }.
 milebymile-desc-rig-game = Biến thể thành phần bộ bài: bình thường, không trùng lá, gấp đôi bẫy hoặc gấp đôi bài phòng thủ.
 

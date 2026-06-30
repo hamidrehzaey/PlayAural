@@ -27,7 +27,7 @@ milebymile-desc-allow-stacking-attacks = When enabled, multiple hazards can affe
 milebymile-option-changed-reshuffle = Reshuffle discard pile { $enabled }.
 milebymile-desc-reshuffle-discard-pile = When enabled, the discard pile is shuffled back into the draw deck when the deck runs out.
 milebymile-option-changed-karma = Karma rule { $enabled }.
-milebymile-desc-karma-rule = Enables karma cards and shunning. Attacking while both sides have karma neutralizes the attack; a shunned attacker can only target another shunned side. Requires at least 3 cars or teams.
+milebymile-desc-karma-rule = Controls whether karma cards and shunning are used. Attacking while both sides have karma neutralizes the attack; a shunned attacker can only target another shunned side. Requires at least 3 cars or teams.
 milebymile-option-changed-rig = Deck rigging set to { $rig }.
 milebymile-desc-rig-game = Optional deck composition variant: normal, no duplicate cards, double attacks, or double defenses.
 
