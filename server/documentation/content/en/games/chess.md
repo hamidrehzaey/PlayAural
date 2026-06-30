@@ -46,10 +46,10 @@ The host decides whether threefold repetition and the fifty-move rule are handle
 
 \*\*Customizable Options\*\*
 
-\* \*\*Time Control:\*\* Default `Untimed`. Choices: `Bullet 1+0`, `Bullet 2+1`, `Blitz 3+0`, `Blitz 3+2`, `Blitz 5+0`, `Rapid 10+0`, `Rapid 10+5`, `Classical 30+0`.
-\* \*\*Draw Handling:\*\* Default `Automatic`. Choices: `Automatic` or `Claim required` for threefold repetition and the fifty-move rule. Fivefold repetition and the seventy-five-move rule are always automatic.
-\* \*\*Allow Draw Offers:\*\* Default `On`.
-\* \*\*Allow Undo Requests:\*\* Default `Off`.
+\* \*\*Time Control:\*\* Choose the clock preset for both players (default `Untimed`, choices: `Bullet 1+0`, `Bullet 2+1`, `Blitz 3+0`, `Blitz 3+2`, `Blitz 5+0`, `Rapid 10+0`, `Rapid 10+5`, `Classical 30+0`).
+\* \*\*Draw Handling:\*\* Choose whether threefold repetition and the fifty-move rule are automatic or must be claimed. Fivefold repetition and the seventy-five-move rule are always automatic (default `Automatic`, choices: `Automatic` or `Claim required`).
+\* \*\*Allow Draw Offers:\*\* Whether players may offer draws during the game (default `On`).
+\* \*\*Allow Undo Requests:\*\* Whether players may ask their opponent to take back moves (default `Off`).
 
 \*\*Keyboard Shortcuts\*\*
 

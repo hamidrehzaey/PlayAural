@@ -70,9 +70,9 @@ After those remaining turns:
 
 \*\*Game Options\*\*
 
-\* \*\*Target threshold:\*\* The score that must be exceeded to trigger final turns. Default: 100. Range: 20-500.
+\* \*\*Target threshold:\*\* The score that must be exceeded to trigger final turns (default 100, range 20-500).
 
-\* \*\*Dice per set:\*\* Number of dice at the beginning of each turn and in every fresh set. Default: 10. Range: 5-20.
+\* \*\*Dice per set:\*\* Number of dice at the beginning of each turn and in every fresh set (default 10, range 5-20).
 
 \* \*\*Rules:\*\* Choose Classic or Forgiving color odds and bust conditions.
 

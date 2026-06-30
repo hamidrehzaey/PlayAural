@@ -38,8 +38,8 @@ The host chooses one of two winning modes:
 
 \*\*Customizable Options\*\*
 
-\* \*\*Rounds:\*\* Default 6. Range 1 to 12.
-\* \*\*Winning Mode:\*\* Default Round Wins. Choices: Round Wins or Total Score.
+\* \*\*Rounds:\*\* How many rounds the match lasts (default 6, range 1 to 12).
+\* \*\*Winning Mode:\*\* How final standings are ranked (default Round Wins, choices: Round Wins or Total Score).
 
 \*\*Keyboard Shortcuts\*\*
 

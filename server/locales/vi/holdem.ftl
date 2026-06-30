@@ -8,7 +8,7 @@ holdem-desc-starting-chips = Số chip ban đầu mỗi người có khi vào tr
 holdem-set-big-blind = Mù lớn: { $count }
 holdem-enter-big-blind = Nhập tiền mù lớn
 holdem-option-changed-big-blind = Tiền mù lớn đã được đặt là { $count }.
-holdem-desc-big-blind = Mức mù lớn cơ bản, từ 1 đến 1.000.000. Mặc định: 200. Mức này phải thấp hơn số chip ban đầu.
+holdem-desc-big-blind = Mức mù lớn cơ bản. Mức này phải thấp hơn số chip ban đầu (mặc định 200, phạm vi 1-1.000.000).
 
 holdem-set-ante = Cược góp: { $count }
 holdem-enter-ante = Nhập tiền cược góp
@@ -18,7 +18,7 @@ holdem-desc-ante = Khoản Cược góp tùy chọn mỗi người chơi còn ho
 holdem-set-ante-start = Cược góp bắt đầu từ cấp: { $count }
 holdem-enter-ante-start = Nhập cấp độ mù để bắt đầu có cược góp
 holdem-option-changed-ante-start = Cấp độ bắt đầu cược góp đã được đặt là { $count }.
-holdem-desc-ante-start-level = Cấp mù nơi Cược góp bắt đầu có hiệu lực, từ 0 đến 20. Mặc định: 0, nghĩa là Cược góp có hiệu lực từ ván đầu tiên khi mức Cược góp lớn hơn 0.
+holdem-desc-ante-start-level = Cấp mù nơi Cược góp bắt đầu có hiệu lực. Khi đặt là 0, Cược góp có hiệu lực từ ván đầu tiên nếu mức Cược góp lớn hơn 0 (mặc định 0, phạm vi 0-20).
 
 holdem-set-turn-timer = Thời gian mỗi lượt: { $mode }
 holdem-select-turn-timer = Chọn thời gian mỗi lượt

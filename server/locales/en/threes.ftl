@@ -62,7 +62,7 @@ threes-tie-you-brief = You tie with { $players } at { $score }.
 threes-set-rounds = Rounds: { $rounds }
 threes-enter-rounds = Enter number of rounds:
 threes-option-changed-rounds = Number of rounds set to { $rounds }.
-threes-desc-rounds = Number of rounds to play (default 10, range 1-20). Each player takes one turn per round, and the lowest total score wins.
+threes-desc-rounds = Number of rounds to play. Each player takes one turn per round, and the lowest total score wins (default 10, range 1-20).
 
 threes-error-roll-not-playing = You cannot roll because Threes has not started.
 threes-error-roll-no-turn = You cannot roll because no active turn is available right now.

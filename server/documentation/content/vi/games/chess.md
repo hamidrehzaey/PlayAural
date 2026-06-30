@@ -46,10 +46,10 @@ Chủ bàn sẽ quyết định xem thế cờ lặp lại ba lần và Luật 5
 
 \*\*Tùy chọn có thể chỉnh\*\*
 
-\* \*\*Kiểm soát thời gian:\*\* Mặc định `Không giới hạn`. Các lựa chọn gồm `Bullet 1+0`, `Bullet 2+1`, `Blitz 3+0`, `Blitz 3+2`, `Blitz 5+0`, `Rapid 10+0`, `Rapid 10+5`, `Classical 30+0`.
-\* \*\*Xử lý cờ hòa:\*\* Mặc định `Tự động`. Có thể chọn `Phải yêu cầu` cho thế cờ lặp lại ba lần và Luật 50 nước. Thế cờ lặp lại năm lần và Luật 75 nước luôn tự động.
-\* \*\*Cho phép đề nghị hòa:\*\* Mặc định `Bật`.
-\* \*\*Cho phép xin đi lại:\*\* Mặc định `Tắt`.
+\* \*\*Kiểm soát thời gian:\*\* Chọn bộ thời gian cho cả hai người chơi (mặc định `Không giới hạn`, lựa chọn: `Bullet 1+0`, `Bullet 2+1`, `Blitz 3+0`, `Blitz 3+2`, `Blitz 5+0`, `Rapid 10+0`, `Rapid 10+5`, `Classical 30+0`).
+\* \*\*Xử lý cờ hòa:\*\* Chọn thế cờ lặp lại ba lần và Luật 50 nước được xử tự động hay phải do người đến lượt yêu cầu hòa. Thế cờ lặp lại năm lần và Luật 75 nước luôn tự động (mặc định `Tự động`, lựa chọn: `Tự động` hoặc `Phải yêu cầu`).
+\* \*\*Cho phép đề nghị hòa:\*\* Người chơi có được đề nghị hòa trong ván hay không (mặc định `Bật`).
+\* \*\*Cho phép xin đi lại:\*\* Người chơi có được xin đối thủ cho đi lại nước đi hay không (mặc định `Tắt`).
 
 \*\*Phím tắt\*\*
 

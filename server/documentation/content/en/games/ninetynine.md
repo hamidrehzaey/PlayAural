@@ -90,9 +90,9 @@ Players start with a pool of tokens (default 9). When a player reaches 0 tokens,
 
 \* \*\*Hand Size:\*\* Number of cards dealt to each player per round (default 3, range 1-13).
 
-\* \*\*Rules Variant:\*\* Standard (default) or Action Cards.
+\* \*\*Rules Variant:\*\* Choose Standard rules or Action Cards (default Standard).
 
-\* \*\*Auto-Draw:\*\* Whether a replacement card is drawn automatically after playing (default on). When off, players must manually draw with Space or D.
+\* \*\*Auto-Draw:\*\* Whether a replacement card is drawn automatically after playing. When off, players must manually draw with Space or D (default on).
 
 
 

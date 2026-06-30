@@ -42,8 +42,8 @@ Touch clients can always access the standard table controls while the game is ru
 
 \*\*Game Options\*\*
 
-\* \*\*Multiple Bonks:\*\* Default: off. When off, a single bonk decides the result. When on, bonks continue until only one player remains.
-\* \*\*Allow Self-Bonk:\*\* Default: on. When on, the bonker can also be selected as the target. When off, the bonker always hits someone else.
+\* \*\*Multiple Bonks:\*\* When off, a single bonk decides the result. When on, bonks continue until only one player remains (default off).
+\* \*\*Allow Self-Bonk:\*\* When on, the bonker can also be selected as the target. When off, the bonker always hits someone else (default on).
 
 These options do not conflict with each other. Every combination is supported.
 

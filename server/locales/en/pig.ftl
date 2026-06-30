@@ -85,9 +85,9 @@ pig-set-dice-sides = Die sides: { $sides }
 pig-enter-min-bank = Enter the minimum turn points required to hold:
 pig-enter-dice-sides = Enter the number of sides on the die:
 pig-option-changed-min-bank = Minimum hold changed to { $points } points.
-pig-desc-min-bank = The number of turn points required before Hold becomes available. Set this to 0 for standard Pig (default 0, range 0-999). It must stay below the target score.
+pig-desc-min-bank = The number of turn points required before Hold becomes available. Set this to 0 for standard Pig; it must stay below the target score (default 0, range 0-999).
 pig-option-changed-dice = The die now has { $sides } sides.
-pig-desc-dice-sides = The number of sides on the single die (default 6, range 4-20). Rolling 1 always loses the turn total.
+pig-desc-dice-sides = The number of sides on the single die. Rolling 1 always loses the turn total (default 6, range 4-20).
 
 pig-error-target-out-of-range = Target score { $value } is invalid. Choose a value from { $min } to { $max }.
 pig-error-min-bank-out-of-range = Minimum hold { $value } is invalid. Choose a value from { $min } to { $max }.

@@ -71,9 +71,9 @@ Sorry! does not use round points or match points. The score display simply track
 
 \*\*Customizable Options\*\*
 
-\* \*\*Rules Profile:\*\* Default `Classic 00390`. Choices: `Classic 00390` or `A5065 Core`.
-\* \*\*Auto Apply Single Move:\*\* Default `On`. If a card leaves only one legal move, the game performs it automatically.
-\* \*\*Faster Setup (One Pawn Out):\*\* Default `Off`. If enabled, each player begins with one pawn already on their starting square.
+\* \*\*Rules Profile:\*\* Choose which Sorry rule profile to use (default `Classic 00390`, choices: `Classic 00390` or `A5065 Core`).
+\* \*\*Auto Apply Single Move:\*\* If a card leaves only one legal move, the game performs it automatically (default `On`).
+\* \*\*Faster Setup (One Pawn Out):\*\* If enabled, each player begins with one pawn already on their starting square (default `Off`).
 
 \*\*Keyboard Shortcuts\*\*
 

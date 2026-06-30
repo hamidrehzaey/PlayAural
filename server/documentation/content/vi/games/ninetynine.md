@@ -90,9 +90,9 @@ Người chơi bắt đầu với một số lượng thẻ (mặc định là 9
 
 \* \*\*Số bài trên tay:\*\* Số lá bài được chia cho mỗi người mỗi vòng (mặc định 3, phạm vi 1-13).
 
-\* \*\*Biến thể luật:\*\* Tiêu chuẩn (mặc định) hoặc Lá bài hành động.
+\* \*\*Biến thể luật:\*\* Chọn luật Tiêu chuẩn hoặc Lá bài hành động (mặc định Tiêu chuẩn).
 
-\* \*\*Tự động rút bài:\*\* Tự động rút bài thay thế sau khi đánh (mặc định bật). Khi tắt, người chơi phải rút bằng phím Cách hoặc D.
+\* \*\*Tự động rút bài:\*\* Tự động rút bài thay thế sau khi đánh. Khi tắt, người chơi phải rút bằng phím Cách hoặc D (mặc định bật).
 
 
 

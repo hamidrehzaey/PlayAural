@@ -8,7 +8,7 @@ fivecarddraw-desc-starting-chips = Each player's opening Five Card Draw stack, f
 draw-set-ante = Ante: { $count }
 draw-enter-ante = Enter ante amount
 draw-option-changed-ante = Ante set to { $count }.
-fivecarddraw-desc-ante = Forced contribution each active player posts before every hand, from 0 to 1,000,000 chips. Default: 100. It must be lower than the starting stack.
+fivecarddraw-desc-ante = Forced contribution each active player posts before every hand. It must be lower than the starting stack (default 100, range 0-1,000,000 chips).
 
 draw-set-turn-timer = Turn timer: { $mode }
 draw-select-turn-timer = Select turn timer
@@ -18,7 +18,7 @@ fivecarddraw-desc-turn-timer = Optional time limit for each betting or draw deci
 draw-set-raise-mode = Raise mode: { $mode }
 draw-select-raise-mode = Select raise mode
 draw-option-changed-raise-mode = Raise mode set to { $mode }.
-fivecarddraw-desc-raise-mode = Raise limit style: No limit, Pot limit, or Double pot limit. Default: No limit. Pot-based modes require an ante greater than 0 so the first betting round can open normally.
+fivecarddraw-desc-raise-mode = Raise limit style: No limit, Pot limit, or Double pot limit. Pot-based modes require an ante greater than 0 so the first betting round can open normally (default No limit).
 
 draw-set-max-raises = Maximum raises per betting round: { $count }
 draw-enter-max-raises = Enter maximum raises per betting round (0 for unlimited)

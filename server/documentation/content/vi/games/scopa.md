@@ -62,13 +62,13 @@ Vào cuối mỗi vòng, 1 điểm sẽ được trao cho mỗi hạng mục sau
 
 \* \*\*Chế độ đội:\*\* Chơi cá nhân hoặc theo đội.
 
-\* \*\*Tính điểm bài theo đội:\*\* Bài ăn được của các thành viên trong đội được gộp chung để tính điểm (mặc định bật). Nếu tắt trong trò chơi theo đội, bài đã ăn của từng người được xét riêng, và điểm người đó giành được sẽ cộng cho đội của họ.
+\* \*\*Tính điểm bài theo đội:\*\* Bài ăn được của các thành viên trong đội được gộp chung để tính điểm. Nếu tắt trong trò chơi theo đội, bài đã ăn của từng người được xét riêng, và điểm người đó giành được sẽ cộng cho đội của họ (mặc định bật).
 
 \* \*\*Gợi ý ăn bài:\*\* Hiển thị những lá bài nào trên bàn có thể ăn được với mỗi lá bài trên tay (mặc định tắt).
 
 \* \*\*Cơ chế Scopa:\*\* Bình thường, Không Scopa (quét bàn không tính điểm), hoặc Chỉ Scopa (chỉ tính điểm quét bàn).
 
-\* \*\*Scopa tức thì:\*\* Một điểm Scopa hợp lệ sẽ thắng ngay cả ván (mặc định tắt). Tùy chọn này không thể dùng cùng Không Scopa hoặc Scopa Đảo ngược.
+\* \*\*Scopa tức thì:\*\* Một điểm Scopa hợp lệ sẽ thắng ngay cả ván. Tùy chọn này không thể dùng cùng Không Scopa hoặc Scopa Đảo ngược (mặc định tắt).
 
 
 
@@ -78,7 +78,7 @@ Vào cuối mỗi vòng, 1 điểm sẽ được trao cho mỗi hạng mục sau
 
 \* \*\*Asso piglia tutto (Át ăn tất cả):\*\* Đánh lá Át sẽ quét sạch tất cả các lá bài hiện có trên bàn (việc quét này thường không được tính là điểm Scopa). Nếu đã có một lá Át trên bàn, nó chỉ ăn lá Át đó. Chế độ này không thể được bật cùng với Escoba.
 
-\* \*\*Tính điểm Primiera truyền thống:\*\* Bật mặc định cho Scopa chuẩn. Nếu tắt, trò chơi dùng biến thể đơn giản hơn là tính điểm "Nhiều lá 7 nhất".
+\* \*\*Tính điểm Primiera truyền thống:\*\* Nếu tắt, trò chơi dùng biến thể đơn giản hơn là tính điểm "Nhiều lá 7 nhất" (mặc định bật cho Scopa chuẩn).
 
 \* \*\*Napola:\*\* Kiếm điểm thưởng bằng cách ăn một chuỗi liên tiếp các lá bài chất Rô bắt đầu từ Át (Át, 2, 3 Rô = 3 điểm; tối đa lên đến 10 điểm cho tất cả các lá Rô).
 

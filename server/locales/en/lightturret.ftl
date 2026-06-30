@@ -72,11 +72,11 @@ lightturret-players-tie-brief = Tie: { $players}, { $light } light.
 lightturret-set-starting-power = Starting power: { $power }
 lightturret-enter-starting-power = Enter starting power:
 lightturret-option-changed-power = Starting power set to { $power }.
-lightturret-desc-starting-power = Each turret's initial overload capacity (default 10, range 5-30). Light equal to power is safe; only light above power overloads.
+lightturret-desc-starting-power = Each turret's initial overload capacity. Light equal to power is safe; only light above power overloads (default 10, range 5-30).
 lightturret-set-max-rounds = Maximum rounds: { $rounds }
 lightturret-enter-max-rounds = Enter maximum rounds:
 lightturret-option-changed-rounds = Maximum rounds set to { $rounds }.
-lightturret-desc-max-rounds = The number of complete rounds (default 50, range 10-200). Every active turret receives one turn in the final round.
+lightturret-desc-max-rounds = The number of complete rounds. Every active turret receives one turn in the final round (default 50, range 10-200).
 lightturret-error-starting-power-invalid = Starting power must be between { $min } and { $max }; the current value is { $power }.
 lightturret-error-max-rounds-invalid = Maximum rounds must be between { $min } and { $max }; the current value is { $rounds }.
 

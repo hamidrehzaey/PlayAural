@@ -50,15 +50,15 @@
 
 \*\*Tùy Chỉnh Tại Bàn Chơi\*\*
 
-\* \*\*Chế độ chơi:\*\* Mặc định: `Mỗi người 1 đấu sĩ`. Lựa chọn: `Hỗn Chiến Loạn Đấu`, `Mỗi người 1 đấu sĩ`, `Mỗi người 2 đấu sĩ`, `Mỗi người 3 đấu sĩ`, `Đấu đội`, `Ảnh Gương`, `Đấu trường cổ điển`, `Đấu trường hỗn hợp`, `Sinh tồn cổ điển`, `Sinh tồn hỗn hợp`, `Đợt sóng cổ điển`, `Đợt sóng hỗn hợp`.
-\* \*\*Chế độ đội:\*\* Mặc định: `Cá nhân`. Các lựa chọn phụ thuộc số người chơi, gồm `2 đội, mỗi đội 2 người`, `3 đội, mỗi đội 2 người`, và `2 đội, mỗi đội 3 người` khi hợp lệ. Tùy chọn này chỉ dùng cho `Đấu đội`; muốn bắt đầu `Đấu đội`, chủ bàn phải chọn một cách chia đội không phải `Cá nhân` và phù hợp với số người chơi hiện tại.
-\* \*\*Chế độ lượt:\*\* Mặc định: `Tranh quyền ra tay`. Lựa chọn: `Tranh quyền ra tay`, `Lần lượt theo vòng`.
-\* \*\*Chế độ cân bằng:\*\* Mặc định: `Tắt`. Lựa chọn: `Bật` hoặc `Tắt`. Khi bật, bất kỳ mẫu đấu sĩ nào có bộ chỉ số vượt khỏi mốc cân bằng sẽ bị đưa về `50 máu`, `0 tấn công`, `0 phòng thủ`, và `100 tốc độ`.
-\* \*\*Giới hạn đấu sĩ trong chế độ tự do:\*\* Mặc định: `3`. Khoảng: `1` đến `6`. Dùng cho `Hỗn Chiến Loạn Đấu`, `Đấu đội`, `Ảnh Gương`, `Đấu trường cổ điển`, `Đấu trường hỗn hợp`, `Sinh tồn cổ điển`, `Sinh tồn hỗn hợp`, `Đợt sóng cổ điển`, và `Đợt sóng hỗn hợp`.
-\* \*\*Mẫu địch cổ điển:\*\* Mặc định: `Võ sĩ tập sự`. Lựa chọn: toàn bộ 12 mẫu dựng sẵn gồm `Võ sĩ tập sự`, `Võ sĩ quyền Anh`, `Đại đấu sĩ`, `Chiến đấu cơ`, `Binh sĩ cấp thấp`, `Binh sĩ cấp cao`, `Đấu sĩ ma ảnh`, `Sói đầu đàn`, `Sư tử hỏa diệm`, `Đại pháp sư`, `Chiến binh pháp thuật`, `Chúa tể bão giông`. Chỉ dùng cho `Đấu trường cổ điển`, `Sinh tồn cổ điển`, và `Đợt sóng cổ điển`.
-\* \*\*Độ khó đấu trường:\*\* Mặc định: `Thường`. Lựa chọn: `Dễ`, `Thường`, `Khó`, `Điên cuồng`, `Chuyên nghiệp`, `Tối thượng`. Chỉ dùng khi trò chơi sinh địch cho đấu trường, sinh tồn, hoặc đợt sóng.
-\* \*\*Mục tiêu sinh tồn:\*\* Mặc định: `0`. Khoảng: `0` đến `10000`. Chỉ dùng cho `Sinh tồn cổ điển`, `Sinh tồn hỗn hợp`, `Đợt sóng cổ điển`, và `Đợt sóng hỗn hợp`. Giá trị `0` có nghĩa là vô tận.
-\* \*\*Phần trăm hồi máu sinh tồn:\*\* Mặc định: `0`. Khoảng: `0` đến `100`. Chỉ dùng cho `Sinh tồn cổ điển`, `Sinh tồn hỗn hợp`, `Đợt sóng cổ điển`, và `Đợt sóng hỗn hợp`. Sau mỗi lần địch được bù vào trong Sinh tồn, hoặc sau mỗi đợt đã vượt xong trong Đợt sóng, các đấu sĩ đồng minh còn sống sẽ hồi lại đúng tỷ lệ này của máu tối đa.
+\* \*\*Chế độ chơi:\*\* Chọn biến thể chính của Đấu Trường (mặc định: `Mỗi người 1 đấu sĩ`, lựa chọn: `Hỗn Chiến Loạn Đấu`, `Mỗi người 1 đấu sĩ`, `Mỗi người 2 đấu sĩ`, `Mỗi người 3 đấu sĩ`, `Đấu đội`, `Ảnh Gương`, `Đấu trường cổ điển`, `Đấu trường hỗn hợp`, `Sinh tồn cổ điển`, `Sinh tồn hỗn hợp`, `Đợt sóng cổ điển`, `Đợt sóng hỗn hợp`).
+\* \*\*Chế độ đội:\*\* Chỉ dùng cho `Đấu đội`; muốn bắt đầu `Đấu đội`, chủ bàn phải chọn một cách chia đội không phải `Cá nhân` và phù hợp với số người chơi hiện tại (mặc định: `Cá nhân`, lựa chọn phụ thuộc số người chơi và gồm `2 đội, mỗi đội 2 người`, `3 đội, mỗi đội 2 người`, và `2 đội, mỗi đội 3 người` khi hợp lệ).
+\* \*\*Chế độ lượt:\*\* Chọn thứ tự lượt theo Tranh quyền ra tay hoặc theo vòng quanh bàn (mặc định: `Tranh quyền ra tay`, lựa chọn: `Tranh quyền ra tay`, `Lần lượt theo vòng`).
+\* \*\*Chế độ cân bằng:\*\* Khi bật, bất kỳ mẫu đấu sĩ nào có bộ chỉ số vượt khỏi mốc cân bằng sẽ bị đưa về `50 máu`, `0 tấn công`, `0 phòng thủ`, và `100 tốc độ` (mặc định: `Tắt`, lựa chọn: `Bật` hoặc `Tắt`).
+\* \*\*Giới hạn đấu sĩ trong chế độ tự do:\*\* Dùng cho `Hỗn Chiến Loạn Đấu`, `Đấu đội`, `Ảnh Gương`, `Đấu trường cổ điển`, `Đấu trường hỗn hợp`, `Sinh tồn cổ điển`, `Sinh tồn hỗn hợp`, `Đợt sóng cổ điển`, và `Đợt sóng hỗn hợp` (mặc định: `3`, khoảng: `1` đến `6`).
+\* \*\*Mẫu địch cổ điển:\*\* Chỉ dùng cho `Đấu trường cổ điển`, `Sinh tồn cổ điển`, và `Đợt sóng cổ điển` (mặc định: `Võ sĩ tập sự`, lựa chọn: `Võ sĩ tập sự`, `Võ sĩ quyền Anh`, `Đại đấu sĩ`, `Chiến đấu cơ`, `Binh sĩ cấp thấp`, `Binh sĩ cấp cao`, `Đấu sĩ ma ảnh`, `Sói đầu đàn`, `Sư tử hỏa diệm`, `Đại pháp sư`, `Chiến binh pháp thuật`, `Chúa tể bão giông`).
+\* \*\*Độ khó đấu trường:\*\* Chỉ dùng khi trò chơi sinh địch cho đấu trường, sinh tồn, hoặc đợt sóng (mặc định: `Thường`, lựa chọn: `Dễ`, `Thường`, `Khó`, `Điên cuồng`, `Chuyên nghiệp`, `Tối thượng`).
+\* \*\*Mục tiêu sinh tồn:\*\* Chỉ dùng cho `Sinh tồn cổ điển`, `Sinh tồn hỗn hợp`, `Đợt sóng cổ điển`, và `Đợt sóng hỗn hợp`; giá trị `0` có nghĩa là vô tận (mặc định: `0`, khoảng: `0` đến `10000`).
+\* \*\*Phần trăm hồi máu sinh tồn:\*\* Sau mỗi lần địch được bù vào trong Sinh tồn, hoặc sau mỗi đợt đã vượt xong trong Đợt sóng, các đấu sĩ đồng minh còn sống sẽ hồi lại đúng tỷ lệ này của máu tối đa. Chỉ dùng cho `Sinh tồn cổ điển`, `Sinh tồn hỗn hợp`, `Đợt sóng cổ điển`, và `Đợt sóng hỗn hợp` (mặc định: `0`, khoảng: `0` đến `100`).
 
 \*\*Đội Hình Dựng Sẵn\*\*
 

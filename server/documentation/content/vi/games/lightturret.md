@@ -53,8 +53,8 @@ Bảng trạng thái trực tiếp tự cập nhật khi còn mở. Bảng này 
 
 \*\*Tùy chọn trò chơi\*\*
 
-\* \*\*Công suất ban đầu:\*\* Công suất khởi đầu của mọi tháp pháo. Phạm vi: 5 đến 30. Mặc định: 10.
-\* \*\*Số vòng tối đa:\*\* Số vòng trọn vẹn trước khi tính điểm cuối. Phạm vi: 10 đến 200. Mặc định: 50.
+\* \*\*Công suất ban đầu:\*\* Công suất khởi đầu của mọi tháp pháo (mặc định 10, phạm vi 5 đến 30).
+\* \*\*Số vòng tối đa:\*\* Số vòng trọn vẹn trước khi tính điểm cuối (mặc định 50, phạm vi 10 đến 200).
 
 \*\*Tùy chọn cá nhân\*\*
 

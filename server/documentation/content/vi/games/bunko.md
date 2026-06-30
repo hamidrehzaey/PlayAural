@@ -38,8 +38,8 @@ Chủ bàn chọn một trong hai cách tính thắng:
 
 \*\*Tùy Chỉnh Tại Bàn Chơi\*\*
 
-\* \*\*Số vòng:\*\* Mặc định 6. Phạm vi từ 1 đến 12.
-\* \*\*Cách tính thắng:\*\* Mặc định Số vòng thắng. Có thể chọn Số vòng thắng hoặc Tổng điểm.
+\* \*\*Số vòng:\*\* Số vòng của trận đấu (mặc định 6, phạm vi từ 1 đến 12).
+\* \*\*Cách tính thắng:\*\* Cách xếp hạng cuối trận (mặc định Số vòng thắng, lựa chọn: Số vòng thắng hoặc Tổng điểm).
 
 \*\*Phím Tắt\*\*
 

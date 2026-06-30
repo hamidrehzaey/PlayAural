@@ -110,11 +110,11 @@ The host can adjust the following settings before the match starts:
 
 
 
-\* \*\*Target Score:\*\* The score needed to win the match. Default: 100. Range: 20 to 500.
+\* \*\*Target Score:\*\* The score needed to win the match (default 100, range 20 to 500).
 
 \* \*\*Mode:\*\* Choose Draw or Block rules. Default: Draw.
 
-\* \*\*Domino Set:\*\* Choose Double-6, Double-9, or Double-12. Default: Double-6. Double-6 supports up to 5 players, Double-9 supports up to 7 players, and Double-12 supports up to 12 players.
+\* \*\*Domino Set:\*\* Choose Double-6, Double-9, or Double-12. Double-6 supports up to 5 players, Double-9 supports up to 7 players, and Double-12 supports up to 12 players (default Double-6).
 
 \* \*\*Spinner:\*\* Controls whether an opening double creates a four-way spinner. Default: On.
 

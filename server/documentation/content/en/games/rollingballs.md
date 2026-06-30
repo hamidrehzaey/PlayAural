@@ -62,15 +62,15 @@ The host chooses which themed ball sets can appear in the pipe.
 
 \*\*Customizable Options\*\*
 
-\* \*\*Minimum Balls per Turn:\*\* Default 1. Range: 1 to 5.
+\* \*\*Minimum Balls per Turn:\*\* The fewest balls a player may take on a turn (default 1, range 1 to 5).
 
-\* \*\*Maximum Balls per Turn:\*\* Default 3. Range: 1 to 5. The game cannot start if the minimum is higher than the maximum.
+\* \*\*Maximum Balls per Turn:\*\* The most balls a player may take on a turn. The game cannot start if the minimum is higher than the maximum (default 3, range 1 to 5).
 
-\* \*\*New Pipe Previews per Player:\*\* Default 5. Range: 0 to 100. Set to 0 to turn previews off.
+\* \*\*New Pipe Previews per Player:\*\* How many times each player may preview a fresh pipe. Set to 0 to turn previews off (default 5, range 0 to 100).
 
-\* \*\*Reshuffles per Player:\*\* Default 3. Range: 0 to 100. Set to 0 to turn reshuffling off.
+\* \*\*Reshuffles per Player:\*\* How many times each player may reshuffle the current pipe. Set to 0 to turn reshuffling off (default 3, range 0 to 100).
 
-\* \*\*Reshuffle Penalty:\*\* Default 1 point. Range: 0 to 5. This appears only when reshuffling is enabled.
+\* \*\*Reshuffle Penalty:\*\* Points subtracted when a player reshuffles. This appears only when reshuffling is enabled (default 1 point, range 0 to 5).
 
 \* \*\*Ball Sets:\*\* Choose one or more sets for the pipe.
 

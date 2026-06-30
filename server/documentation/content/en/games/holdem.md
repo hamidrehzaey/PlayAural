@@ -97,14 +97,14 @@ At showdown, players with live hands can use the reveal actions to reread their 
 
 \*\*Customizable Options\*\*
 
-\* \*\*Starting chips:\*\* each player's opening stack, from 100 to 1,000,000. Default: 20,000.
-\* \*\*Big blind:\*\* the base big blind amount, from 1 to 1,000,000. Default: 200. It must be lower than the starting stack.
-\* \*\*Ante:\*\* an optional forced contribution from each player, from 0 to 1,000,000. Default: 0.
-\* \*\*Ante start level:\*\* the blind level where antes begin. Default: 0, which means antes are active from the first hand when the ante is greater than 0.
-\* \*\*Turn timer:\*\* 5, 10, 15, 20, 30, 45, 60, or 90 seconds, or Unlimited. Default: Unlimited.
-\* \*\*Blind timer:\*\* 5, 10, 15, 20, or 30 minutes between blind increases. Default: 20 minutes.
-\* \*\*Raise mode:\*\* No limit, Pot limit, or Double pot limit. Default: No limit.
-\* \*\*Maximum raises per betting round:\*\* from 0 to 10. Zero means unlimited. Default: 0.
+\* \*\*Starting chips:\*\* each player's opening stack (default 20,000, range 100 to 1,000,000).
+\* \*\*Big blind:\*\* the base big blind amount. It must be lower than the starting stack (default 200, range 1 to 1,000,000).
+\* \*\*Ante:\*\* an optional forced contribution from each player (default 0, range 0 to 1,000,000).
+\* \*\*Ante start level:\*\* the blind level where antes begin. A value of 0 means antes are active from the first hand when the ante is greater than 0 (default 0).
+\* \*\*Turn timer:\*\* how long a player has to act (default Unlimited, choices: 5, 10, 15, 20, 30, 45, 60, or 90 seconds, or Unlimited).
+\* \*\*Blind timer:\*\* minutes between blind increases (default 20 minutes, choices: 5, 10, 15, 20, or 30 minutes).
+\* \*\*Raise mode:\*\* choose the betting limit structure (default No limit, choices: No limit, Pot limit, or Double pot limit).
+\* \*\*Maximum raises per betting round:\*\* how many raises are allowed in each betting round. Zero means unlimited (default 0, range 0 to 10).
 
 \*\*Keyboard Shortcuts\*\*
 

@@ -15,7 +15,7 @@ dominos-desc-draw-mode = Chooses Draw mode, where players draw from the boneyard
 dominos-set-domino-set = Domino set: { $domino_set }
 dominos-select-domino-set = Select domino set
 dominos-option-changed-domino-set = Domino set changed to { $domino_set }.
-dominos-desc-domino-set = Domino set size (default Double-6). Double-6 supports up to 5 players, Double-9 supports up to 7 players, and Double-12 supports up to 12 players.
+dominos-desc-domino-set = Domino set size. Double-6 supports up to 5 players, Double-9 supports up to 7 players, and Double-12 supports up to 12 players (default Double-6).
 
 dominos-set-spinner = Spinner: { $enabled }
 dominos-option-changed-spinner = Spinner set to { $enabled }.

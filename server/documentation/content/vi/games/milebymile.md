@@ -103,7 +103,7 @@ Nếu bạn chọn một lá bài hiện không thể đánh, trò chơi sẽ gi
 
 \* \*\*Xáo trộn lại bài bỏ:\*\* Bài bỏ được xáo trộn lại khi bộ bài rút hết (mặc định bật).
 
-\* \*\*Luật Nghiệp:\*\* Có dùng lá Nghiệp và trạng thái bị tẩy chay hay không (mặc định tắt). Nếu bên tấn công và mục tiêu đều còn Nghiệp, đòn tấn công bị vô hiệu hóa và cả hai bên mất Nghiệp. Bên đã mất Nghiệp chỉ có thể tấn công mục tiêu cũng đã mất Nghiệp. Cần ít nhất 3 xe hoặc đội.
+\* \*\*Luật Nghiệp:\*\* Có dùng lá Nghiệp và trạng thái bị tẩy chay hay không. Nếu bên tấn công và mục tiêu đều còn Nghiệp, đòn tấn công bị vô hiệu hóa và cả hai bên mất Nghiệp. Bên đã mất Nghiệp chỉ có thể tấn công mục tiêu cũng đã mất Nghiệp. Cần ít nhất 3 xe hoặc đội (mặc định tắt).
 
 \* \*\*Chỉnh sửa bộ bài:\*\* Thay đổi thành phần bộ bài (không trùng lặp, 2x tấn công, 2x phòng thủ, hoặc bình thường).
 

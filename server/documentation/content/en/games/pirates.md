@@ -124,11 +124,11 @@ Only one temporary combat buff may be activated during the same turn. Sword Figh
 
 \*\*Customizable Options\*\*
 
-\* \*\*Combat XP multiplier:\*\* changes XP from cannon hits and successful defenses. Default: 1.0. Range: 0.1 to 3.0.
+\* \*\*Combat XP multiplier:\*\* changes XP from cannon hits and successful defenses (default 1.0, range 0.1 to 3.0).
 
-\* \*\*Gem recovery XP multiplier:\*\* changes XP from recovering gems, including gems collected after Portal travel or a ram. Default: 1.0. Range: 0.1 to 3.0.
+\* \*\*Gem recovery XP multiplier:\*\* changes XP from recovering gems, including gems collected after Portal travel or a ram (default 1.0, range 0.1 to 3.0).
 
-\* \*\*Gem stealing:\*\* controls boarding theft. It may be enabled with combat bonuses, enabled without combat bonuses, or disabled. Default: enabled with combat bonuses. When disabled, boarding offers only ram left and ram right.
+\* \*\*Gem stealing:\*\* controls boarding theft. When disabled, boarding offers only ram left and ram right (default enabled with combat bonuses, choices: enabled with combat bonuses, enabled without combat bonuses, or disabled).
 
 Invalid stored option values block the game from starting and explain which setting must be corrected.
 

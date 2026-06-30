@@ -94,12 +94,12 @@ Khán giả có thể dùng các hành động đọc thông tin công khai như
 
 \*\*Tùy chọn tùy chỉnh\*\*
 
-\* \*\*Số chip ban đầu:\*\* số chip mỗi người có khi vào trận, từ 100 đến 1.000.000. Mặc định: 20.000.
-\* \*\*Cược góp:\*\* khoản bắt buộc ở đầu mỗi ván, từ 0 đến 1.000.000. Mặc định: 100. Cược góp phải thấp hơn số chip ban đầu.
-\* \*\*Thời gian mỗi lượt:\*\* 5, 10, 15, 20, 30, 45, 60, hoặc 90 giây, hoặc Không giới hạn. Mặc định: Không giới hạn.
-\* \*\*Chế độ tố:\*\* Không giới hạn, Giới hạn theo hũ, hoặc Giới hạn gấp đôi hũ. Mặc định: Không giới hạn. Các chế độ dựa trên hũ yêu cầu cược góp lớn hơn 0 để vòng cược đầu tiên có thể mở cược bình thường.
-\* \*\*Số lần tố tối đa trong mỗi vòng cược:\*\* từ 0 đến 10. Số 0 nghĩa là không giới hạn. Mặc định: 0.
-\* \*\*Luật đổi bài:\*\* đổi tối đa 3 lá, hoặc cho phép đổi 4 lá khi giữ lại một lá Át. Mặc định: Tối đa 3 lá.
+\* \*\*Số chip ban đầu:\*\* số chip mỗi người có khi vào trận (mặc định 20.000, phạm vi 100 đến 1.000.000).
+\* \*\*Cược góp:\*\* khoản bắt buộc ở đầu mỗi ván. Cược góp phải thấp hơn số chip ban đầu (mặc định 100, phạm vi 0 đến 1.000.000).
+\* \*\*Thời gian mỗi lượt:\*\* thời gian người chơi có để hành động (mặc định Không giới hạn, lựa chọn: 5, 10, 15, 20, 30, 45, 60, hoặc 90 giây, hoặc Không giới hạn).
+\* \*\*Chế độ tố:\*\* Các chế độ dựa trên hũ yêu cầu cược góp lớn hơn 0 để vòng cược đầu tiên có thể mở cược bình thường (mặc định Không giới hạn, lựa chọn: Không giới hạn, Giới hạn theo hũ, hoặc Giới hạn gấp đôi hũ).
+\* \*\*Số lần tố tối đa trong mỗi vòng cược:\*\* số lần tố tối đa cho mỗi vòng cược. Số 0 nghĩa là không giới hạn (mặc định 0, phạm vi 0 đến 10).
+\* \*\*Luật đổi bài:\*\* cho đổi tối đa 3 lá, hoặc cho phép đổi 4 lá khi giữ lại một lá Át (mặc định Tối đa 3 lá).
 
 \*\*Phím tắt\*\*
 

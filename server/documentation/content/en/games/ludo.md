@@ -118,7 +118,7 @@ The host can adjust the following options before the game starts:
 
 
 
-\* \*\*Max Consecutive Sixes:\*\* The number of 6s a player may roll in a row before the rollback penalty applies. Default: 3. Range: 0 to 5. Setting it to 0 disables the penalty.
+\* \*\*Max Consecutive Sixes:\*\* The number of 6s a player may roll in a row before the rollback penalty applies. Setting it to 0 disables the penalty (default 3, range 0 to 5).
 
 \* \*\*Safe Start Squares:\*\* When enabled, all color starting squares count as safe squares and cannot be used for captures. Default: On.
 

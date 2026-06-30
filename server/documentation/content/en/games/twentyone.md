@@ -174,15 +174,15 @@ Press \*\*C\*\* or select \*\*Change Card Guide\*\* from the actions menu to ope
 
 The host can configure these settings at the table before starting:
 
-\* \*\*Starting Health:\*\* How much HP each player begins with. Default 10, range 1 to 100.
+\* \*\*Starting Health:\*\* How much HP each player begins with (default 10, range 1 to 100).
 
-\* \*\*Base Bet:\*\* The base damage dealt to the round loser before modifier adjustments. Default 1, range 0 to 50. If this is set to 0, the game must still have a way to create damage through change cards; a setup with 0 base bet, 0 starting change cards, and 0 percent draw change chance is blocked because it can never end.
+\* \*\*Base Bet:\*\* The base damage dealt to the round loser before modifier adjustments. If this is set to 0, the game must still have a way to create damage through change cards; a setup with 0 base bet, 0 starting change cards, and 0 percent draw change chance is blocked because it can never end (default 1, range 0 to 50).
 
-\* \*\*Starting Change Cards Per Round:\*\* How many random change cards each player receives at the start of each round. Default 1, range 0 to 10.
+\* \*\*Starting Change Cards Per Round:\*\* How many random change cards each player receives at the start of each round (default 1, range 0 to 10).
 
-\* \*\*Draw Change Card Chance:\*\* The percentage chance of gaining a random change card each time you hit. Default 35 percent, range 0 to 100 percent.
+\* \*\*Draw Change Card Chance:\*\* The percentage chance of gaining a random change card each time you hit (default 35 percent, range 0 to 100 percent).
 
-\* \*\*Deck Count:\*\* How many copies of the 1-through-11 deck to shuffle together each round. Default 1, range 1 to 10; one deck means 11 cards total. More decks mean more cards and less predictability.
+\* \*\*Deck Count:\*\* How many copies of the 1-through-11 deck to shuffle together each round. One deck means 11 cards total; more decks mean more cards and less predictability (default 1, range 1 to 10).
 
 
 

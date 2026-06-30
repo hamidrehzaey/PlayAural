@@ -70,12 +70,12 @@ farkle-desc-target-score = Score needed to trigger the final Farkle turns and po
 farkle-set-entrance-score = Minimum entrance score: { $score }
 farkle-enter-entrance-score = Enter minimum entrance score (0-5000):
 farkle-option-changed-entrance = Minimum entrance score set to { $score }.
-farkle-desc-min-entrance-score = Minimum turn score required to bank a player's first points (default 50, range 0-5000). It cannot be higher than the target score.
+farkle-desc-min-entrance-score = Minimum turn score required to bank a player's first points. It cannot be higher than the target score (default 50, range 0-5000).
 
 farkle-set-bank-score = Minimum bank score: { $score }
 farkle-enter-bank-score = Enter minimum bank score (0-5000):
 farkle-option-changed-bank = Minimum bank score set to { $score }.
-farkle-desc-min-bank-score = Minimum turn score required before Bank is available after the player is already on the board (default 30, range 0-5000). It cannot be higher than the target score.
+farkle-desc-min-bank-score = Minimum turn score required before Bank is available after the player is already on the board. It cannot be higher than the target score (default 30, range 0-5000).
 
 farkle-error-entrance-above-target = The minimum entrance score ({ $entrance }) cannot be higher than the target score ({ $target }).
 farkle-error-bank-above-target = The minimum bank score ({ $bank }) cannot be higher than the target score ({ $target }).

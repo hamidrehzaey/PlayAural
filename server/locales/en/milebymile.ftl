@@ -17,7 +17,7 @@ milebymile-rig-2x-attacks = 2x Attacks
 milebymile-rig-2x-defenses = 2x Defenses
 
 milebymile-option-changed-distance = Race distance set to { $miles } miles.
-milebymile-desc-round-distance = Target distance for each race (default 1,000 miles, range 300-3,000). If exact finish is enabled, this distance must be divisible by 25.
+milebymile-desc-round-distance = Target distance for each race. If exact finish is enabled, this distance must be divisible by 25 (default 1,000 miles, range 300-3,000).
 milebymile-option-changed-winning = Winning score set to { $score } points.
 milebymile-desc-winning-score = Total score needed to win the Mile by Mile match (default 5,000, range 1,000-10,000).
 milebymile-option-changed-crossing = Require exact finish { $enabled }.

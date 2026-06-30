@@ -56,7 +56,7 @@ If you finish without both required numbers, you do not qualify and score 0 for 
 
 \*\*Game Options\*\*
 
-\* \*\*Rounds:\*\* Number of rounds to play. Default: 5. Range: 1-20.
+\* \*\*Rounds:\*\* Number of rounds to play (default 5, range 1-20).
 
 \*\*Personal Options\*\*
 

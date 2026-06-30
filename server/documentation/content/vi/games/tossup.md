@@ -70,9 +70,9 @@ Sau những lượt còn lại:
 
 \*\*Tùy chọn trò chơi\*\*
 
-\* \*\*Mốc điểm:\*\* Số điểm phải vượt qua để bắt đầu các lượt cuối. Mặc định: 100. Phạm vi: 20-500.
+\* \*\*Mốc điểm:\*\* Số điểm phải vượt qua để bắt đầu các lượt cuối (mặc định 100, phạm vi 20-500).
 
-\* \*\*Số xúc xắc mỗi bộ:\*\* Số viên khi bắt đầu mỗi lượt và trong mỗi bộ mới. Mặc định: 10. Phạm vi: 5-20.
+\* \*\*Số xúc xắc mỗi bộ:\*\* Số viên khi bắt đầu mỗi lượt và trong mỗi bộ mới (mặc định 10, phạm vi 5-20).
 
 \* \*\*Luật chơi:\*\* Chọn Cổ điển hoặc Dễ thở để quyết định cơ hội của từng màu và điều kiện mất trắng.
 

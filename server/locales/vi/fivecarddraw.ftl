@@ -8,7 +8,7 @@ fivecarddraw-desc-starting-chips = Số chip ban đầu mỗi người có khi v
 draw-set-ante = Cược góp: { $count }
 draw-enter-ante = Nhập mức cược góp
 draw-option-changed-ante = Cược góp đã được đặt là { $count }.
-fivecarddraw-desc-ante = Khoản Cược góp bắt buộc mỗi người chơi còn hoạt động phải đóng trước mỗi ván, từ 0 đến 1.000.000. Mặc định: 100. Mức này phải thấp hơn số chip ban đầu.
+fivecarddraw-desc-ante = Khoản Cược góp bắt buộc mỗi người chơi còn hoạt động phải đóng trước mỗi ván. Mức này phải thấp hơn số chip ban đầu (mặc định 100, phạm vi 0-1.000.000).
 
 draw-set-turn-timer = Thời gian mỗi lượt: { $mode }
 draw-select-turn-timer = Chọn thời gian mỗi lượt
@@ -18,7 +18,7 @@ fivecarddraw-desc-turn-timer = Giới hạn thời gian tùy chọn cho mỗi qu
 draw-set-raise-mode = Chế độ tố: { $mode }
 draw-select-raise-mode = Chọn chế độ tố
 draw-option-changed-raise-mode = Chế độ tố đã được đặt là { $mode }.
-fivecarddraw-desc-raise-mode = Kiểu giới hạn tố: Không giới hạn, Giới hạn theo hũ hoặc Giới hạn gấp đôi hũ. Mặc định: Không giới hạn. Các chế độ dựa trên hũ cần Cược góp lớn hơn 0 để vòng cược đầu tiên mở bình thường.
+fivecarddraw-desc-raise-mode = Kiểu giới hạn tố: Không giới hạn, Giới hạn theo hũ hoặc Giới hạn gấp đôi hũ. Các chế độ dựa trên hũ cần Cược góp lớn hơn 0 để vòng cược đầu tiên mở bình thường (mặc định Không giới hạn).
 
 draw-set-max-raises = Số lần tố tối đa trong mỗi vòng cược: { $count }
 draw-enter-max-raises = Nhập số lần tố tối đa trong mỗi vòng cược (0 để không giới hạn)

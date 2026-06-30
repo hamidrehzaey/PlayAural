@@ -18,11 +18,11 @@ If you have no playable card, draw one card. If the card you drew is playable, y
 
 \* \*\*Reverse:\*\* The direction of play reverses. In a two-player game, Reverse acts like Skip.
 
-\* \*\*Draw Two:\*\* The next player draws 2 cards. By default, that player also loses their turn.
+\* \*\*Draw Two:\*\* The next player draws 2 cards and loses their turn unless the draw-penalty option is changed.
 
 \* \*\*Wild:\*\* Choose the color that must be followed next.
 
-\* \*\*Wild Draw Four:\*\* Choose the next color and make the next player draw 4 cards. By default, that player also loses their turn.
+\* \*\*Wild Draw Four:\*\* Choose the next color and make the next player draw 4 cards. That player loses their turn unless the draw-penalty option is changed.
 
 \*\*Wild Draw Four Challenges\*\*
 
@@ -52,27 +52,27 @@ Invalid interception penalties, if any, are added to that player's remaining han
 
 \* \*\*Score Limit:\*\* Score target for ending the game (default 300, range 10-2000).
 
-\* \*\*Scoring:\*\* \*\*First to limit wins\*\* (default) awards each round winner the opponents' remaining card points; the first player to reach the score limit wins. \*\*Elimination\*\* adds each loser's remaining hand value to that loser; players at or above the score limit are eliminated, and the last survivor wins.
+\* \*\*Scoring:\*\* \*\*First to limit wins\*\* awards each round winner the opponents' remaining card points; the first player to reach the score limit wins. \*\*Elimination\*\* adds each loser's remaining hand value to that loser; players at or above the score limit are eliminated, and the last survivor wins (default First to limit wins).
 
-\* \*\*Draw penalties skip turn:\*\* Whether Draw Two and Wild Draw Four penalties make the target lose their turn (default on, matching official UNO). If turned off, the target draws the penalty and keeps the turn if they can legally continue.
+\* \*\*Draw penalties skip turn:\*\* Whether Draw Two and Wild Draw Four penalties make the target lose their turn. If turned off, the target draws the penalty and keeps the turn if they can legally continue (default on, matching official UNO).
 
-\* \*\*Stacking responses:\*\* Allows responding to a draw penalty with another Draw Two or Wild Draw Four to pass on a larger draw stack (default off). This is a house rule.
+\* \*\*Stacking responses:\*\* Allows responding to a draw penalty with another Draw Two or Wild Draw Four to pass on a larger draw stack. This is a house rule (default off).
 
-\* \*\*Advanced responses:\*\* Allows extra defensive responses to draw stacks, such as Skip, Reverse, and Wild, when they legally match (default off). Requires Stacking responses.
+\* \*\*Advanced responses:\*\* Allows extra defensive responses to draw stacks, such as Skip, Reverse, and Wild, when they legally match. Requires Stacking responses (default off).
 
-\* \*\*Wait for draw responses:\*\* If the last card creates a draw stack, wait for the next player to respond or draw before scoring the round (default off). Requires Stacking responses.
+\* \*\*Wait for draw responses:\*\* If the last card creates a draw stack, wait for the next player to respond or draw before scoring the round. Requires Stacking responses (default off).
 
 \* \*\*Wild Draw Four challenges:\*\* Enables challenge rules for illegal Wild Draw Four plays (default on).
 
-\* \*\*Straights:\*\* Lets the player who just played a number card continue out of turn with the next or previous number of the same color (default off). This is a house rule.
+\* \*\*Straights:\*\* Lets the player who just played a number card continue out of turn with the next or previous number of the same color. This is a house rule (default off).
 
-\* \*\*Interceptions:\*\* Lets a player jump in out of turn with an exact matching card (default off). Invalid attempts add 3 penalty points.
+\* \*\*Interceptions:\*\* Lets a player jump in out of turn with an exact matching card. Invalid attempts add 3 penalty points (default off).
 
-\* \*\*Super interceptions:\*\* Lets interceptions match by number or action symbol even if the color differs (default off). Requires Interceptions.
+\* \*\*Super interceptions:\*\* Lets interceptions match by number or action symbol even if the color differs. Requires Interceptions (default off).
 
 \* \*\*Zero / seven rule:\*\* Playing a 0 rotates everyone's hands in turn direction; playing a 7 lets that player swap hands with another player or decline (default off).
 
-\* \*\*Free draws per turn:\*\* How many times a human player may draw despite already holding a playable card (default 0, range 0-999). This is a house rule.
+\* \*\*Free draws per turn:\*\* How many times a human player may draw despite already holding a playable card. This is a house rule (default 0, range 0-999).
 
 \*\*Option Conflicts\*\*
 

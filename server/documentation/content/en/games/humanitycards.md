@@ -46,13 +46,13 @@ The game ends when a player reaches the target score.
 
 The host can configure these settings at the table before starting:
 
-\* \*\*Winning Score:\*\* The number of points needed to win. Defaults to 7, configurable from 3 to 20.
+\* \*\*Winning Score:\*\* The number of points needed to win (default 7, range 3 to 20).
 
-\* \*\*Hand Size:\*\* The number of white cards each player holds at a time. Defaults to 10, configurable from 5 to 15.
+\* \*\*Hand Size:\*\* The number of white cards each player holds at a time (default 10, range 5 to 15).
 
-\* \*\*Card Packs:\*\* Which packs of cards to include. The game ships with many packs including the base set, expansions, family edition, holiday packs, and nostalgia packs. You can mix and match freely, but at least one pack must be selected. The default is the base set. Available pack groups are:
+\* \*\*Card Packs:\*\* Which packs of cards to include. The game ships with many packs including the base set, expansions, family edition, holiday packs, and nostalgia packs. You can mix and match freely, but at least one pack must be selected. Available pack groups are:
 
-&#x20;   \* \*\*Base Set:\*\* The original Cards Against Humanity base set only.
+&#x20;   \* \*\*Base Set:\*\* The original Cards Against Humanity base set only (default).
 
 &#x20;   \* \*\*Base + Expansions:\*\* The base set combined with all official numbered expansion packs.
 
@@ -66,13 +66,13 @@ The host can configure these settings at the table before starting:
 
 \* \*\*Card Czar Selection:\*\* How the Card Czar is chosen each round. Three modes are available:
 
-&#x20;   \* \*\*Rotating (default):\*\* The role passes around the table in order, so everyone gets a turn.
+&#x20;   \* \*\*Rotating:\*\* The role passes around the table in order, so everyone gets a turn (default).
 
 &#x20;   \* \*\*Random:\*\* A random player is chosen each round. Someone might judge twice in a row.
 
 &#x20;   \* \*\*Most Recent Winner:\*\* The player who won the last round becomes the next Card Czar. The winner sits out the next round as a trade-off for their success. On the first round, this falls back to rotating.
 
-\* \*\*Number of Judges:\*\* How many players serve as Card Czar simultaneously. Default 1, range 1 to 3. The game must always have at least one non-judge submitting answers, so the selected judge count must be lower than the number of players at the table. With multiple judges, any one of them can pick the winner. More judges means fewer players submitting answers each round, so this option works best with larger groups.
+\* \*\*Number of Judges:\*\* How many players serve as Card Czar simultaneously. The game must always have at least one non-judge submitting answers, so the selected judge count must be lower than the number of players at the table. With multiple judges, any one of them can pick the winner. More judges means fewer players submitting answers each round, so this option works best with larger groups (default 1, range 1 to 3).
 
 
 

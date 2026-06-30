@@ -50,15 +50,15 @@ Battle is a turn-based combat game where you build a small roster of preset figh
 
 \*\*Customizable Options\*\*
 
-\* \*\*Game Mode:\*\* Default: `1 Each`. Choices: `Chaos Free For All`, `1 Each`, `2 Each`, `3 Each`, `Team Battle`, `Spitting Image`, `Classic Arena`, `Mixed Arena`, `Classic Survival`, `Mixed Survival`, `Classic Waves`, `Mixed Waves`.
-\* \*\*Team Mode:\*\* Default: `Individual`. Choices depend on player count, including `2 teams of 2`, `3 teams of 2`, and `2 teams of 3` where valid. This option is used only by `Team Battle`; starting `Team Battle` requires a non-individual team mode that fits the current number of players.
-\* \*\*Turn Mode:\*\* Default: `Initiative`. Choices: `Initiative`, `Round Robin`.
-\* \*\*Balance Mode:\*\* Default: `Off`. Choices: `On` or `Off`. When enabled, any preset whose stat line is outside the balanced baseline is reset to `50 health`, `0 attack`, `0 defense`, and `100 speed`.
-\* \*\*Unlimited-mode Fighter Limit:\*\* Default: `3`. Range: `1` to `6`. Used by `Chaos Free For All`, `Team Battle`, `Spitting Image`, `Classic Arena`, `Mixed Arena`, `Classic Survival`, `Mixed Survival`, `Classic Waves`, and `Mixed Waves`.
-\* \*\*Classic Enemy Preset:\*\* Default: `Novice Boxer`. Choices: every bundled preset: `Novice Boxer`, `Boxer`, `The Great Fighter`, `Fighter Plane`, `Low-Rank Soldier`, `High-Rank Soldier`, `Ghostly Fighter`, `The Alpha Wolf`, `The Fiery Lion`, `Master Mage`, `The Wizardly Warrior`, `Master of the Storm`. Used only by `Classic Arena`, `Classic Survival`, and `Classic Waves`.
-\* \*\*Arena Difficulty:\*\* Default: `Normal`. Choices: `Easy`, `Normal`, `Hard`, `Insane`, `Professional`, `Ultimate`. Used only when the game spawns arena, survival, or wave enemies.
-\* \*\*Survival Target:\*\* Default: `0`. Range: `0` to `10000`. Used only by `Classic Survival`, `Mixed Survival`, `Classic Waves`, and `Mixed Waves`. A value of `0` means endless.
-\* \*\*Survival Heal Percent:\*\* Default: `0`. Range: `0` to `100`. Used only by `Classic Survival`, `Mixed Survival`, `Classic Waves`, and `Mixed Waves`. After each replacement spawn in Survival, or after each cleared wave in Waves, living allied fighters recover this percentage of their maximum health.
+\* \*\*Game Mode:\*\* Choose the overall Battle variant (default: `1 Each`, choices: `Chaos Free For All`, `1 Each`, `2 Each`, `3 Each`, `Team Battle`, `Spitting Image`, `Classic Arena`, `Mixed Arena`, `Classic Survival`, `Mixed Survival`, `Classic Waves`, `Mixed Waves`).
+\* \*\*Team Mode:\*\* Used only by `Team Battle`; starting `Team Battle` requires a non-individual team mode that fits the current number of players (default: `Individual`, choices depend on player count and include `2 teams of 2`, `3 teams of 2`, and `2 teams of 3` where valid).
+\* \*\*Turn Mode:\*\* Choose whether turn order follows initiative or table order (default: `Initiative`, choices: `Initiative`, `Round Robin`).
+\* \*\*Balance Mode:\*\* When enabled, any preset whose stat line is outside the balanced baseline is reset to `50 health`, `0 attack`, `0 defense`, and `100 speed` (default: `Off`, choices: `On` or `Off`).
+\* \*\*Unlimited-mode Fighter Limit:\*\* Used by `Chaos Free For All`, `Team Battle`, `Spitting Image`, `Classic Arena`, `Mixed Arena`, `Classic Survival`, `Mixed Survival`, `Classic Waves`, and `Mixed Waves` (default: `3`, range: `1` to `6`).
+\* \*\*Classic Enemy Preset:\*\* Used only by `Classic Arena`, `Classic Survival`, and `Classic Waves` (default: `Novice Boxer`, choices: `Novice Boxer`, `Boxer`, `The Great Fighter`, `Fighter Plane`, `Low-Rank Soldier`, `High-Rank Soldier`, `Ghostly Fighter`, `The Alpha Wolf`, `The Fiery Lion`, `Master Mage`, `The Wizardly Warrior`, `Master of the Storm`).
+\* \*\*Arena Difficulty:\*\* Used only when the game spawns arena, survival, or wave enemies (default: `Normal`, choices: `Easy`, `Normal`, `Hard`, `Insane`, `Professional`, `Ultimate`).
+\* \*\*Survival Target:\*\* Used only by `Classic Survival`, `Mixed Survival`, `Classic Waves`, and `Mixed Waves`; a value of `0` means endless (default: `0`, range: `0` to `10000`).
+\* \*\*Survival Heal Percent:\*\* After each replacement spawn in Survival, or after each cleared wave in Waves, living allied fighters recover this percentage of their maximum health. Used only by `Classic Survival`, `Mixed Survival`, `Classic Waves`, and `Mixed Waves` (default: `0`, range: `0` to `100`).
 
 \*\*Character Presets\*\*
 

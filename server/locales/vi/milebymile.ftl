@@ -17,7 +17,7 @@ milebymile-rig-2x-attacks = Tấn công x2
 milebymile-rig-2x-defenses = Phòng thủ x2
 
 milebymile-option-changed-distance = Quãng đường đua được đặt là { $miles } dặm.
-milebymile-desc-round-distance = Quãng đường mục tiêu cho mỗi cuộc đua (mặc định 1.000 dặm, phạm vi 300-3.000). Nếu bật về đích chính xác, quãng đường này phải chia hết cho 25.
+milebymile-desc-round-distance = Quãng đường mục tiêu cho mỗi cuộc đua. Nếu bật về đích chính xác, quãng đường này phải chia hết cho 25 (mặc định 1.000 dặm, phạm vi 300-3.000).
 milebymile-option-changed-winning = Điểm thắng được đặt là { $score } điểm.
 milebymile-desc-winning-score = Tổng điểm cần đạt để thắng trận Đường Đua Nghìn Dặm (mặc định 5.000, phạm vi 1.000-10.000).
 milebymile-option-changed-crossing = Yêu cầu về đích chính xác { $enabled }.

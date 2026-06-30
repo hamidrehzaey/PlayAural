@@ -44,9 +44,9 @@ Với cả hai luật về đích, nếu tùy chọn \*\*Thêm lượt khi gieo 
 
 \*\*Tùy chỉnh tại bàn chơi\*\*
 
-\* \*\*Luật về đích:\*\* Chọn \*\*Bật ngược khi đi quá đích\*\*, là luật mặc định, hoặc \*\*Phải gieo đúng; đi quá thì đứng yên\*\*.
+\* \*\*Luật về đích:\*\* Chọn cách xử lý khi đi quá ô đích (mặc định \*\*Bật ngược khi đi quá đích\*\*, lựa chọn còn lại là \*\*Phải gieo đúng; đi quá thì đứng yên\*\*).
 
-\* \*\*Thêm lượt khi gieo được 6:\*\* Mặc định được bật. Khi bật, người gieo được 6 có thêm một lượt sau khi bước đi hiện tại được xử lý hoàn toàn.
+\* \*\*Thêm lượt khi gieo được 6:\*\* Khi bật, người gieo được 6 có thêm một lượt sau khi bước đi hiện tại được xử lý hoàn toàn (mặc định bật).
 
 \*\*Tùy chọn cá nhân cho trò chơi\*\*
 

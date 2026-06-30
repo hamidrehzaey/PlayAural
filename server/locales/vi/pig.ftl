@@ -85,9 +85,9 @@ pig-set-dice-sides = Số mặt xúc xắc: { $sides }
 pig-enter-min-bank = Nhập số điểm lượt tối thiểu cần có để được giữ điểm:
 pig-enter-dice-sides = Nhập số mặt của xúc xắc:
 pig-option-changed-min-bank = Mức giữ tối thiểu đã đổi thành { $points } điểm.
-pig-desc-min-bank = Số điểm lượt cần có trước khi được phép Giữ điểm. Đặt là 0 để chơi theo luật Pig tiêu chuẩn (mặc định 0, phạm vi 0-999). Mức này phải thấp hơn điểm mục tiêu.
+pig-desc-min-bank = Số điểm lượt cần có trước khi được phép Giữ điểm. Đặt là 0 để chơi theo luật Pig tiêu chuẩn; mức này phải thấp hơn điểm mục tiêu (mặc định 0, phạm vi 0-999).
 pig-option-changed-dice = Xúc xắc giờ có { $sides } mặt.
-pig-desc-dice-sides = Số mặt của một viên xúc xắc (mặc định 6, phạm vi 4-20). Gieo trúng mặt 1 luôn làm mất điểm lượt.
+pig-desc-dice-sides = Số mặt của một viên xúc xắc. Gieo trúng mặt 1 luôn làm mất điểm lượt (mặc định 6, phạm vi 4-20).
 
 pig-error-target-out-of-range = Điểm đích { $value } không hợp lệ. Hãy chọn từ { $min } đến { $max }.
 pig-error-min-bank-out-of-range = Mức giữ tối thiểu { $value } không hợp lệ. Hãy chọn từ { $min } đến { $max }.

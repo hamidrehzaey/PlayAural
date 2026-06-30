@@ -110,11 +110,11 @@ Trước khi bắt đầu trận đấu, chủ bàn có thể chỉnh các mục
 
 
 
-\* \*\*Điểm mục tiêu:\*\* Số điểm cần đạt để thắng trận. Mặc định: 100. Phạm vi: từ 20 đến 500.
+\* \*\*Điểm mục tiêu:\*\* Số điểm cần đạt để thắng trận (mặc định 100, phạm vi từ 20 đến 500).
 
 \* \*\*Chế độ:\*\* Chọn lối chơi Rút hoặc Chặn. Mặc định: Rút.
 
-\* \*\*Bộ quân:\*\* Chọn bộ Đôi-6, Đôi-9 hoặc Đôi-12. Mặc định: Đôi-6. Bộ Đôi-6 hỗ trợ tối đa 5 người, bộ Đôi-9 hỗ trợ tối đa 7 người, và bộ Đôi-12 hỗ trợ tối đa 12 người.
+\* \*\*Bộ quân:\*\* Chọn bộ Đôi-6, Đôi-9 hoặc Đôi-12. Bộ Đôi-6 hỗ trợ tối đa 5 người, bộ Đôi-9 hỗ trợ tối đa 7 người, và bộ Đôi-12 hỗ trợ tối đa 12 người (mặc định Đôi-6).
 
 \* \*\*Mở bốn nhánh:\*\* Quy định quân bò mở đầu có tạo ra bốn đầu đánh hay không. Mặc định: Bật.
 

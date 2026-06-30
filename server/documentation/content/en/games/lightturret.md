@@ -53,8 +53,8 @@ The live status panel updates while it remains open. It shows the round, each tu
 
 \*\*Game Options\*\*
 
-\* \*\*Starting Power:\*\* The starting power capacity for every turret. Range: 5 to 30. Default: 10.
-\* \*\*Maximum Rounds:\*\* The number of complete rounds before final scoring. Range: 10 to 200. Default: 50.
+\* \*\*Starting Power:\*\* The starting power capacity for every turret (default 10, range 5 to 30).
+\* \*\*Maximum Rounds:\*\* The number of complete rounds before final scoring (default 50, range 10 to 200).
 
 \*\*Personal Game Options\*\*
 

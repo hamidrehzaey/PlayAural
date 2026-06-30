@@ -35,9 +35,9 @@ PlayAural uses a compact score scale for faster games. The ratios match common F
 
 \*\*Game Options\*\*
 
-\* \*\*Target Score:\*\* The score needed to win. Range: 500 to 5000. Default: 1000.
-\* \*\*Minimum Entrance Score:\*\* The minimum turn score required to bank your first points. Range: 0 to 5000, but it cannot be higher than the target score. Default: 50.
-\* \*\*Minimum Bank Score:\*\* The minimum turn score required to bank after you are already on the board. Range: 0 to 5000, but it cannot be higher than the target score. Default: 30.
+\* \*\*Target Score:\*\* The score needed to win (default 1000, range 500 to 5000).
+\* \*\*Minimum Entrance Score:\*\* The minimum turn score required to bank your first points. It cannot be higher than the target score (default 50, range 0 to 5000).
+\* \*\*Minimum Bank Score:\*\* The minimum turn score required to bank after you are already on the board. It cannot be higher than the target score (default 30, range 0 to 5000).
 
 \*\*Personal Options\*\*
 

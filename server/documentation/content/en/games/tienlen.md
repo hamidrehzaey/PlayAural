@@ -79,9 +79,9 @@ The match ends when a player reaches the selected coin target.
 
 \*\*Game Options\*\*
 
-\* \*\*Variant:\*\* Southern Tien Len (default) or Northern Tien Len.
-\* \*\*Coin Target:\*\* 50 coins (default), 100 coins, or 200 coins.
-\* \*\*Turn Timer:\*\* Unlimited (default), 10, 15, 20, 30, 45, 60, or 90 seconds.
+\* \*\*Variant:\*\* Choose Southern Tien Len or Northern Tien Len (default Southern Tien Len).
+\* \*\*Coin Target:\*\* Choose the coin target (default 50 coins, choices: 50, 100, or 200 coins).
+\* \*\*Turn Timer:\*\* Choose the per-turn time limit (default Unlimited, choices: 10, 15, 20, 30, 45, 60, or 90 seconds, or Unlimited).
 
 \*\*Keyboard Shortcuts\*\*
 

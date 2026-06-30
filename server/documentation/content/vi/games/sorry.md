@@ -71,9 +71,9 @@ Sorry! không dùng điểm hiệp hay điểm trận. Phần điểm số trong
 
 \*\*Tùy Chỉnh Tại Bàn Chơi\*\*
 
-\* \*\*Bộ Luật:\*\* Mặc định `Classic 00390`. Chọn giữa `Classic 00390` và `A5065 Core`.
-\* \*\*Tự Đi Khi Chỉ Có Một Nước:\*\* Mặc định `Bật`. Nếu lá bài chỉ để lại đúng một nước đi hợp lệ, trò chơi sẽ tự thực hiện nước đó.
-\* \*\*Khởi Đầu Nhanh (Ra Sẵn Một Quân):\*\* Mặc định `Tắt`. Nếu bật, mỗi người bắt đầu với một quân đã đứng sẵn ở ô vào bàn.
+\* \*\*Bộ Luật:\*\* Chọn bộ luật Sorry sẽ dùng (mặc định `Classic 00390`, lựa chọn: `Classic 00390` hoặc `A5065 Core`).
+\* \*\*Tự Đi Khi Chỉ Có Một Nước:\*\* Nếu lá bài chỉ để lại đúng một nước đi hợp lệ, trò chơi sẽ tự thực hiện nước đó (mặc định `Bật`).
+\* \*\*Khởi Đầu Nhanh (Ra Sẵn Một Quân):\*\* Nếu bật, mỗi người bắt đầu với một quân đã đứng sẵn ở ô vào bàn (mặc định `Tắt`).
 
 \*\*Phím Tắt Bàn Phím\*\*
 

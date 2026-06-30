@@ -67,8 +67,8 @@ Một trận gồm nhiều ván liên tiếp cho đến khi đạt điểm mục
 
 \*\*Tùy chọn trò chơi\*\*
 
-\* \*\*Độ dài trận:\*\* Mặc định 1. Phạm vi từ 1 đến 25. Đây là số điểm cần đạt để thắng cả trận. Giá trị 1 là ván đơn, không có khối nhân đôi.
-\* \*\*Chiến lược bot:\*\* Mặc định Đơn giản. Có hai lựa chọn: Đơn giản hoặc Ngẫu nhiên.
+\* \*\*Độ dài trận:\*\* Số điểm cần đạt để thắng cả trận. Giá trị 1 là ván đơn, không có khối nhân đôi (mặc định 1, phạm vi từ 1 đến 25).
+\* \*\*Chiến lược bot:\*\* Cách bot chọn nước đi (mặc định Đơn giản, lựa chọn: Đơn giản hoặc Ngẫu nhiên).
 
 \*\*Phím tắt\*\*
 

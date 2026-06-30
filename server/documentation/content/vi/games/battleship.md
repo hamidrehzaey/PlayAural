@@ -84,13 +84,13 @@ Trước khi bắt đầu trận đấu, chủ bàn có thể chỉnh các mục
 
 
 
-\* \*\*Vùng tác chiến:\*\* Kích thước lưới. Lựa chọn: 6 x 6, 8 x 8, 10 x 10, 12 x 12. Mặc định: 10 x 10.
+\* \*\*Vùng tác chiến:\*\* Kích thước lưới (mặc định 10 x 10, lựa chọn: 6 x 6, 8 x 8, 10 x 10, 12 x 12).
 
 \* \*\*Triển khai:\*\* Chọn chế độ bố trí tàu tự động hoặc thủ công. Mặc định: Tự động.
 
 \* \*\*Tiếp tục khai hỏa khi trúng:\*\* Khi bật, phát trúng cho phép bắn thêm một lượt. Mặc định: Tắt.
 
-\* \*\*Thời gian lượt:\*\* Giới hạn thời gian mỗi lượt. Lựa chọn: Tắt, 30, 45 hoặc 60 giây. Nếu hết giờ, hệ thống sẽ tự động bắn vào một tọa độ ngẫu nhiên. Mặc định: Tắt.
+\* \*\*Thời gian lượt:\*\* Giới hạn thời gian mỗi lượt. Nếu hết giờ, hệ thống sẽ tự động bắn vào một tọa độ ngẫu nhiên (mặc định Tắt, lựa chọn: Tắt, 30, 45 hoặc 60 giây).
 
 
 

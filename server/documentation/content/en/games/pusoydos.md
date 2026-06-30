@@ -59,31 +59,31 @@ After the first round, the Card Passing option can require winners and losers to
 
 The first player to shed all their cards wins the round and the hand ends immediately. For modes that need the rest of the finishing order, remaining players are ranked by fewest cards left, with the lower highest card winning ties. What happens next depends on the Game Mode.
 
-* **Elimination (default):** The first player to win a set number of rounds (default: 2) is eliminated as a winner. The game continues until only one player remains — that player loses.
-* **Losses:** The last-place finisher each round accumulates a strike. The first player to reach the loss limit (default: 3) loses the game.
-* **Points:** The round winner collects penalty points from each loser based on the number of cards left in their hand. The first player to reach the target score (default: 100) wins the game.
+* **Elimination:** The first player to win the required number of rounds is eliminated as a winner. The game continues until only one player remains; that player loses (default game mode, default rounds to win: 2).
+* **Losses:** The last-place finisher each round accumulates a strike. The first player to reach the loss limit loses the game (default loss limit: 3).
+* **Points:** The round winner collects penalty points from each loser based on the number of cards left in their hand. The first player to reach the target score wins the game (default target score: 100).
 * **Points Elimination:** Losers accumulate their own penalty points. Any player who reaches the target score is eliminated. The last player standing wins.
 
 In Points and Points Elimination modes, the penalty for remaining cards scales with the Penalty Tier setting:
 
-* **Standard (default):** 1 point per card (1–9 cards), ×2 (10–12 cards), ×3 (all 13 cards).
-* **Aggressive:** 1 point per card (1–7 cards), ×2 (8–9 cards), ×3 (10–12 cards), ×4 (all 13 cards).
+* **Standard:** 1 point per card (1-9 cards), x2 (10-12 cards), x3 (all 13 cards) (default).
+* **Aggressive:** 1 point per card (1-7 cards), x2 (8-9 cards), x3 (10-12 cards), x4 (all 13 cards).
 * **Flat:** 1 point per card remaining, no multiplier.
 
 The optional **Penalty per 2 Held** setting doubles the total penalty for each 2 the losing player still holds.
 
 **Game Options**
 
-* **Game Mode:** Elimination (default), Losses, Points, or Points Elimination (see Scoring above).
-* **Rounds to Win** *(Elimination only):* How many rounds a player must win before being eliminated. Default 2, range 1 to 10.
-* **Losses to Lose** *(Losses only):* How many last-place finishes before a player loses. Default 3, range 1 to 10.
-* **Target Score** *(Points / Points Elimination only):* The score threshold for winning or elimination. Default 100, range 10 to 10000.
-* **Turn Timer:** Per-turn time limit. Choices are Unlimited (default), 10, 15, 20, 30, 45, 60, or 90 seconds.
-* **Allow 2 in Straights:** Whether the 2 may appear in straights (e.g. A-2-3-4-5). Off by default.
-* **Instant Wins:** Whether Dragon, Four 2s, and Six Pairs win the round on the deal. On by default. Cannot be combined with Card Passing.
-* **Card Passing:** Off (default), Simple, or Full (see Card Passing above). Full passing is valid only with exactly 2 or 4 players. Cannot be combined with Instant Wins.
-* **Penalty Tier** *(Points / Points Elimination only):* Standard (default), Aggressive, or Flat.
-* **Penalty per 2 Held** *(Points / Points Elimination only):* Doubles the penalty for each 2 remaining in a losing hand. Off by default.
+* **Game Mode:** Choose the match structure (default Elimination, choices: Elimination, Losses, Points, or Points Elimination; see Scoring above).
+* **Rounds to Win** *(Elimination only):* How many rounds a player must win before being eliminated (default 2, range 1 to 10).
+* **Losses to Lose** *(Losses only):* How many last-place finishes before a player loses (default 3, range 1 to 10).
+* **Target Score** *(Points / Points Elimination only):* The score threshold for winning or elimination (default 100, range 10 to 10000).
+* **Turn Timer:** Per-turn time limit (default Unlimited, choices: 10, 15, 20, 30, 45, 60, or 90 seconds, or Unlimited).
+* **Allow 2 in Straights:** Whether the 2 may appear in straights, such as A-2-3-4-5 (default off).
+* **Instant Wins:** Whether Dragon, Four 2s, and Six Pairs win the round on the deal. Cannot be combined with Card Passing (default on).
+* **Card Passing:** Full passing is valid only with exactly 2 or 4 players. Cannot be combined with Instant Wins (default Off, choices: Off, Simple, or Full; see Card Passing above).
+* **Penalty Tier** *(Points / Points Elimination only):* How remaining-card penalties are scaled (default Standard, choices: Standard, Aggressive, or Flat).
+* **Penalty per 2 Held** *(Points / Points Elimination only):* Doubles the penalty for each 2 remaining in a losing hand (default off).
 
 **Keyboard Shortcuts**
 

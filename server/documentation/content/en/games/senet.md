@@ -80,7 +80,7 @@ The first player to bear off all five of their pieces wins the game.
 
 \*\*Game Options\*\*
 
-\* \*\*Bot Difficulty:\*\* Default Simple. Choices: Simple (the bot weighs its moves with a heuristic) or Random (the bot plays a random legal move).
+\* \*\*Bot Difficulty:\*\* How bots choose their moves (default Simple, choices: Simple, where the bot weighs its moves with a heuristic, or Random, where the bot plays a random legal move).
 
 \*\*Keyboard Shortcuts\*\*
 

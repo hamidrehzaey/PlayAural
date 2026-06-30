@@ -60,7 +60,7 @@ Dice that do not fit into the best scoring combination are worth 0 points.
 
 \*\*Game Options\*\*
 
-\* \*\*Target score:\*\* The score needed to win after a scoring round. Default: 60. Range: 30-500.
+\* \*\*Target score:\*\* The score needed to win after a scoring round (default 60, range 30-500).
 
 \*\*Personal Options\*\*
 

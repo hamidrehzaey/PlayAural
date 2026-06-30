@@ -60,7 +60,7 @@ Các viên không thuộc tổ hợp ghi điểm tốt nhất sẽ được tín
 
 \*\*Tùy chọn trò chơi\*\*
 
-\* \*\*Điểm mục tiêu:\*\* Số điểm cần đạt để thắng sau một vòng tính điểm. Mặc định: 60. Phạm vi: 30-500.
+\* \*\*Điểm mục tiêu:\*\* Số điểm cần đạt để thắng sau một vòng tính điểm (mặc định 60, phạm vi 30-500).
 
 \*\*Tùy chọn cá nhân\*\*
 

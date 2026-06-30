@@ -13,7 +13,7 @@ colorgame-desc-minimum-bet = The smallest bet allowed on a color each round (def
 colorgame-set-maximum-total-bet = Maximum total bet per round: { $amount }
 colorgame-enter-maximum-total-bet = Enter the maximum total bet per round:
 colorgame-option-changed-maximum-total-bet = Maximum total bet per round set to { $amount }.
-colorgame-desc-maximum-total-bet = Maximum total chips one player may risk in a Color Game round (default 20, range 1-1000). It must be at least the minimum bet and no higher than the starting bankroll; a player's real cap is also limited by their current bankroll.
+colorgame-desc-maximum-total-bet = Maximum total chips one player may risk in a Color Game round. It must be at least the minimum bet and no higher than the starting bankroll; a player's real cap is also limited by their current bankroll (default 20, range 1-1000).
 
 colorgame-set-betting-timer = Betting timer: { $seconds } seconds
 colorgame-enter-betting-timer = Enter betting timer in seconds:

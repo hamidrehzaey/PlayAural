@@ -97,14 +97,14 @@ Khi Ngửa bài, người còn tay bài hiệu lực có thể dùng các hành 
 
 \*\*Tùy chọn tùy chỉnh\*\*
 
-\* \*\*Số chip ban đầu:\*\* số chip mỗi người có khi vào trận, từ 100 đến 1.000.000. Mặc định: 20.000.
-\* \*\*Mù lớn:\*\* mức Mù lớn cơ bản, từ 1 đến 1.000.000. Mặc định: 200. Mức này phải thấp hơn số chip ban đầu.
-\* \*\*Cược góp:\*\* khoản bắt buộc tùy chọn cho mỗi người, từ 0 đến 1.000.000. Mặc định: 0.
-\* \*\*Cược góp bắt đầu từ cấp:\*\* cấp mù nơi Cược góp bắt đầu có hiệu lực. Mặc định: 0, nghĩa là Cược góp có hiệu lực từ ván đầu tiên khi mức cược góp lớn hơn 0.
-\* \*\*Thời gian mỗi lượt:\*\* 5, 10, 15, 20, 30, 45, 60, hoặc 90 giây, hoặc Không giới hạn. Mặc định: Không giới hạn.
-\* \*\*Thời gian tăng mù:\*\* 5, 10, 15, 20, hoặc 30 phút giữa các lần tăng mù. Mặc định: 20 phút.
-\* \*\*Chế độ tố:\*\* Không giới hạn, Giới hạn theo hũ, hoặc Giới hạn gấp đôi hũ. Mặc định: Không giới hạn.
-\* \*\*Số lần tố tối đa trong mỗi vòng cược:\*\* từ 0 đến 10. Số 0 nghĩa là không giới hạn. Mặc định: 0.
+\* \*\*Số chip ban đầu:\*\* số chip mỗi người có khi vào trận (mặc định 20.000, phạm vi 100 đến 1.000.000).
+\* \*\*Mù lớn:\*\* mức Mù lớn cơ bản. Mức này phải thấp hơn số chip ban đầu (mặc định 200, phạm vi 1 đến 1.000.000).
+\* \*\*Cược góp:\*\* khoản bắt buộc tùy chọn cho mỗi người (mặc định 0, phạm vi 0 đến 1.000.000).
+\* \*\*Cược góp bắt đầu từ cấp:\*\* cấp mù nơi Cược góp bắt đầu có hiệu lực. Giá trị 0 nghĩa là Cược góp có hiệu lực từ ván đầu tiên khi mức cược góp lớn hơn 0 (mặc định 0).
+\* \*\*Thời gian mỗi lượt:\*\* thời gian người chơi có để hành động (mặc định Không giới hạn, lựa chọn: 5, 10, 15, 20, 30, 45, 60, hoặc 90 giây, hoặc Không giới hạn).
+\* \*\*Thời gian tăng mù:\*\* số phút giữa các lần tăng mù (mặc định 20 phút, lựa chọn: 5, 10, 15, 20, hoặc 30 phút).
+\* \*\*Chế độ tố:\*\* chọn cấu trúc giới hạn cược (mặc định Không giới hạn, lựa chọn: Không giới hạn, Giới hạn theo hũ, hoặc Giới hạn gấp đôi hũ).
+\* \*\*Số lần tố tối đa trong mỗi vòng cược:\*\* số lần tố tối đa cho mỗi vòng cược. Số 0 nghĩa là không giới hạn (mặc định 0, phạm vi 0 đến 10).
 
 \*\*Phím tắt\*\*
 

@@ -67,8 +67,8 @@ A match consists of multiple games played to a target score. After each game, th
 
 \*\*Game Options\*\*
 
-\* \*\*Match Length:\*\* Default 1. Range 1 to 25. This is the number of points needed to win the match. A value of 1 is a single game with no doubling cube.
-\* \*\*Bot Difficulty:\*\* Default Simple. Choices: Simple or Random.
+\* \*\*Match Length:\*\* The number of points needed to win the match. A value of 1 is a single game with no doubling cube (default 1, range 1 to 25).
+\* \*\*Bot Difficulty:\*\* How bots choose their moves (default Simple, choices: Simple or Random).
 
 \*\*Keyboard Shortcuts\*\*
 

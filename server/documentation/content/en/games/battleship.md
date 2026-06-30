@@ -84,13 +84,13 @@ The host can adjust the following settings before the match starts:
 
 
 
-\* \*\*Combat Zone:\*\* The grid size. Choices: 6 by 6, 8 by 8, 10 by 10, 12 by 12. Default: 10 by 10.
+\* \*\*Combat Zone:\*\* The grid size (default 10 by 10, choices: 6 by 6, 8 by 8, 10 by 10, 12 by 12).
 
 \* \*\*Deployment:\*\* Choose automatic or manual ship placement. Default: Automatic.
 
 \* \*\*Extra Salvo On Hit:\*\* When enabled, a hit grants another shot. Default: Off.
 
-\* \*\*Turn Timer:\*\* Time limit per turn. Choices: Off, 30, 45, or 60 seconds. If the timer runs out, a shot is fired at a random coordinate. Default: Off.
+\* \*\*Turn Timer:\*\* Time limit per turn. If the timer runs out, a shot is fired at a random coordinate (default Off, choices: Off, 30, 45, or 60 seconds).
 
 
 

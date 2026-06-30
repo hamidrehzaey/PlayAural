@@ -8,7 +8,7 @@ holdem-desc-starting-chips = Each player's opening Texas Hold'em stack, from 100
 holdem-set-big-blind = Big blind: { $count }
 holdem-enter-big-blind = Enter big blind
 holdem-option-changed-big-blind = Big blind set to { $count }.
-holdem-desc-big-blind = Base big blind amount, from 1 to 1,000,000 chips. Default: 200. It must be lower than the starting stack.
+holdem-desc-big-blind = Base big blind amount. It must be lower than the starting stack (default 200, range 1-1,000,000 chips).
 
 holdem-set-ante = Ante: { $count }
 holdem-enter-ante = Enter ante
@@ -18,7 +18,7 @@ holdem-desc-ante = Optional forced contribution each active player posts once an
 holdem-set-ante-start = Ante starts at level: { $count }
 holdem-enter-ante-start = Enter blind level to enable ante
 holdem-option-changed-ante-start = Ante start level set to { $count }.
-holdem-desc-ante-start-level = Blind level where antes begin, from 0 to 20. Default: 0, which means a positive ante is active from the first hand.
+holdem-desc-ante-start-level = Blind level where antes begin. A positive ante is active from the first hand when this is 0 (default 0, range 0-20).
 
 holdem-set-turn-timer = Turn timer: { $mode }
 holdem-select-turn-timer = Select turn timer

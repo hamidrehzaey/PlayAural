@@ -118,7 +118,7 @@ Chủ bàn có thể chỉnh các mục sau trước khi bắt đầu:
 
 
 
-\* \*\*Số lần 6 liên tiếp tối đa:\*\* Số lần gieo 6 liên tục trước khi bị hoàn tác cả chuỗi nước đi. Mặc định: 3. Phạm vi: 0 đến 5. Đặt 0 để tắt hình phạt này.
+\* \*\*Số lần 6 liên tiếp tối đa:\*\* Số lần gieo 6 liên tục trước khi bị hoàn tác cả chuỗi nước đi. Đặt 0 để tắt hình phạt này (mặc định 3, phạm vi 0 đến 5).
 
 \* \*\*Ô xuất phát an toàn:\*\* Khi bật, ô xuất phát của cả bốn màu đều được tính là ô an toàn và không bị đá. Mặc định: Bật.
 

@@ -44,9 +44,9 @@ Under either finish rule, a roll of 6 still grants another turn when the \*\*Ext
 
 \*\*Customizable Options\*\*
 
-\* \*\*Finish rule:\*\* Choose \*\*Bounce back\*\*, the default, or \*\*Exact roll; stay put after an overshoot\*\*.
+\* \*\*Finish rule:\*\* Choose how overshoots are handled (default \*\*Bounce back\*\*, choice also includes \*\*Exact roll; stay put after an overshoot\*\*).
 
-\* \*\*Extra turn on 6:\*\* Enabled by default. When enabled, rolling 6 gives the same player another turn after the move is fully resolved.
+\* \*\*Extra turn on 6:\*\* When enabled, rolling 6 gives the same player another turn after the move is fully resolved (default on).
 
 \*\*Personal Game Options\*\*
 

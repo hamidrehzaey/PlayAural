@@ -32,19 +32,19 @@ Trò chơi kết thúc khi có người đạt điểm mục tiêu.
 
 \*\*Tùy chọn trò chơi\*\*
 
-\* \*\*Điểm để thắng:\*\* Số điểm cần đạt để thắng ván. Mặc định 7, phạm vi từ 3 đến 20.
+\* \*\*Điểm để thắng:\*\* Số điểm cần đạt để thắng ván (mặc định 7, phạm vi từ 3 đến 20).
 
-\* \*\*Số lá trên tay:\*\* Số lá bài trắng mỗi người giữ. Mặc định 10, phạm vi từ 5 đến 15.
+\* \*\*Số lá trên tay:\*\* Số lá bài trắng mỗi người giữ (mặc định 10, phạm vi từ 5 đến 15).
 
-\* \*\*Bộ bài:\*\* Chọn bộ nội dung dùng trong ván. Mặc định là Bộ cơ bản. Có thể kết hợp nhiều bộ, nhưng phải bật ít nhất một bộ.
+\* \*\*Bộ bài:\*\* Chọn bộ nội dung dùng trong ván. Có thể kết hợp nhiều bộ, nhưng phải bật ít nhất một bộ (mặc định Bộ cơ bản).
 
-\* \*\*Cách chọn trọng tài:\*\* Cách chọn trọng tài mỗi vòng. Mặc định Luân phiên. Các lựa chọn: Luân phiên, Ngẫu nhiên, hoặc Người thắng vòng trước.
+\* \*\*Cách chọn trọng tài:\*\* Cách chọn trọng tài mỗi vòng (mặc định Luân phiên, lựa chọn: Luân phiên, Ngẫu nhiên, hoặc Người thắng vòng trước).
 
-\* \*\*Số trọng tài:\*\* Số người cùng làm trọng tài trong một vòng. Mặc định 1, phạm vi từ 1 đến 3. Ván luôn phải còn ít nhất một người không phải trọng tài để nộp bài, nên số trọng tài phải thấp hơn số người chơi trong bàn. Khi có nhiều trọng tài, bất kỳ trọng tài nào cũng có thể chọn bài thắng. Nhiều trọng tài phù hợp hơn với nhóm đông vì sẽ có ít người nộp bài hơn mỗi vòng.
+\* \*\*Số trọng tài:\*\* Số người cùng làm trọng tài trong một vòng. Ván luôn phải còn ít nhất một người không phải trọng tài để nộp bài, nên số trọng tài phải thấp hơn số người chơi trong bàn. Khi có nhiều trọng tài, bất kỳ trọng tài nào cũng có thể chọn bài thắng. Nhiều trọng tài phù hợp hơn với nhóm đông vì sẽ có ít người nộp bài hơn mỗi vòng (mặc định 1, phạm vi từ 1 đến 3).
 
 \*\*Các nhóm bộ bài\*\*
 
-\* \*\*Bộ cơ bản:\*\* Bộ Cards Against Humanity gốc.
+\* \*\*Bộ cơ bản:\*\* Bộ Cards Against Humanity gốc (mặc định).
 
 \* \*\*Bộ cơ bản và mở rộng:\*\* Bộ cơ bản cùng các gói mở rộng chính thức được đánh số.
 

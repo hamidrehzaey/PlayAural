@@ -94,12 +94,12 @@ Spectators can use the public information actions but cannot read a player's pri
 
 \*\*Customizable Options\*\*
 
-\* \*\*Starting chips:\*\* each player's opening stack, from 100 to 1,000,000. Default: 20,000.
-\* \*\*Ante:\*\* the forced contribution at the start of each hand, from 0 to 1,000,000. Default: 100. It must be lower than the starting stack.
-\* \*\*Turn timer:\*\* 5, 10, 15, 20, 30, 45, 60, or 90 seconds, or Unlimited. Default: Unlimited.
-\* \*\*Raise mode:\*\* No limit, Pot limit, or Double pot limit. Default: No limit. Pot-based modes require an ante greater than 0 so the first betting round can open normally.
-\* \*\*Maximum raises per betting round:\*\* from 0 to 10. Zero means unlimited. Default: 0.
-\* \*\*Draw rule:\*\* exchange up to 3 cards, or allow 4 cards when keeping an ace. Default: Up to 3 cards.
+\* \*\*Starting chips:\*\* each player's opening stack (default 20,000, range 100 to 1,000,000).
+\* \*\*Ante:\*\* the forced contribution at the start of each hand. It must be lower than the starting stack (default 100, range 0 to 1,000,000).
+\* \*\*Turn timer:\*\* how long a player has to act (default Unlimited, choices: 5, 10, 15, 20, 30, 45, 60, or 90 seconds, or Unlimited).
+\* \*\*Raise mode:\*\* Pot-based modes require an ante greater than 0 so the first betting round can open normally (default No limit, choices: No limit, Pot limit, or Double pot limit).
+\* \*\*Maximum raises per betting round:\*\* how many raises are allowed in each betting round. Zero means unlimited (default 0, range 0 to 10).
+\* \*\*Draw rule:\*\* whether players may exchange up to 3 cards, or 4 cards when keeping an ace (default Up to 3 cards).
 
 \*\*Keyboard Shortcuts\*\*
 

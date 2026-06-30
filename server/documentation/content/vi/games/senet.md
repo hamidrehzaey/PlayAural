@@ -80,7 +80,7 @@ Người đầu tiên đưa cả năm quân của mình ra ngoài sẽ thắng v
 
 \*\*Tùy chọn trò chơi\*\*
 
-\* \*\*Độ khó của Bot:\*\* Mặc định Đơn giản. Lựa chọn: Đơn giản (bot cân nhắc nước đi bằng một phương pháp heuristic) hoặc Ngẫu nhiên (bot đi một nước hợp lệ ngẫu nhiên).
+\* \*\*Độ khó của Bot:\*\* Cách bot chọn nước đi (mặc định Đơn giản, lựa chọn: Đơn giản, khi bot cân nhắc nước đi bằng một phương pháp heuristic, hoặc Ngẫu nhiên, khi bot đi một nước hợp lệ ngẫu nhiên).
 
 \*\*Phím tắt\*\*
 

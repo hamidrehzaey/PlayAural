@@ -62,13 +62,13 @@ At the end of each round, 1 point is awarded for each of the following (no point
 
 \* \*\*Team Mode:\*\* Play individually or in teams.
 
-\* \*\*Team Card Scoring:\*\* Whether team members' captured cards are pooled for scoring (default on). If disabled in a team game, each player's captured pile is evaluated separately, and any points that player wins are added to that player's team.
+\* \*\*Team Card Scoring:\*\* Whether team members' captured cards are pooled for scoring. If disabled in a team game, each player's captured pile is evaluated separately, and any points that player wins are added to that player's team (default on).
 
 \* \*\*Show Capture Hints:\*\* Display which table cards can be captured with each hand card (default off).
 
 \* \*\*Scopa Mechanic:\*\* Normal, No Scopas (table sweeps do not score), or Only Scopas (only sweep points count).
 
-\* \*\*Instant Win Scopas:\*\* Whether a valid Scopa immediately wins the game (default off). This cannot be combined with No Scopas or Inverse Scopa.
+\* \*\*Instant Win Scopas:\*\* Whether a valid Scopa immediately wins the game. This cannot be combined with No Scopas or Inverse Scopa (default off).
 
 
 
@@ -78,7 +78,7 @@ At the end of each round, 1 point is awarded for each of the following (no point
 
 \* \*\*Asso piglia tutto (Ace takes all):\*\* Playing an Ace sweeps all cards currently on the table (this sweep usually does not count as a Scopa point). If there is already an Ace on the table, it only captures that Ace. This mode cannot be enabled alongside Escoba.
 
-\* \*\*Traditional Primiera Scoring:\*\* Enabled by default for standard Scopa. If disabled, the game uses the simpler "Most Sevens" scoring variant instead.
+\* \*\*Traditional Primiera Scoring:\*\* If disabled, the game uses the simpler "Most Sevens" scoring variant instead (default on for standard Scopa).
 
 \* \*\*Napola:\*\* Earn bonus points for capturing an uninterrupted sequence of Diamond cards starting from the Ace (Ace, 2, 3 of Diamonds = 3 points; up to 10 points for all Diamonds).
 

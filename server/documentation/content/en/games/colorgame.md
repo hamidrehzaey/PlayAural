@@ -87,30 +87,20 @@ If players are tied at the top, ranking is broken in this exact order:
 
 \*\*Customizable Options\*\*
 
-\* \*\*Starting Bankroll:\*\* Default \*\*100\*\*. Valid range: \*\*10 to 1000\*\*.
-\* Every player starts the match with this many chips.
+\* \*\*Starting Bankroll:\*\* Every player starts the match with this many chips (default \*\*100\*\*, valid range \*\*10 to 1000\*\*).
 
-\* \*\*Minimum Bet:\*\* Default \*\*1\*\*. Valid range: \*\*1 to 100\*\*.
-\* Every non-zero color bet must be at least this amount.
+\* \*\*Minimum Bet:\*\* Every non-zero color bet must be at least this amount (default \*\*1\*\*, valid range \*\*1 to 100\*\*).
 
-\* \*\*Maximum Total Bet Per Round:\*\* Default \*\*20\*\*. Valid range in the option control: \*\*1 to 1000\*\*.
-\* Additional validation in the game logic requires it to be:
+\* \*\*Maximum Total Bet Per Round:\*\* A player's real per-round cap is the smaller of their current bankroll and this option value. Additional validation requires it to be:
 \* at least the Minimum Bet
 \* no greater than the Starting Bankroll
-\* A player's real per-round cap is the smaller of:
-\* their current bankroll
-\* this option value
+\* Default \*\*20\*\*, valid range in the option control \*\*1 to 1000\*\*.
 
-\* \*\*Betting Timer:\*\* Default \*\*15 seconds\*\*. Valid range: \*\*5 to 60 seconds\*\*.
-\* This is the shared timer for the betting phase of each round.
+\* \*\*Betting Timer:\*\* The shared timer for the betting phase of each round (default \*\*15 seconds\*\*, valid range \*\*5 to 60 seconds\*\*).
 
-\* \*\*Round Limit:\*\* Default \*\*20\*\*. Valid range: \*\*1 to 100\*\*.
-\* Once this many rounds have been completed, the game ends and standings are finalized.
+\* \*\*Round Limit:\*\* Once this many rounds have been completed, the game ends and standings are finalized (default \*\*20\*\*, valid range \*\*1 to 100\*\*).
 
-\* \*\*Win Condition:\*\* Default \*\*Last Player Standing\*\*.
-\* Choices:
-\* \*\*Last Player Standing\*\*
-\* \*\*Highest Bankroll At The Round Limit\*\*
+\* \*\*Win Condition:\*\* Determines how the winner is decided (default \*\*Last Player Standing\*\*, choices: \*\*Last Player Standing\*\* or \*\*Highest Bankroll At The Round Limit\*\*).
 
 \*\*Keyboard Shortcuts\*\*
 

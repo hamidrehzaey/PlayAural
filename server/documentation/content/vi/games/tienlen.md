@@ -79,9 +79,9 @@ Trận đấu kết thúc khi có người đạt mốc xu đã chọn.
 
 \*\*Tùy Chọn Trò Chơi\*\*
 
-\* \*\*Biến thể:\*\* Tiến Lên Miền Nam (mặc định) hoặc Tiến Lên Miền Bắc.
-\* \*\*Mốc xu:\*\* 50 xu (mặc định), 100 xu, hoặc 200 xu.
-\* \*\*Thời gian mỗi lượt:\*\* Không giới hạn (mặc định), 10, 15, 20, 30, 45, 60 hoặc 90 giây.
+\* \*\*Biến thể:\*\* Chọn Tiến Lên Miền Nam hoặc Tiến Lên Miền Bắc (mặc định Tiến Lên Miền Nam).
+\* \*\*Mốc xu:\*\* Chọn mốc xu của trận (mặc định 50 xu, lựa chọn: 50, 100, hoặc 200 xu).
+\* \*\*Thời gian mỗi lượt:\*\* Chọn giới hạn thời gian mỗi lượt (mặc định Không giới hạn, lựa chọn: 10, 15, 20, 30, 45, 60 hoặc 90 giây, hoặc Không giới hạn).
 
 \*\*Phím Tắt\*\*
 

@@ -11,7 +11,7 @@ hc-desc-winning-score = The number of winning cards a player needs to collect to
 hc-set-hand-size = Hand size: { $count }
 hc-enter-hand-size = Enter hand size:
 hc-option-changed-hand-size = Hand size set to { $count }.
-hc-desc-hand-size = How many answer cards each player holds after each refill (default 10, range 5-15). Larger hands give more choices but make rounds take longer.
+hc-desc-hand-size = How many answer cards each player holds after each refill. Larger hands give more choices but make rounds take longer (default 10, range 5-15).
 
 hc-set-card-packs = Card packs ({ $count } of { $total } selected)
 hc-option-changed-card-packs = Card pack selection changed.
@@ -25,7 +25,7 @@ hc-desc-czar-selection = Controls who judges each round: rotating in seating ord
 hc-set-num-judges = Number of judges: { $count }
 hc-enter-num-judges = Enter number of judges:
 hc-option-changed-num-judges = Number of judges set to { $count }.
-hc-desc-num-judges = How many Card Czars judge each round (default 1, range 1-3). The count must be lower than the player count so at least one non-judge can submit; with multiple judges, any judge can pick the winner.
+hc-desc-num-judges = How many Card Czars judge each round. The count must be lower than the player count so at least one non-judge can submit; with multiple judges, any judge can pick the winner (default 1, range 1-3).
 
 hc-czar-rotating = Rotating
 hc-czar-random = Random

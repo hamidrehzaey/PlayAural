@@ -34,11 +34,11 @@ In team modes, teammates share one permanent score. Each member still takes an i
 
 \*\*Customizable Options\*\*
 
-\* \*\*Target Score:\*\* The total needed to win. The default is 100, with a range from 10 to 1,000.
+\* \*\*Target Score:\*\* The total needed to win (default 100, range 10 to 1,000).
 
-\* \*\*Minimum Hold:\*\* The turn total required before Hold is available. The default is 0, which follows standard Pig. It may be set as high as 999, but it must remain below the target score.
+\* \*\*Minimum Hold:\*\* The turn total required before Hold is available. A value of 0 follows standard Pig. It must remain below the target score (default 0, range 0 to 999).
 
-\* \*\*Die Sides:\*\* The default is the standard 6-sided die. The host may choose from 4 to 20 sides. Rolling 1 always loses the turn total, so more sides reduce the chance of losing points on each roll.
+\* \*\*Die Sides:\*\* Rolling 1 always loses the turn total, so more sides reduce the chance of losing points on each roll (default 6-sided die, range 4 to 20 sides).
 
 \* \*\*Team Mode:\*\* Play individually or in supported team arrangements. The selected arrangement must match the number of active players.
 

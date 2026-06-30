@@ -62,15 +62,15 @@ Chủ bàn chọn các bộ bóng theo chủ đề có thể xuất hiện trong
 
 \*\*Tùy chỉnh tại bàn chơi\*\*
 
-\* \*\*Số bóng rút tối thiểu mỗi lượt:\*\* Mặc định 1. Phạm vi từ 1 đến 5.
+\* \*\*Số bóng rút tối thiểu mỗi lượt:\*\* Số bóng ít nhất mà người chơi có thể rút trong một lượt (mặc định 1, phạm vi từ 1 đến 5).
 
-\* \*\*Số bóng rút tối đa mỗi lượt:\*\* Mặc định 3. Phạm vi từ 1 đến 5. Không thể bắt đầu nếu mức tối thiểu cao hơn mức tối đa.
+\* \*\*Số bóng rút tối đa mỗi lượt:\*\* Số bóng nhiều nhất mà người chơi có thể rút trong một lượt. Không thể bắt đầu nếu mức tối thiểu cao hơn mức tối đa (mặc định 3, phạm vi từ 1 đến 5).
 
-\* \*\*Lượt xem nội dung mới cho mỗi người:\*\* Mặc định 5. Phạm vi từ 0 đến 100. Đặt 0 để tắt xem trước.
+\* \*\*Lượt xem nội dung mới cho mỗi người:\*\* Số lần mỗi người chơi có thể xem trước nội dung mới. Đặt 0 để tắt xem trước (mặc định 5, phạm vi từ 0 đến 100).
 
-\* \*\*Số lần xáo cho mỗi người:\*\* Mặc định 3. Phạm vi từ 0 đến 100. Đặt 0 để tắt xáo.
+\* \*\*Số lần xáo cho mỗi người:\*\* Số lần mỗi người chơi có thể xáo nội dung hiện tại. Đặt 0 để tắt xáo (mặc định 3, phạm vi từ 0 đến 100).
 
-\* \*\*Điểm phạt mỗi lần xáo:\*\* Mặc định 1 điểm. Phạm vi từ 0 đến 5. Tùy chọn này chỉ xuất hiện khi cho phép xáo.
+\* \*\*Điểm phạt mỗi lần xáo:\*\* Số điểm bị trừ khi người chơi xáo. Tùy chọn này chỉ xuất hiện khi cho phép xáo (mặc định 1 điểm, phạm vi từ 0 đến 5).
 
 \* \*\*Bộ bóng:\*\* Chọn một hoặc nhiều bộ để tạo ống.
 
