@@ -25,7 +25,6 @@ New Additions:
 * 21 (Survival Rules) now supports two to four players, with survival results across every remaining player and target choices for Change Cards that affect an opponent.
 * Administration now includes Server Power Management for scheduling reboots or shutdowns with clear reasons, multilingual custom reasons, countdown warnings, and planned reboots that preserve active tables while clients reconnect.
 * Large server menus now support search and 100-item pages with clear page ranges, First page, Previous page, Next page, and Last page controls.
-* Unban User and Unmute User now show each active penalty's expiration, remaining time, reason, and issuing admin.
 
 Bug Fixes:
 
