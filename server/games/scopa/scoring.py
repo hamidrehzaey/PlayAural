@@ -50,7 +50,7 @@ def build_scoring_units(game: "ScopaGame") -> list[ScoringUnit]:
                 ScoringUnit(
                     owner_name=game.team_manager.get_team_name(team),
                     team=team,
-                    cards=get_team_captured_cards(game.players, team),
+                    cards=get_team_captured_cards(active_players, team),
                     members=list(team.members),
                     is_team=len(team.members) > 1,
                 )
@@ -347,8 +347,18 @@ def check_winner(game: "ScopaGame") -> Team | None:
         # Normal: first to target wins
         teams_at_target = game.team_manager.get_teams_at_or_above_score(target)
         if teams_at_target:
-            # Highest score wins
-            return max(teams_at_target, key=lambda t: t.total_score)
+            highest_score = max(team.total_score for team in teams_at_target)
+            leaders = [
+                team for team in teams_at_target if team.total_score == highest_score
+            ]
+            if len(leaders) == 1:
+                return leaders[0]
+            game.broadcast_l(
+                "scopa-target-tie-continue",
+                buffer="game",
+                score=highest_score,
+                target=target,
+            )
 
     return None
 

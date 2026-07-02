@@ -50,6 +50,8 @@ Vào cuối mỗi vòng, 1 điểm sẽ được trao cho mỗi hạng mục sau
 
 \* \*\*Scopa:\*\* Mỗi lần quét sạch bàn hợp lệ trong khi chơi được 1 điểm.
 
+Điểm Scopa được theo dõi trong lúc đang chơi ván bài và phần kiểm tra điểm sẽ đọc chúng như điểm Scopa đang chờ tính. Các điểm đó được cộng vào tổng điểm khi ván bài được tính điểm. Nếu nhiều bên cùng đạt mốc mục tiêu với số điểm cao nhất bằng nhau, trò chơi sẽ chơi thêm một ván để phá hòa.
+
 
 
 \*\*Tùy chọn trò chơi\*\*
@@ -76,7 +78,7 @@ Vào cuối mỗi vòng, 1 điểm sẽ được trao cho mỗi hạng mục sau
 
 \* \*\*Chọn nước ăn bài thủ công:\*\* Khi được bật, nếu lá bài đánh xuống có thể ăn nhiều tổ hợp khác nhau từ trên bàn, bạn có thể chọn thủ công tổ hợp nào để ăn thay vì trò chơi tự động chọn tổ hợp có nhiều lá bài nhất.
 
-\* \*\*Asso piglia tutto (Át ăn tất cả):\*\* Đánh lá Át sẽ quét sạch tất cả các lá bài hiện có trên bàn (việc quét này thường không được tính là điểm Scopa). Nếu đã có một lá Át trên bàn, nó chỉ ăn lá Át đó. Chế độ này không thể được bật cùng với Escoba.
+\* \*\*Asso piglia tutto (Át ăn tất cả):\*\* Đánh lá Át sẽ quét sạch tất cả các lá bài hiện có trên bàn và ghi điểm Scopa nếu lần quét đó hợp lệ. Nếu đã có một lá Át trên bàn, nó chỉ ăn một lá Át; nếu đó là lá duy nhất trên bàn, lần ăn đó vẫn ghi điểm Scopa. Chế độ này không thể được bật cùng với Escoba.
 
 \* \*\*Tính điểm Primiera truyền thống:\*\* Nếu tắt, trò chơi dùng biến thể đơn giản hơn là tính điểm "Nhiều lá 7 nhất" (mặc định bật cho Scopa chuẩn).
 

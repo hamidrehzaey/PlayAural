@@ -57,6 +57,15 @@ scopa-error-conflict-escoba-asso = Không thể bật Escoba và Asso Piglia Tut
 scopa-error-conflict-instant-inverse = Không thể bật thắng ngay khi được Scopa cùng với chế độ Đảo ngược.
 scopa-error-conflict-instant-no-scopas = Không thể bật thắng ngay khi được Scopa khi quét bàn không được tính điểm.
 
+scopa-score-line-target-pending = { $player }: { $score }/{ $target } { $unit } (+{ $round_score } { $pending_unit } Scopa đang chờ tính trong vòng này)
+scopa-score-line-pending = { $player }: { $score } { $unit } (+{ $round_score } { $pending_unit } Scopa đang chờ tính trong vòng này)
+scopa-target-tie-continue = Nhiều bên đang hòa ở { $score } { $score ->
+    [one] điểm
+   *[other] điểm
+}, nên Scopa tiếp tục sau mốc { $target } { $target ->
+    [one] điểm
+   *[other] điểm
+} cho đến khi phá hòa.
 scopa-round-scores = Điểm vòng chơi:
 scopa-round-score-line = { $player }: +{ $round_score } (tổng: { $total_score })
 scopa-table-empty = Không có bài nào trên bàn.
@@ -109,7 +118,7 @@ scopa-desc-inverse-scopa = Đảo mục tiêu để người hoặc đội đạ
 scopa-option-changed-manual = Chọn nước ăn bài thủ công { $enabled }.
 scopa-desc-manual-selection = Cho phép người chơi tự chọn tổ hợp bắt bài khi có nhiều tổ hợp hợp lệ.
 scopa-option-changed-asso = Asso piglia tutto { $enabled }.
-scopa-desc-asso-piglia-tutto = Bật luật Át ăn tất cả: lá Át có thể quét cả bàn trừ khi trên bàn đã có một lá Át. Tùy chọn này không thể dùng cùng Escoba.
+scopa-desc-asso-piglia-tutto = Bật luật Át ăn tất cả: lá Át quét cả bàn và ghi một điểm Scopa, trừ khi trên bàn đã có một lá Át. Tùy chọn này không thể dùng cùng Escoba.
 scopa-option-changed-primiera = Tính điểm Primiera truyền thống { $enabled }.
 scopa-desc-primiera-scoring = Bật cách tính Primiera truyền thống; khi tắt, trò chơi dùng biến thể Đa số lá 7 đơn giản hơn.
 scopa-option-changed-napola = Napola { $enabled }.

@@ -57,6 +57,15 @@ scopa-error-conflict-escoba-asso = Escoba and Asso Piglia Tutto cannot be enable
 scopa-error-conflict-instant-inverse = Instant win on scopa cannot be enabled with inverse mode.
 scopa-error-conflict-instant-no-scopas = Instant win on scopa cannot be enabled when scopas do not score.
 
+scopa-score-line-target-pending = { $player }: { $score }/{ $target } { $unit } (+{ $round_score } pending Scopa { $pending_unit } this round)
+scopa-score-line-pending = { $player }: { $score } { $unit } (+{ $round_score } pending Scopa { $pending_unit } this round)
+scopa-target-tie-continue = Multiple sides are tied at { $score } { $score ->
+    [one] point
+   *[other] points
+}, so Scopa continues past the target of { $target } { $target ->
+    [one] point
+   *[other] points
+} until the tie is broken.
 scopa-round-scores = Round scores:
 scopa-round-score-line = { $player }: +{ $round_score } (total: { $total_score })
 scopa-table-empty = There are no cards on the table.
@@ -109,7 +118,7 @@ scopa-desc-inverse-scopa = Inverts the goal so reaching the target score elimina
 scopa-option-changed-manual = Manual capture selection { $enabled }.
 scopa-desc-manual-selection = Lets players choose a capture combination manually when more than one legal capture exists.
 scopa-option-changed-asso = Asso piglia tutto { $enabled }.
-scopa-desc-asso-piglia-tutto = Enables Ace takes all: an Ace can sweep the table unless another Ace is already present. This cannot be combined with Escoba.
+scopa-desc-asso-piglia-tutto = Enables Ace takes all: an Ace sweeps the table and scores a scopa unless another Ace is already present. This cannot be combined with Escoba.
 scopa-option-changed-primiera = Traditional Primiera scoring { $enabled }.
 scopa-desc-primiera-scoring = Enables traditional Primiera scoring; when off, the game uses the simpler Most Sevens variant.
 scopa-option-changed-napola = Napola { $enabled }.

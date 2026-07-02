@@ -4,6 +4,7 @@ from pathlib import Path
 
 from ..games.scopa.game import ScopaGame, ScopaPlayer, ScopaOptions
 from ..games.scopa.capture import find_captures, select_best_capture
+from ..games.scopa.scoring import check_winner
 from ..games.registry import GameRegistry
 from ..game_utils.cards import Card, DeckFactory
 from ..game_utils.teams import TeamManager
@@ -322,6 +323,31 @@ class TestScopaCaptureLogic:
 class TestScopaVariants:
     """Tests for new options like primiera, napola, and manual selection."""
 
+    def test_initial_table_with_three_tens_is_invalid_for_standard_scopa(self):
+        game = ScopaGame()
+        cards = [
+            Card(id=1, rank=10, suit=1),
+            Card(id=2, rank=10, suit=2),
+            Card(id=3, rank=10, suit=3),
+            Card(id=4, rank=2, suit=4),
+        ]
+
+        assert game._is_invalid_initial_table(cards) is True
+
+        game.options.escoba = True
+        assert game._is_invalid_initial_table(cards) is False
+
+    def test_initial_table_with_two_tens_is_allowed(self):
+        game = ScopaGame()
+        cards = [
+            Card(id=1, rank=10, suit=1),
+            Card(id=2, rank=10, suit=2),
+            Card(id=3, rank=7, suit=3),
+            Card(id=4, rank=2, suit=4),
+        ]
+
+        assert game._is_invalid_initial_table(cards) is False
+
     def test_primiera_scoring(self):
         from ..games.scopa.scoring import score_round
         game = ScopaGame()
@@ -460,6 +486,88 @@ class TestScopaVariants:
         assert team is not None
         assert team.total_score == 1
 
+    def test_scopa_points_are_pending_until_round_end(self):
+        game = make_scopa_game(2)
+        game.on_start()
+
+        player = game.players[0]
+        user = game.get_user(player)
+        assert user is not None
+        team = game.team_manager.get_team(player.name)
+        assert team is not None
+
+        game.table_cards = [
+            Card(id=200, rank=2, suit=1),
+            Card(id=201, rank=3, suit=2),
+        ]
+        game.deck.cards = [Card(id=202, rank=4, suit=3)]
+        user.clear_messages()
+
+        game._execute_capture(
+            player,
+            Card(id=203, rank=5, suit=4),
+            list(game.table_cards),
+        )
+
+        assert team.round_score == 1
+        assert team.total_score == 0
+
+        game._action_check_scores(player, "check_scores")
+
+        spoken = "\n".join(speech_texts(user))
+        assert "pending Scopa point this round" in spoken
+        assert "projected" not in spoken
+
+    def test_asso_piglia_tutto_sweep_scores_scopa(self):
+        game = make_scopa_game(2)
+        game.options.asso_piglia_tutto = True
+        game.on_start()
+
+        player = game.players[0]
+        user = game.get_user(player)
+        assert user is not None
+        team = game.team_manager.get_team(player.name)
+        assert team is not None
+        game.table_cards = [
+            Card(id=200, rank=2, suit=1),
+            Card(id=201, rank=3, suit=2),
+        ]
+        game.deck.cards = [Card(id=202, rank=4, suit=3)]
+        user.clear_messages()
+
+        game._execute_capture(
+            player,
+            Card(id=203, rank=1, suit=4),
+            list(game.table_cards),
+        )
+
+        assert team.round_score == 1
+        assert any("score a scopa" in text.lower() for text in speech_texts(user))
+
+    def test_last_play_sweep_does_not_score_scopa(self):
+        game = make_scopa_game(2)
+        game.on_start()
+
+        player = game.players[0]
+        team = game.team_manager.get_team(player.name)
+        assert team is not None
+
+        game.table_cards = [
+            Card(id=200, rank=2, suit=1),
+            Card(id=201, rank=3, suit=2),
+        ]
+        game.deck.cards = []
+        for table_player in game.players:
+            table_player.hand = []
+
+        game._execute_capture(
+            player,
+            Card(id=203, rank=5, suit=4),
+            list(game.table_cards),
+        )
+
+        assert team.round_score == 0
+
     def test_inverse_result_uses_recorded_winner(self):
         game = make_scopa_game(3)
         game.options.inverse_scopa = True
@@ -563,6 +671,52 @@ class TestScopaVariants:
         assert player1.id not in game._pending_actions
         assert "action_input_menu" not in user1.menus
         assert user1.get_last_spoken() == "It's not your turn."
+
+    def test_out_of_turn_card_actions_are_visible_but_disabled(self):
+        game = make_scopa_game(2)
+        game.on_start()
+
+        player1, player2 = game.players
+        game.current_player = player2
+        card = Card(id=500, rank=5, suit=1)
+        player1.hand = [card]
+        game._update_card_actions(player1)
+
+        action_set = game.get_action_set(player1, "turn")
+        assert action_set is not None
+        action = action_set.get_action(f"play_card_{card.id}")
+        assert action is not None
+
+        resolved = action_set.resolve_action(game, player1, action)
+        assert resolved.visible is True
+        assert resolved.enabled is False
+        assert resolved.disabled_reason == "action-not-your-turn"
+
+    def test_tied_target_score_requires_another_round(self):
+        game = make_scopa_game(2)
+        game.on_start()
+        for team in game.team_manager.teams:
+            team.total_score = game.options.target_score
+
+        user = game.get_user(game.players[0])
+        assert user is not None
+        user.clear_messages()
+
+        assert check_winner(game) is None
+        assert any(
+            "continues past the target of 11 points" in text
+            for text in speech_texts(user)
+        )
+
+    def test_highest_score_wins_when_multiple_sides_reach_target_without_tie(self):
+        game = make_scopa_game(2)
+        game.on_start()
+        game.team_manager.teams[0].total_score = game.options.target_score
+        game.team_manager.teams[1].total_score = game.options.target_score + 1
+
+        winner = check_winner(game)
+
+        assert winner == game.team_manager.teams[1]
 
 
 class TestScopaGameFlow:

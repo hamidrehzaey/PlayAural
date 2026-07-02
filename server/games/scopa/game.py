@@ -450,6 +450,8 @@ class ScopaGame(Game):
             return "action-not-playing"
         if player.is_spectator:
             return "action-spectator"
+        if self.current_player != player:
+            return "action-not-your-turn"
         return None
 
     def _pre_input_check_manual_capture_selection(self, player: Player, action_id: str) -> str | None:
@@ -618,6 +620,88 @@ class ScopaGame(Game):
 
         return errors
 
+    def get_score_sort_descending(self) -> bool:
+        """Show safer low scores first in inverse mode."""
+        return not self.options.inverse_scopa
+
+    def _format_score_line_with_round_pending(self, team: Team, locale: str) -> str:
+        """Format one score line, including uncommitted Scopa points."""
+        name = self.team_manager.get_team_name(team, locale)
+        target = self.get_score_target()
+        unit_count = target if target is not None else team.total_score
+        unit = Localization.get(locale, self.get_score_unit_key(), count=unit_count)
+
+        if team.round_score == 0:
+            if target is not None:
+                return Localization.get(
+                    locale,
+                    "game-score-line-target",
+                    player=name,
+                    score=team.total_score,
+                    target=target,
+                    unit=unit,
+                )
+            return Localization.get(
+                locale,
+                "game-score-line",
+                player=name,
+                score=team.total_score,
+                unit=unit,
+            )
+
+        pending_unit = Localization.get(
+            locale,
+            self.get_score_unit_key(),
+            count=team.round_score,
+        )
+        if target is not None:
+            return Localization.get(
+                locale,
+                "scopa-score-line-target-pending",
+                player=name,
+                score=team.total_score,
+                target=target,
+                unit=unit,
+                round_score=team.round_score,
+                pending_unit=pending_unit,
+            )
+        return Localization.get(
+            locale,
+            "scopa-score-line-pending",
+            player=name,
+            score=team.total_score,
+            unit=unit,
+            round_score=team.round_score,
+            pending_unit=pending_unit,
+        )
+
+    def _scopa_score_lines(self, locale: str) -> list[str]:
+        """Return score lines with Scopa points earned during the active round."""
+        self._sync_score_display_names()
+        teams = self.team_manager.get_sorted_teams(
+            by_score=True,
+            descending=self.get_score_sort_descending(),
+        )
+        return [
+            self._format_score_line_with_round_pending(team, locale)
+            for team in teams
+        ]
+
+    def _action_check_scores(self, player: Player, action_id: str) -> None:
+        """Announce committed totals and pending round Scopa points."""
+        user = self.get_user(player)
+        if not user:
+            return
+        if not self.supports_score_actions():
+            user.speak_l("no-scores-available", buffer="game")
+            return
+        for line in self._scopa_score_lines(user.locale):
+            user.speak(line, buffer="game")
+
+    def _detailed_score_lines(self, locale: str) -> list[str]:
+        """Show Scopa round points before they are committed at hand end."""
+        return self._scopa_score_lines(locale)
+
     def on_start(self) -> None:
         """Called when the game starts."""
         self.status = "playing"
@@ -752,6 +836,29 @@ class ScopaGame(Game):
         shuffle_sound = random.choice(["shuffle1.ogg", "shuffle2.ogg", "shuffle3.ogg"])
         self.play_sound(f"game_cards/{shuffle_sound}")
 
+    def _is_invalid_initial_table(self, cards: list[Card]) -> bool:
+        """Return whether a standard Scopa opening layout must be redealt."""
+        return (
+            not self.options.escoba
+            and len(cards) >= 4
+            and sum(1 for card in cards if card.rank == 10) >= 3
+        )
+
+    def _draw_initial_table(self, count: int) -> list[Card]:
+        """Draw the opening table, redealing invalid standard Scopa layouts."""
+        if count <= 0:
+            return []
+
+        max_attempts = 100
+        for _ in range(max_attempts):
+            cards = self.deck.draw(count)
+            if not self._is_invalid_initial_table(cards):
+                return cards
+            self.deck.add(cards)
+            self.deck.shuffle()
+
+        return cards
+
     def _start_round(self) -> None:
         """Start a new round."""
         self.current_round += 1
@@ -778,7 +885,12 @@ class ScopaGame(Game):
 
         # Announce dealer
         if dealer:
-            self.broadcast_personal_l(dealer, "game-you-deal", "game-player-deals")
+            self.broadcast_personal_l(
+                dealer,
+                "game-you-deal",
+                "game-player-deals",
+                buffer="game",
+            )
 
         # Create and shuffle deck
         self._create_deck()
@@ -795,21 +907,7 @@ class ScopaGame(Game):
         )
         self._current_deal = 0
 
-        # For standard scopa, avoid too many 10s on table (re-shuffle if needed)
-        if not self.options.escoba:
-            max_attempts = 10
-            for _ in range(max_attempts):
-                self.table_cards = self.deck.draw(initial_table)
-                tens_count = sum(1 for c in self.table_cards if c.rank == 10)
-                total_tens = 4 * self.options.number_of_decks
-                max_tens = total_tens // 2 + 1
-                if tens_count <= max_tens:
-                    break
-                # Re-shuffle and try again
-                self.deck.add(self.table_cards)
-                self.deck.shuffle()
-        else:
-            self.table_cards = self.deck.draw(initial_table)
+        self.table_cards = self._draw_initial_table(initial_table)
 
         if self.table_cards:
             self._broadcast_cards_l("scopa-initial-table", cards=self.table_cards)
@@ -884,11 +982,6 @@ class ScopaGame(Game):
         # Play capture sound with pitch based on cards captured
         num_captured = len(captured)
         is_scopa = len(self.table_cards) == 0
-
-        if self.options.asso_piglia_tutto and played_card.rank == 1:
-            # Variant ace sweeps only count as scopa when an ace was actually captured.
-            if not any(c.rank == 1 for c in captured):
-                is_scopa = False
 
         if is_scopa and len(self.deck.cards) == 0 and all(
             len(p.hand) == 0 for p in self.get_active_players()

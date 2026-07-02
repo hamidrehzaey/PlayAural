@@ -50,6 +50,8 @@ At the end of each round, 1 point is awarded for each of the following (no point
 
 \* \*\*Scopas:\*\* 1 point for every valid table sweep during play.
 
+Scopa points are tracked during the hand and shown by score checks as pending Scopa points. They are committed to the total when the hand is scored. If more than one side reaches the target with the same highest score, another hand is played to break the tie.
+
 
 
 \*\*Game Options\*\*
@@ -76,7 +78,7 @@ At the end of each round, 1 point is awarded for each of the following (no point
 
 \* \*\*Manual Selection:\*\* When enabled, if a played card can capture multiple valid combinations from the table, you can manually choose which combination to take instead of the game auto-selecting the one with the most cards.
 
-\* \*\*Asso piglia tutto (Ace takes all):\*\* Playing an Ace sweeps all cards currently on the table (this sweep usually does not count as a Scopa point). If there is already an Ace on the table, it only captures that Ace. This mode cannot be enabled alongside Escoba.
+\* \*\*Asso piglia tutto (Ace takes all):\*\* Playing an Ace sweeps all cards currently on the table and scores a Scopa if the sweep is valid. If there is already an Ace on the table, it only captures one Ace; if that was the only table card, it still scores a Scopa. This mode cannot be enabled alongside Escoba.
 
 \* \*\*Traditional Primiera Scoring:\*\* If disabled, the game uses the simpler "Most Sevens" scoring variant instead (default on for standard Scopa).
 
