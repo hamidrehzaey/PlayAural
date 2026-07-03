@@ -87,12 +87,16 @@ uno-sort-number = Sort by number
 # Gameplay announcements
 uno-new-hand = Round { $round }.
 uno-start-card = { $player } turns up { $card }.
+uno-you-start-card = You turn up { $card }.
 uno-current-color = Current color: { $color }.
 uno-dealt-cards = Everyone is dealt { $cards } cards.
+uno-choose-opening-color-you = Choose the opening color.
+uno-choose-opening-color-player = { $player } must choose the opening color.
 uno-direction-reversed = The direction is reversed.
 uno-player-plays = { $player } plays { $card }.
 uno-you-play = You play { $card }.
-uno-color-chosen = The color is now { $color }.
+uno-player-chooses-color = { $player } chooses { $color }.
+uno-you-choose-color = You choose { $color }.
 uno-player-draws-one = { $player } draws a card.
 uno-player-draws-many = { $player } draws { $count } cards.
 uno-you-draw-one = You draw a card.
@@ -114,6 +118,8 @@ uno-callout-you = { $caller } calls you out for not saying UNO! You draw { $coun
     [one] card
    *[other] cards
 }.
+uno-error-already-said-uno = You have already said UNO.
+uno-error-no-uno-call = No UNO call is available right now.
 uno-cannot-play-that = You cannot play { $card }. { $reason }
 uno-reshuffle = Reshuffling the discard pile.
 uno-hand-blocked = No one can play. The round ends.
@@ -156,13 +162,15 @@ uno-swap-none-other = { $player } keeps their hand.
 # Interceptions / straights
 uno-player-intercepts = { $player } intercepts with { $card }!
 uno-you-intercept = You intercept with { $card }!
-uno-bad-intercept = That was not a valid interception. Three penalty points.
+uno-bad-intercept = Invalid interception. { $points } penalty points.
 uno-not-your-turn = It's not your turn.
 
 # Info
 uno-no-top = There is no top card yet.
 uno-top-card = { $card }.
 uno-color-is = { $color }.
+uno-count-you = You { $count }
+uno-count-player = { $player } { $count }
 uno-deck-count = deck { $count }
 uno-sorting-color = Sorting by color.
 uno-sorting-number = Sorting by number.
@@ -171,11 +179,16 @@ uno-sorting-number = Sorting by number.
 uno-round-winner = { $player } wins the round!
 uno-you-win-round = You win the round!
 uno-round-points-from = { $points } from { $player }
+uno-round-points-from-you = { $points } from you
+uno-round-points-from-with-interception = { $points } from { $player } ({ $hand_points } hand + { $penalty } interception penalty)
+uno-round-points-from-you-with-interception = { $points } from you ({ $hand_points } hand + { $penalty } interception penalty)
 uno-round-details-none = No points were taken from opponents.
 uno-round-summary = { $details }. { $player } gains { $total }.
 uno-round-summary-you = { $details }. You gain { $total }.
 uno-you-add-penalty-points = You add { $points } penalty points to your total for this round.
 uno-player-adds-penalty-points = { $player } adds { $points } penalty points to their total for this round.
+uno-you-add-penalty-points-with-interception = You add { $points } penalty points to your total for this round ({ $hand_points } from your hand plus { $penalty } interception penalty).
+uno-player-adds-penalty-points-with-interception = { $player } adds { $points } penalty points to their total for this round ({ $hand_points } from their hand plus { $penalty } interception penalty).
 uno-you-are-eliminated = You have reached the { $limit }-point elimination limit and are out of the game.
 uno-player-is-eliminated = { $player } has reached the { $limit }-point elimination limit and is out of the game.
 uno-you-win-game =
@@ -190,6 +203,8 @@ uno-player-wins-game =
     }
 uno-game-tie = Everyone has been eliminated. The game is a tie!
 uno-line-format = { $rank }. { $player }: { $score }
+uno-score-line-first = { $player }: { $score }/{ $target } points.
+uno-score-line-elimination = { $player }: { $score }/{ $target } penalty points.
 
 # Hand value (d key)
 uno-read-hand-value = { $count ->

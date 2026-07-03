@@ -146,6 +146,43 @@ def test_spectator_excluded_from_uno_scores_after_start():
     assert all("Watcher" not in m for m in spoken)
 
 
+def test_uno_score_check_omits_pending_interception_penalty_first_mode():
+    game, (alice, bob) = _n_player_game(["Alice", "Bob"])
+    alice_user = game.get_user(alice)
+    assert alice_user is not None
+    alice.score = 12
+    bob.score = 4
+    bob.penalty_points = 3
+    alice_user.clear_messages()
+
+    game._action_check_scores(alice, "check_scores")
+
+    spoken = alice_user.get_spoken_messages()
+    assert "Alice: 12/300 points." in spoken
+    assert "Bob: 4/300 points." in spoken
+    assert all("pending interception" not in message for message in spoken)
+
+
+def test_uno_score_check_omits_pending_interception_penalty_elimination_mode():
+    game, (alice, bob) = _n_player_game(
+        ["Alice", "Bob"],
+        UnoOptions(scoring_mode="elimination", winning_score=100),
+    )
+    alice_user = game.get_user(alice)
+    assert alice_user is not None
+    alice.score = 12
+    bob.score = 4
+    bob.penalty_points = 3
+    alice_user.clear_messages()
+
+    game._action_check_scores(alice, "check_scores")
+
+    spoken = alice_user.get_spoken_messages()
+    assert "Bob: 4/100 penalty points." in spoken
+    assert "Alice: 12/100 penalty points." in spoken
+    assert all("pending interception" not in message for message in spoken)
+
+
 def test_uno_uses_standard_roster_audio():
     game = UnoGame()
     alice_user = MockUser("Alice", uuid="p1")
@@ -189,6 +226,28 @@ def _two_player_game():
     game.status = "playing"
     game.game_active = True
     return game, first, second
+
+
+def test_read_counts_uses_listener_perspective() -> None:
+    game, first, second = _two_player_game()
+    user = game.get_user(first)
+    assert user is not None
+    game.set_turn_players([first, second])
+    first.hand = [
+        _card(1, cards.RED, cards.NUMBER, 5),
+        _card(2, cards.BLUE, cards.NUMBER, 9),
+    ]
+    second.hand = [_card(3, cards.GREEN, cards.NUMBER, 7)]
+    game.deck = [
+        _card(4, cards.YELLOW, cards.NUMBER, 1),
+        _card(5, cards.YELLOW, cards.NUMBER, 2),
+        _card(6, cards.YELLOW, cards.NUMBER, 3),
+    ]
+    user.clear_messages()
+
+    game._action_read_counts(first, "read_counts")
+
+    assert user.get_last_spoken() == "You 2, Bob 1, deck 3"
 
 
 def test_elimination_scoring_uses_personal_and_public_context() -> None:
@@ -270,7 +329,8 @@ def test_playing_wild_focuses_first_color_option_below_hand_cards():
     game.flush_menus()
 
     item_ids = [item.id for item in first_user.menus["turn_menu"]["items"]]
-    assert item_ids[:5] == [
+    assert item_ids[:6] == [
+        "uno",
         "play_card_2",
         "color_red",
         "color_yellow",
@@ -286,6 +346,121 @@ def test_playing_wild_focuses_first_color_option_below_hand_cards():
     assert turn_updates[-1].data.get("selection_id") == "color_red"
 
 
+def test_choose_color_focuses_first_matching_remaining_card():
+    game, first, second = _two_player_game()
+    first_user = game.get_user(first)
+    assert first_user is not None
+    first_user.client_type = "mobile"
+    game.discard_pile = [_card(100, cards.RED, cards.NUMBER, 5)]
+    game.current_color = cards.RED
+    first.hand = [
+        _card(1, cards.WILD, cards.WILD_CARD),
+        _card(2, cards.GREEN, cards.NUMBER, 7),
+        _card(3, cards.BLUE, cards.NUMBER, 9),
+        _card(4, cards.GREEN, cards.NUMBER, 4),
+    ]
+    second.hand = [_card(5, cards.YELLOW, cards.NUMBER, 7)]
+    game.set_turn_players([first, second])
+    game.refresh_menus()
+    game.flush_menus()
+
+    game.execute_action(first, "play_card_1")
+    game.flush_menus()
+    first_user.clear_messages()
+
+    game.execute_action(first, "color_green")
+    game.flush_menus()
+
+    turn_updates = [
+        message
+        for message in first_user.messages
+        if message.type in {"show_menu", "update_menu"}
+        and message.data.get("menu_id") == "turn_menu"
+    ]
+    assert turn_updates[-1].data.get("selection_id") == "play_card_4"
+
+
+def test_choose_color_falls_back_to_first_visible_item_without_matching_card():
+    game, first, second = _two_player_game()
+    first_user = game.get_user(first)
+    assert first_user is not None
+    first_user.client_type = "mobile"
+    game.discard_pile = [_card(100, cards.RED, cards.NUMBER, 5)]
+    game.current_color = cards.RED
+    first.hand = [
+        _card(1, cards.WILD, cards.WILD_CARD),
+        _card(2, cards.BLUE, cards.NUMBER, 9),
+        _card(3, cards.GREEN, cards.NUMBER, 4),
+    ]
+    second.hand = [_card(4, cards.YELLOW, cards.NUMBER, 7)]
+    game.set_turn_players([first, second])
+    game.refresh_menus()
+    game.flush_menus()
+
+    game.execute_action(first, "play_card_1")
+    game.flush_menus()
+    first_user.clear_messages()
+
+    game.execute_action(first, "color_yellow")
+    game.flush_menus()
+
+    item_ids = [item.id for item in first_user.menus["turn_menu"]["items"]]
+    assert item_ids[0] == "uno"
+    turn_updates = [
+        message
+        for message in first_user.messages
+        if message.type in {"show_menu", "update_menu"}
+        and message.data.get("menu_id") == "turn_menu"
+    ]
+    assert turn_updates[-1].data.get("selection_id") == "uno"
+
+
+def test_uno_button_hidden_on_desktop_turn_menu_but_hotkey_still_works():
+    game, first, second = _two_player_game()
+    first_user = game.get_user(first)
+    assert first_user is not None
+    game.discard_pile = [_card(100, cards.RED, cards.NUMBER, 5)]
+    game.current_color = cards.RED
+    first.hand = [_card(1, cards.RED, cards.NUMBER, 1)]
+    second.hand = [_card(2, cards.GREEN, cards.NUMBER, 7)]
+    game.set_turn_players([first, second])
+    game.refresh_menus()
+    game.flush_menus()
+
+    item_ids = [item.id for item in first_user.menus["turn_menu"]["items"]]
+    assert "uno" not in item_ids
+
+    game.handle_event(first, {"type": "keybind", "key": "u"})
+
+    assert first.said_uno is True
+    assert "You say UNO!" in first_user.get_spoken_messages()
+
+
+def test_uno_button_pinned_for_touch_and_reports_invalid_press():
+    game, first, second = _two_player_game()
+    first_user = game.get_user(first)
+    assert first_user is not None
+    first_user.client_type = "mobile"
+    game.discard_pile = [_card(100, cards.RED, cards.NUMBER, 5)]
+    game.current_color = cards.RED
+    first.hand = [
+        _card(1, cards.RED, cards.NUMBER, 1),
+        _card(2, cards.BLUE, cards.NUMBER, 9),
+    ]
+    second.hand = [_card(3, cards.GREEN, cards.NUMBER, 7)]
+    game.set_turn_players([first, second])
+    game.refresh_menus()
+    game.flush_menus()
+
+    item_ids = [item.id for item in first_user.menus["turn_menu"]["items"]]
+    assert item_ids[0] == "uno"
+
+    first_user.clear_messages()
+    game.execute_action(first, "uno")
+
+    assert first_user.get_last_spoken() == "No UNO call is available right now."
+
+
 def _three_player_game(options=None):
     game = UnoGame(options=options or UnoOptions())
     game.setup_keybinds()
@@ -298,6 +473,127 @@ def _three_player_game(options=None):
     game.current_color = cards.RED
     game.set_turn_players(players)
     return game, players
+
+
+def test_start_card_and_color_announcements_use_listener_perspective():
+    game, (dealer, left, _) = _three_player_game()
+    dealer_user = game.get_user(dealer)
+    left_user = game.get_user(left)
+    assert dealer_user is not None
+    assert left_user is not None
+    game.dealer_index = 0
+    dealer_user.clear_messages()
+    left_user.clear_messages()
+
+    game._broadcast_start_card(_card(101, cards.BLUE, cards.DRAW_TWO))
+
+    assert "You turn up Blue Draw Two." in dealer_user.get_spoken_messages()
+    assert "A turns up Blue Draw Two." in left_user.get_spoken_messages()
+
+    dealer_user.clear_messages()
+    left_user.clear_messages()
+
+    game._broadcast_color_chosen(left, cards.GREEN)
+
+    assert left_user.get_spoken_messages() == ["You choose Green."]
+    assert dealer_user.get_spoken_messages() == ["B chooses Green."]
+
+
+def test_opening_draw_two_draws_and_skips_player_after_dealer():
+    game, (dealer, left, next_player) = _three_player_game()
+    game.dealer_index = 0
+    game.turn_index = 1
+    game.deck = [
+        _card(50, cards.BLUE, cards.NUMBER, 1),
+        _card(51, cards.GREEN, cards.NUMBER, 2),
+    ]
+    start = _card(100, cards.RED, cards.DRAW_TWO)
+
+    paused = game._apply_start_card_effect(start)
+
+    assert paused is False
+    assert len(left.hand) == 2
+    assert game.current_player is next_player
+
+
+def test_opening_skip_starts_with_player_after_skipped_seat():
+    game, (dealer, left, next_player) = _three_player_game()
+    game.dealer_index = 0
+    game.turn_index = 1
+    start = _card(100, cards.RED, cards.SKIP)
+
+    paused = game._apply_start_card_effect(start)
+
+    assert paused is False
+    assert game.current_player is next_player
+
+
+def test_opening_reverse_starts_with_dealer_and_reverses_direction():
+    game, (dealer, left, next_player) = _three_player_game()
+    game.dealer_index = 0
+    game.turn_index = 1
+    start = _card(100, cards.RED, cards.REVERSE)
+
+    paused = game._apply_start_card_effect(start)
+
+    assert paused is False
+    assert game.turn_direction == -1
+    assert game.current_player is dealer
+
+
+def test_opening_wild_waits_for_first_player_to_choose_color():
+    game, (dealer, left, next_player) = _three_player_game()
+    left_user = game.get_user(left)
+    assert left_user is not None
+    game.dealer_index = 0
+    game.turn_index = 1
+    start = _card(100, cards.WILD, cards.WILD_CARD)
+
+    paused = game._apply_start_card_effect(start)
+    game.flush_menus()
+
+    assert paused is True
+    assert game.awaiting_wild_color is True
+    assert game.opening_wild_color is True
+    assert game.wild_color_player_id == left.id
+    assert left_user.get_last_spoken() == "Choose the opening color."
+
+    game.execute_action(left, "color_blue")
+
+    assert game.awaiting_wild_color is False
+    assert game.opening_wild_color is False
+    assert game.current_color == cards.BLUE
+    assert game.current_player is left
+    assert game.wild_wait_ticks == 0
+
+
+def test_opening_wild_color_choice_focuses_matching_card():
+    game, (dealer, left, next_player) = _three_player_game()
+    left_user = game.get_user(left)
+    assert left_user is not None
+    left_user.client_type = "mobile"
+    game.dealer_index = 0
+    game.turn_index = 1
+    left.hand = [
+        _card(1, cards.BLUE, cards.NUMBER, 5),
+        _card(2, cards.GREEN, cards.NUMBER, 6),
+    ]
+    start = _card(100, cards.WILD, cards.WILD_CARD)
+
+    game._apply_start_card_effect(start)
+    game.flush_menus()
+    left_user.clear_messages()
+
+    game.execute_action(left, "color_green")
+    game.flush_menus()
+
+    turn_updates = [
+        message
+        for message in left_user.messages
+        if message.type in {"show_menu", "update_menu"}
+        and message.data.get("menu_id") == "turn_menu"
+    ]
+    assert turn_updates[-1].data.get("selection_id") == "play_card_2"
 
 
 def test_draw_two_keeps_turn_when_skip_after_draw_off():
@@ -350,6 +646,82 @@ def test_callout_forces_silent_player_to_draw_two():
     game.execute_action(second, "uno")  # call out
 
     assert len(first.hand) == 3  # 1 + official 2-card penalty
+
+
+def test_callout_available_after_player_drops_to_one_until_next_action():
+    game, first, second = _two_player_game()
+    game.deck = cards.build_deck()
+    game.discard_pile = [_card(100, cards.RED, cards.NUMBER, 5)]
+    game.current_color = cards.RED
+    first.hand = [
+        _card(1, cards.RED, cards.NUMBER, 1),
+        _card(2, cards.BLUE, cards.NUMBER, 9),
+    ]
+    second.hand = [
+        _card(3, cards.GREEN, cards.NUMBER, 7),
+        _card(5, cards.GREEN, cards.NUMBER, 8),
+    ]
+    game.set_turn_players([first, second])
+    game.refresh_menus()
+    game.flush_menus()
+
+    game.execute_action(first, "play_card_1")
+    assert first.uno_window_ticks > 0
+    assert game.current_player is second
+
+    game.execute_action(second, "uno")
+
+    assert len(first.hand) == 3  # remaining card + official 2-card penalty
+
+
+def test_callout_closes_after_next_player_draws():
+    game, first, second = _two_player_game()
+    second_user = game.get_user(second)
+    assert second_user is not None
+    game.deck = [_card(50, cards.GREEN, cards.NUMBER, 3)]
+    game.discard_pile = [_card(100, cards.RED, cards.NUMBER, 5)]
+    game.current_color = cards.RED
+    first.hand = [
+        _card(1, cards.RED, cards.NUMBER, 1),
+        _card(2, cards.BLUE, cards.NUMBER, 9),
+    ]
+    second.hand = [_card(3, cards.GREEN, cards.NUMBER, 7)]
+    game.set_turn_players([first, second])
+    game.refresh_menus()
+    game.flush_menus()
+
+    game.execute_action(first, "play_card_1")
+    assert first.uno_window_ticks > 0
+    game.flush_menus()
+    game.execute_action(second, "draw")
+    assert first.uno_window_ticks == 0
+
+    second_user.clear_messages()
+    game.execute_action(second, "uno")
+
+    assert len(first.hand) == 1
+    assert second_user.get_last_spoken() == "No UNO call is available right now."
+
+
+def test_desktop_uno_hotkey_reports_invalid_press():
+    game, first, second = _two_player_game()
+    first_user = game.get_user(first)
+    assert first_user is not None
+    game.discard_pile = [_card(100, cards.RED, cards.NUMBER, 5)]
+    game.current_color = cards.RED
+    first.hand = [
+        _card(1, cards.RED, cards.NUMBER, 1),
+        _card(2, cards.BLUE, cards.NUMBER, 9),
+    ]
+    second.hand = [_card(3, cards.GREEN, cards.NUMBER, 7)]
+    game.set_turn_players([first, second])
+    game.refresh_menus()
+    game.flush_menus()
+    first_user.clear_messages()
+
+    game.handle_event(first, {"type": "keybind", "key": "u"})
+
+    assert first_user.get_last_spoken() == "No UNO call is available right now."
 
 
 def test_say_uno_protects_from_callout():
@@ -1087,6 +1459,50 @@ def test_invalid_interception_penalizes():
     game.execute_action(c, "play_card_4")  # invalid out-of-turn play
     assert c.penalty_points == 3
     assert len(c.hand) == 1  # card not played
+    assert game.get_user(c).get_last_spoken() == "Invalid interception. 3 penalty points."
+
+
+def test_first_to_limit_round_summary_breaks_out_interception_penalty():
+    game, winner, loser = _two_player_game()
+    winner_user = game.get_user(winner)
+    loser_user = game.get_user(loser)
+    assert winner_user is not None
+    assert loser_user is not None
+    game.options.winning_score = 200
+    game.set_turn_players([winner, loser])
+    loser.hand = [_card(1, cards.RED, cards.NUMBER, 5)]
+    loser.penalty_points = 3
+    winner_user.clear_messages()
+    loser_user.clear_messages()
+
+    game._score_first_to_limit(winner, [(loser, 8)])
+
+    assert any(
+        "8 from Bob (5 hand + 3 interception penalty). You gain 8." == message
+        for message in winner_user.get_spoken_messages()
+    )
+    assert any(
+        "8 from you (5 hand + 3 interception penalty). Alice gains 8." == message
+        for message in loser_user.get_spoken_messages()
+    )
+
+
+def test_elimination_round_summary_breaks_out_interception_penalty():
+    game, winner, loser = _two_player_game()
+    loser_user = game.get_user(loser)
+    assert loser_user is not None
+    game.options.scoring_mode = "elimination"
+    game.options.winning_score = 200
+    game.set_turn_players([winner, loser])
+    loser.penalty_points = 3
+    loser_user.clear_messages()
+
+    game._score_elimination(winner, [(loser, 8)])
+
+    assert loser_user.get_last_spoken() == (
+        "You add 8 penalty points to your total for this round "
+        "(5 from your hand plus 3 interception penalty)."
+    )
 
 
 def test_straight_continues_same_player_same_color():

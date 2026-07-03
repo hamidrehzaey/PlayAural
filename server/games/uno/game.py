@@ -21,8 +21,6 @@ from .bot import bot_think_turn, bot_think_out_of_turn, bot_choose_color
 # Tick constants (20 ticks/sec).
 HAND_END_TICKS = 5 * 20
 WILD_TRANSITION_TICKS = 15
-UNO_GRACE_TICKS = 60  # 3s before others may call out
-UNO_WINDOW_TICKS = 40  # 2s window in which a call-out is valid
 UNO_CALLOUT_PENALTY = 2
 
 SCORING_FIRST = "first_to_limit"
@@ -169,6 +167,7 @@ class UnoGame(Game):
     wild_color_player_id: str = ""
     pending_wild_type: str = ""
     wild_wait_ticks: int = 0
+    opening_wild_color: bool = False
 
     dealer_index: int = -1
 
@@ -524,6 +523,11 @@ class UnoGame(Game):
                 )
             )
 
+        user = self.get_user(player)
+        if self.is_touch_client(user) and "uno" in turn_set._order:
+            turn_set._order.remove("uno")
+            turn_set._order.insert(0, "uno")
+
     # ==========================================================================
     # Game flow
     # ==========================================================================
@@ -637,6 +641,7 @@ class UnoGame(Game):
         self.wild_color_player_id = ""
         self.pending_wild_type = ""
         self.wild_wait_ticks = 0
+        self.opening_wild_color = False
         self.cards_to_draw = 0
         self.draw_type = ""
         self.bluff_challenge_available = False
@@ -684,25 +689,81 @@ class UnoGame(Game):
         start_card = self._draw_start_card()
         if start_card:
             self.discard_pile.append(start_card)
-            self.current_color = start_card.color
+            self.current_color = None if start_card.color == cards.WILD else start_card.color
             self.last_player_id = ""
             self._broadcast_start_card(start_card)
             self.broadcast_l("uno-dealt-cards", buffer="game", cards=7)
+            if self._apply_start_card_effect(start_card):
+                return
 
         self._start_turn()
 
     def _draw_start_card(self) -> UnoCard | None:
-        """Flip the opening card. Only a plain number card is a valid opener; any
-        action or wild card is silently returned to the deck and re-flipped, so
-        no opening-card effect ever has to be applied."""
+        """Flip the opening card, re-flipping only Wild Draw Four per UNO rules."""
         while self.deck:
             card = self.deck.pop()
-            if card.type != cards.NUMBER:
+            if card.type == cards.WILD_DRAW_FOUR:
                 self.deck.append(card)
                 cards.shuffle(self.deck)
                 continue
             return card
         return None
+
+    def _apply_start_card_effect(self, card: UnoCard) -> bool:
+        """Apply official opening-card effects.
+
+        Returns True when play is paused waiting for an opening Wild color.
+        """
+        if card.type == cards.NUMBER:
+            return False
+        if card.type == cards.SKIP:
+            skipped = self.current_player
+            if skipped:
+                self.on_player_skipped(skipped)
+            self.turn_index = (
+                self.turn_index + self.turn_direction
+            ) % len(self.turn_player_ids)
+            return False
+        if card.type == cards.DRAW_TWO:
+            target = self.current_player
+            if isinstance(target, UnoPlayer):
+                self._draw_for_player(target, 2)
+                self.on_player_skipped(target)
+            self.turn_index = (
+                self.turn_index + self.turn_direction
+            ) % len(self.turn_player_ids)
+            return False
+        if card.type == cards.REVERSE:
+            self.reverse_turn_direction()
+            self.broadcast_l("uno-direction-reversed", buffer="game")
+            self.turn_index = self.dealer_index % len(self.turn_player_ids)
+            return False
+        if card.type == cards.WILD_CARD:
+            chooser = self.current_player
+            if not isinstance(chooser, UnoPlayer):
+                return False
+            self.awaiting_wild_color = True
+            self.opening_wild_color = True
+            self.wild_color_player_id = chooser.id
+            self.pending_wild_type = ""
+            for p in self.players:
+                user = self.get_user(p)
+                if not user:
+                    continue
+                if p.id == chooser.id:
+                    user.speak_l("uno-choose-opening-color-you", buffer="game")
+                else:
+                    user.speak_l(
+                        "uno-choose-opening-color-player",
+                        buffer="game",
+                        player=chooser.name,
+                    )
+            if chooser.is_bot:
+                BotHelper.jolt_bot(chooser, ticks=random.randint(15, 25))
+            self.request_menu_focus(chooser, "color_red")
+            self.refresh_menus()
+            return True
+        return False
 
     def _start_turn(self) -> None:
         player = self.current_player
@@ -812,6 +873,7 @@ class UnoGame(Game):
                 )
             return
 
+        self._close_uno_windows_for_started_action()
         self._place_card(player, card)
 
     # ------------------------------------------------------------------
@@ -839,6 +901,7 @@ class UnoGame(Game):
             self._resolve_straight(player, card)
             return
         if kind in ("interception", "super"):
+            self._close_uno_windows_for_started_action()
             self._resolve_interception(player, card)
             return
         # Invalid out-of-turn play.
@@ -846,7 +909,11 @@ class UnoGame(Game):
         if self.options.interceptions or self.options.super_interceptions:
             player.penalty_points += 3
             if user:
-                user.speak_l("uno-bad-intercept", buffer="game")
+                user.speak_l(
+                    "uno-bad-intercept",
+                    buffer="game",
+                    points=3,
+                )
         elif user:
             user.speak_l("uno-not-your-turn", buffer="game")
 
@@ -1251,6 +1318,7 @@ class UnoGame(Game):
         p = self._require_current(player)
         if not p or not self.bluff_challenge_available:
             return
+        self._close_uno_windows_for_started_action()
         self.bluff_challenge_available = False
         bluffer = self.get_player_by_id(self.last_player_id)
         draw_penalty = self.cards_to_draw
@@ -1306,7 +1374,17 @@ class UnoGame(Game):
         snd = cards.color_sound(color)
         if snd:
             self.schedule_sound(snd, delay_ticks=10)
-        self._broadcast_color_chosen(color)
+        self._broadcast_color_chosen(player, color)
+
+        if self.opening_wild_color:
+            self.opening_wild_color = False
+            self.pending_wild_type = ""
+            self.wild_color_player_id = ""
+            if player.is_bot:
+                BotHelper.jolt_bot(player, ticks=random.randint(15, 25))
+            self._start_turn()
+            self._focus_after_color_choice(player, color)
+            return
 
         if self.pending_wild_type == cards.WILD_DRAW_FOUR:
             # Pass the draw obligation; the next player resolves it on their turn
@@ -1320,7 +1398,7 @@ class UnoGame(Game):
         if player.is_bot:
             BotHelper.jolt_bot(player, ticks=random.randint(15, 25))
         self.wild_wait_ticks = WILD_TRANSITION_TICKS
-        self.refresh_menus()
+        self._focus_after_color_choice(player, color)
 
     def _action_draw(self, player: Player, action_id: str) -> None:
         p = self._require_current(player)
@@ -1328,6 +1406,7 @@ class UnoGame(Game):
             return
         # Accepting a pending draw obligation.
         if self.cards_to_draw > 0:
+            self._close_uno_windows_for_started_action()
             self._accept_draw_obligation(p)
             return
         if not self._can_draw(p):
@@ -1336,6 +1415,7 @@ class UnoGame(Game):
         card = self._draw_card()
         if not card:
             return
+        self._close_uno_windows_for_started_action()
         p.hand.append(card)
         p.turn_has_drawn = True
         if had_playable and self.options.free_draws > 0:
@@ -1394,6 +1474,7 @@ class UnoGame(Game):
         if target:
             # The call-out message states the draw, so draw silently.
             self._draw_for_player(target, UNO_CALLOUT_PENALTY, announce=False)
+            self.play_sound("game_uno/buzzerpress.ogg")
             for q in self.players:
                 user = self.get_user(q)
                 if not user:
@@ -1423,6 +1504,14 @@ class UnoGame(Game):
             target.uno_grace_ticks = 0
             target.uno_window_ticks = 0
             self.refresh_menus()
+            return
+
+        user = self.get_user(player)
+        if user:
+            if len(player.hand) == 1 and player.said_uno:
+                user.speak_l("uno-error-already-said-uno", buffer="game")
+            else:
+                user.speak_l("uno-error-no-uno-call", buffer="game")
 
     # ==========================================================================
     # Info actions
@@ -1454,7 +1543,14 @@ class UnoGame(Game):
         user = self.get_user(player)
         if not user:
             return
-        parts = [f"{p.name} {len(p.hand)}" for p in self.alive_players]
+        parts = [
+            Localization.get(user.locale, "uno-count-you", count=len(p.hand))
+            if p.id == player.id
+            else Localization.get(
+                user.locale, "uno-count-player", player=p.name, count=len(p.hand)
+            )
+            for p in self.alive_players
+        ]
         parts.append(Localization.get(user.locale, "uno-deck-count", count=len(self.deck)))
         user.speak(", ".join(parts), buffer="game")
 
@@ -1600,14 +1696,24 @@ class UnoGame(Game):
             return "action-not-available"
         if player not in self.alive_players:
             return "action-not-available"
+        user = self.get_user(player)
+        if self.is_touch_client(user) and self.status == "playing":
+            return None
         if len(player.hand) == 1 and not player.said_uno:
             return None
         if self._callable_target(player):
             return None
-        return "action-not-available"
+        if len(player.hand) == 1 and player.said_uno:
+            return "uno-error-already-said-uno"
+        return "uno-error-no-uno-call"
 
     def _is_uno_hidden(self, player: Player) -> Visibility:
-        return Visibility.VISIBLE if self._is_uno_enabled(player) is None else Visibility.HIDDEN
+        if not isinstance(player, UnoPlayer) or player.is_spectator:
+            return Visibility.HIDDEN
+        user = self.get_user(player)
+        if self.is_touch_client(user):
+            return Visibility.VISIBLE if self.status == "playing" else Visibility.HIDDEN
+        return Visibility.HIDDEN
 
     def _is_info_enabled(self, player: Player) -> str | None:
         if self.status != "playing":
@@ -1638,6 +1744,54 @@ class UnoGame(Game):
             return Visibility.VISIBLE
         return super()._is_whos_at_table_hidden(player)
 
+    def get_score_sort_descending(self) -> bool:
+        """High totals lead in winner-score mode; low totals lead in elimination."""
+        return self.options.scoring_mode != SCORING_ELIMINATION
+
+    def _uno_score_players(self) -> list[UnoPlayer]:
+        players = [
+            p for p in self.get_active_players()
+            if isinstance(p, UnoPlayer)
+        ]
+        return sorted(
+            players,
+            key=lambda p: p.score,
+            reverse=self.get_score_sort_descending(),
+        )
+
+    def _format_uno_score_line(self, player: UnoPlayer, locale: str) -> str:
+        if self.options.scoring_mode == SCORING_ELIMINATION:
+            key = "uno-score-line-elimination"
+        else:
+            key = "uno-score-line-first"
+        return Localization.get(
+            locale,
+            key,
+            player=player.name,
+            score=player.score,
+            target=self.options.winning_score,
+        )
+
+    def _uno_score_lines(self, locale: str) -> list[str]:
+        return [
+            self._format_uno_score_line(p, locale)
+            for p in self._uno_score_players()
+        ]
+
+    def _action_check_scores(self, player: Player, action_id: str) -> None:
+        user = self.get_user(player)
+        if not user:
+            return
+        lines = self._uno_score_lines(user.locale)
+        if not lines:
+            user.speak_l("no-scores-available", buffer="game")
+            return
+        for line in lines:
+            user.speak(line, buffer="game")
+
+    def _detailed_score_lines(self, locale: str) -> list[str]:
+        return self._uno_score_lines(locale)
+
     # ==========================================================================
     # UNO call-out window
     # ==========================================================================
@@ -1648,12 +1802,13 @@ class UnoGame(Game):
             self._open_uno_window(player)
 
     def _open_uno_window(self, player: UnoPlayer) -> None:
-        player.uno_grace_ticks = UNO_GRACE_TICKS
-        player.uno_window_ticks = 0
+        player.uno_grace_ticks = 0
+        player.uno_window_ticks = 1
         # Bots usually remember to announce immediately.
         if player.is_bot and random.random() < 0.9:
             player.said_uno = True
             player.uno_grace_ticks = 0
+            player.uno_window_ticks = 0
             self.play_sound("game_uno/uno.ogg")
             self._broadcast_uno(player)
 
@@ -1670,12 +1825,13 @@ class UnoGame(Game):
                 p.uno_grace_ticks = 0
                 p.uno_window_ticks = 0
                 continue
-            if p.uno_grace_ticks > 0:
-                p.uno_grace_ticks -= 1
-                if p.uno_grace_ticks == 0:
-                    p.uno_window_ticks = UNO_WINDOW_TICKS
-            elif p.uno_window_ticks > 0:
-                p.uno_window_ticks -= 1
+            p.uno_grace_ticks = 0
+
+    def _close_uno_windows_for_started_action(self) -> None:
+        """Close outstanding UNO call-out windows once the next play/draw starts."""
+        for p in self.alive_players:
+            p.uno_grace_ticks = 0
+            p.uno_window_ticks = 0
 
     def _callable_target(self, caller: Player) -> UnoPlayer | None:
         for p in self.alive_players:
@@ -1747,6 +1903,19 @@ class UnoGame(Game):
         if player.card_sort_mode == "none":
             return list(player.hand)
         return sorted(player.hand, key=cards.sort_key_by_color)
+
+    def _focus_after_color_choice(self, player: UnoPlayer, color: int) -> None:
+        for card in self._sorted_hand(player):
+            if card.color == color:
+                self.request_menu_focus(player, f"play_card_{card.id}")
+                return
+
+        self._sync_turn_actions(player)
+        visible_actions = self.get_all_visible_actions(player)
+        if visible_actions:
+            self.request_menu_focus(player, visible_actions[0].action.id)
+        else:
+            self.refresh_menus(player)
 
     def _is_card_playable(self, card: UnoCard) -> bool:
         if self._is_wild_locked() or self.awaiting_swap_target:
@@ -1871,14 +2040,19 @@ class UnoGame(Game):
             user = self.get_user(p)
             if not user:
                 continue
-            user.speak_l(
-                "uno-start-card", buffer="game", player=dealer_name,
-                card=cards.format_card(card, user.locale),
-            )
-            user.speak_l(
-                "uno-current-color", buffer="game",
-                color=cards.color_name(card.color, user.locale),
-            )
+            card_name = cards.format_card(card, user.locale)
+            if dealer and p.id == dealer.id:
+                user.speak_l("uno-you-start-card", buffer="game", card=card_name)
+            else:
+                user.speak_l(
+                    "uno-start-card", buffer="game", player=dealer_name,
+                    card=card_name,
+                )
+            if card.color != cards.WILD:
+                user.speak_l(
+                    "uno-current-color", buffer="game",
+                    color=cards.color_name(card.color, user.locale),
+                )
 
     def _broadcast_actor(self, actor: UnoPlayer, you_key: str, other_key: str, **kwargs) -> None:
         """Speak a you-key to the actor and an other-key (with $player) to the rest."""
@@ -1909,15 +2083,19 @@ class UnoGame(Game):
     def _broadcast_intercept(self, player: UnoPlayer, card: UnoCard) -> None:
         self._broadcast_card(player, card, "uno-you-intercept", "uno-player-intercepts")
 
-    def _broadcast_color_chosen(self, color: int) -> None:
+    def _broadcast_color_chosen(self, player: UnoPlayer, color: int) -> None:
         for p in self.players:
             user = self.get_user(p)
             if not user:
                 continue
-            user.speak_l(
-                "uno-color-chosen", buffer="game",
-                color=cards.color_name(color, user.locale),
-            )
+            color_name = cards.color_name(color, user.locale)
+            if p.id == player.id:
+                user.speak_l("uno-you-choose-color", buffer="game", color=color_name)
+            else:
+                user.speak_l(
+                    "uno-player-chooses-color", buffer="game",
+                    player=player.name, color=color_name,
+                )
 
     def _broadcast_draw(self, player: UnoPlayer, count: int) -> None:
         for p in self.players:
@@ -1998,7 +2176,7 @@ class UnoGame(Game):
             if not user:
                 continue
             parts = [
-                Localization.get(user.locale, "uno-round-points-from", points=pts, player=lp.name)
+                self._format_round_points_from(user.locale, lp, pts, listener=p)
                 for lp, pts in losers
             ]
             details = (
@@ -2018,12 +2196,22 @@ class UnoGame(Game):
     def _score_elimination(self, winner: UnoPlayer, losers: list[tuple[UnoPlayer, int]]) -> None:
         for lp, pts in losers:
             lp.score += pts
-            self._broadcast_actor(
-                lp,
-                "uno-you-add-penalty-points",
-                "uno-player-adds-penalty-points",
-                points=pts,
-            )
+            if lp.penalty_points > 0:
+                self._broadcast_actor(
+                    lp,
+                    "uno-you-add-penalty-points-with-interception",
+                    "uno-player-adds-penalty-points-with-interception",
+                    points=pts,
+                    hand_points=pts - lp.penalty_points,
+                    penalty=lp.penalty_points,
+                )
+            else:
+                self._broadcast_actor(
+                    lp,
+                    "uno-you-add-penalty-points",
+                    "uno-player-adds-penalty-points",
+                    points=pts,
+                )
 
         eliminated = [p for p in self.alive_players if p.score >= self.options.winning_score]
         if eliminated:
@@ -2064,6 +2252,40 @@ class UnoGame(Game):
             team = self._team_manager.get_team(p.name)
             if team and isinstance(p, UnoPlayer):
                 team.total_score = p.score
+
+    def _format_round_points_from(
+        self,
+        locale: str,
+        player: UnoPlayer,
+        points: int,
+        listener: Player | None = None,
+    ) -> str:
+        self_perspective = listener is not None and listener.id == player.id
+        if player.penalty_points <= 0:
+            key = (
+                "uno-round-points-from-you"
+                if self_perspective
+                else "uno-round-points-from"
+            )
+            return Localization.get(
+                locale,
+                key,
+                points=points,
+                player=player.name,
+            )
+        key = (
+            "uno-round-points-from-you-with-interception"
+            if self_perspective
+            else "uno-round-points-from-with-interception"
+        )
+        return Localization.get(
+            locale,
+            key,
+            points=points,
+            hand_points=points - player.penalty_points,
+            penalty=player.penalty_points,
+            player=player.name,
+        )
 
     def build_game_result(self) -> GameResult:
         active = [p for p in self.players if not p.is_spectator]

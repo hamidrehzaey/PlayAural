@@ -6,7 +6,7 @@ PlayAural's UNO uses the classic 108-card deck: red, yellow, green, and blue num
 
 \*\*Gameplay\*\*
 
-The game supports 2 to 10 players. Each round, everyone is dealt 7 cards. A numbered card is turned up to begin the discard pile, and the player after the dealer starts. The dealer position rotates each round.
+The game supports 2 to 10 players. Each round, everyone is dealt 7 cards. A card is turned up to begin the discard pile, and the player after the dealer starts. If the starter card is Skip, Reverse, Draw Two, or Wild, its official opening effect applies; Wild Draw Four is returned to the deck and re-flipped. The dealer position rotates each round.
 
 On your turn, play one card that matches the top discard by color, number, or action symbol. For example, on a Red 5 you may play any red card, any 5, or a Wild card. Wild cards can be played on your turn even if you have another playable card.
 
@@ -32,9 +32,9 @@ When challenges are enabled, the player who must draw 4 may challenge the Wild D
 
 \*\*Calling UNO\*\*
 
-When you have exactly one card left, press \*\*U\*\* or choose \*\*UNO\*\* to say UNO. If another player catches you before the call-out window closes, you draw 2 cards.
+When you have exactly one card left, say UNO before another player catches you. On desktop, press \*\*U\*\*. On touch clients, use the \*\*UNO\*\* button pinned at the top of the turn menu.
 
-The same \*\*UNO\*\* action is used both to say UNO for yourself and to call out another player who forgot.
+The same UNO action is used both to say UNO for yourself and to call out another player who forgot. A forgotten UNO can be caught after the card is played and before the next player plays or draws. A caught player draws 2 cards.
 
 \*\*Scoring\*\*
 
@@ -46,7 +46,7 @@ When a player empties their hand, the round ends. The winner receives points fro
 
 \* \*\*Wild and Wild Draw Four:\*\* 50 points each.
 
-Invalid interception penalties, if any, are added to that player's remaining hand value.
+Invalid interception penalties, if any, are pending hand-value penalties for that round. In \*\*First to limit wins\*\*, they are added to that player's hand value if another player wins the round, increasing the round winner's gain. In \*\*Elimination\*\*, they are added to that player's elimination total with their hand value at round end.
 
 \*\*Game Options\*\*
 
@@ -66,7 +66,7 @@ Invalid interception penalties, if any, are added to that player's remaining han
 
 \* \*\*Straights:\*\* Lets the player who just played a number card continue out of turn with the next or previous number of the same color. This is a house rule (default off).
 
-\* \*\*Interceptions:\*\* Lets a player jump in out of turn with an exact matching card. Invalid attempts add 3 penalty points (default off).
+\* \*\*Interceptions:\*\* Lets a player jump in out of turn with an exact matching card. Invalid attempts add 3 pending hand-value penalty points for the round (default off).
 
 \* \*\*Super interceptions:\*\* Lets interceptions match by number or action symbol even if the color differs. Requires Interceptions (default off).
 
@@ -84,7 +84,7 @@ The game blocks dependent options that cannot work alone:
 
 \*\*Touch and Screen Reader Notes\*\*
 
-Your hand cards stay visible as individual actions so screen reader focus remains stable. When you play a Wild or Wild Draw Four, the color choices appear directly after your hand cards and focus moves to Red, the first color option. Informational actions such as reading the top card, current color, card counts, and your hand value remain available on touch clients during play.
+Your hand cards stay visible as individual actions so screen reader focus remains stable. On touch clients, the UNO button stays pinned at the top of the turn menu for quick access; on desktop it stays out of the turn menu and uses the \*\*U\*\* shortcut. When you play a Wild or Wild Draw Four, the color choices appear directly after your hand cards and focus moves to Red, the first color option. Informational actions such as reading the top card, current color, card counts, and your hand value remain available on touch clients during play.
 
 \*\*Keyboard Shortcuts\*\*
 

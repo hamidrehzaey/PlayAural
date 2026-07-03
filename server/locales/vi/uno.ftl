@@ -90,12 +90,16 @@ uno-sort-number = Sắp xếp theo số
 # Gameplay announcements
 uno-new-hand = Vòng { $round }.
 uno-start-card = { $player } lật lá { $card }.
+uno-you-start-card = Bạn lật lá { $card }.
 uno-current-color = Màu hiện tại: { $color }.
 uno-dealt-cards = Mỗi người được chia { $cards } lá bài.
+uno-choose-opening-color-you = Hãy chọn màu mở đầu.
+uno-choose-opening-color-player = { $player } phải chọn màu mở đầu.
 uno-direction-reversed = Hướng chơi đã bị đảo chiều.
 uno-player-plays = { $player } đánh { $card }.
 uno-you-play = Bạn đánh { $card }.
-uno-color-chosen = Màu bây giờ là { $color }.
+uno-player-chooses-color = { $player } chọn { $color }.
+uno-you-choose-color = Bạn chọn { $color }.
 uno-player-draws-one = { $player } rút một lá bài.
 uno-player-draws-many = { $player } rút { $count } lá bài.
 uno-you-draw-one = Bạn rút một lá bài.
@@ -108,6 +112,8 @@ uno-you-say-uno = Bạn hô UNO!
 uno-callout = { $caller } bắt lỗi { $player } vì không hô UNO! { $player } rút { $count } lá.
 uno-you-callout = Bạn bắt lỗi { $player } vì không hô UNO! { $player } rút { $count } lá.
 uno-callout-you = { $caller } bắt lỗi bạn vì không hô UNO! Bạn rút { $count } lá.
+uno-error-already-said-uno = Bạn đã hô UNO rồi.
+uno-error-no-uno-call = Hiện không có lượt hô hoặc bắt lỗi UNO nào.
 uno-cannot-play-that = Bạn không thể đánh { $card }. { $reason }
 uno-reshuffle = Đang xáo lại chồng bài đã đánh.
 uno-hand-blocked = Không ai đánh được. Vòng này kết thúc.
@@ -144,13 +150,15 @@ uno-swap-none-other = { $player } giữ nguyên bài của mình.
 # Interceptions / straights
 uno-player-intercepts = { $player } cướp lượt bằng { $card }!
 uno-you-intercept = Bạn cướp lượt bằng { $card }!
-uno-bad-intercept = Đó không phải cú cướp lượt hợp lệ. Bị phạt ba điểm.
+uno-bad-intercept = Cướp lượt không hợp lệ. Phạt { $points } điểm.
 uno-not-your-turn = Chưa tới lượt bạn.
 
 # Info
 uno-no-top = Chưa có lá bài trên cùng.
 uno-top-card = { $card }.
 uno-color-is = { $color }.
+uno-count-you = Bạn { $count }
+uno-count-player = { $player } { $count }
 uno-deck-count = bộ bài { $count }
 uno-sorting-color = Sắp xếp theo màu.
 uno-sorting-number = Sắp xếp theo số.
@@ -159,11 +167,16 @@ uno-sorting-number = Sắp xếp theo số.
 uno-round-winner = { $player } thắng vòng này!
 uno-you-win-round = Bạn thắng vòng này!
 uno-round-points-from = { $points } từ { $player }
+uno-round-points-from-you = { $points } từ bạn
+uno-round-points-from-with-interception = { $points } từ { $player } ({ $hand_points } điểm bài + { $penalty } điểm phạt cướp lượt)
+uno-round-points-from-you-with-interception = { $points } từ bạn ({ $hand_points } điểm bài + { $penalty } điểm phạt cướp lượt)
 uno-round-details-none = Không lấy được điểm nào từ đối thủ.
 uno-round-summary = { $details }. { $player } nhận được { $total }.
 uno-round-summary-you = { $details }. Bạn nhận được { $total }.
 uno-you-add-penalty-points = Bạn bị cộng { $points } điểm phạt vào tổng điểm sau vòng này.
 uno-player-adds-penalty-points = { $player } bị cộng { $points } điểm phạt vào tổng điểm sau vòng này.
+uno-you-add-penalty-points-with-interception = Bạn bị cộng { $points } điểm phạt vào tổng điểm sau vòng này ({ $hand_points } từ bài trên tay cộng { $penalty } điểm phạt cướp lượt).
+uno-player-adds-penalty-points-with-interception = { $player } bị cộng { $points } điểm phạt vào tổng điểm sau vòng này ({ $hand_points } từ bài trên tay cộng { $penalty } điểm phạt cướp lượt).
 uno-you-are-eliminated = Bạn đã chạm mức loại { $limit } điểm và phải rời ván.
 uno-player-is-eliminated = { $player } đã chạm mức loại { $limit } điểm và phải rời ván.
 uno-you-win-game =
@@ -178,6 +191,8 @@ uno-player-wins-game =
     }
 uno-game-tie = Tất cả đều bị loại. Ván đấu hòa!
 uno-line-format = { $rank }. { $player }: { $score }
+uno-score-line-first = { $player }: { $score }/{ $target } điểm.
+uno-score-line-elimination = { $player }: { $score }/{ $target } điểm phạt.
 
 # Hand value (phím d)
 uno-read-hand-value = { $count } lá, trị giá { $points } điểm.
