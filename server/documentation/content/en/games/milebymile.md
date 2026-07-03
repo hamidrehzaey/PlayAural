@@ -77,7 +77,13 @@ If you select a card that cannot currently be played, the game explains the exac
 
 \* \*\*Distance:\*\* 1 point per mile.
 
+\* \*\*Safety Cards:\*\* 100 points for each safety you played.
+
+\* \*\*All Safeties:\*\* 300 bonus points if you played all 4 safeties.
+
 \* \*\*Trip Complete:\*\* 400 points.
+
+\* \*\*Delayed Action:\*\* 300 points if you complete the trip after the draw pile has run out.
 
 \* \*\*Safe Trip:\*\* 300 points (completing the race without using any 200-mile cards).
 
@@ -117,7 +123,7 @@ If you select a card that cannot currently be played, the game explains the exac
 
 \* \*\*D:\*\* Play a Dirty Trick (Coup Fourré).
 
-\* \*\*I:\*\* View hand info (cards in hand with details).
+\* \*\*I:\*\* View your car or team info.
 
 \* \*\*S:\*\* Check status.
 

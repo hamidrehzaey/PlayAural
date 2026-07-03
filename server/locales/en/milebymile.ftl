@@ -80,6 +80,7 @@ milebymile-team-score = { $name }: { $score } points
 
 milebymile-from-distance = { $miles } from distance travelled
 milebymile-from-trip = { $points } from completing the trip
+milebymile-from-delayed = { $points } from delayed action
 milebymile-from-perfect = { $points } from a perfect crossing
 milebymile-from-safe = { $points } from a safe trip
 milebymile-from-shutout = { $points } from a shut out

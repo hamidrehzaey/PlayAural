@@ -63,6 +63,7 @@ class MileByMileGame(Game):
     race_states: list[RaceState] = field(default_factory=list)  # Per-team race state
     current_race: int = 0
     race_winner_team_index: int | None = None
+    race_completed_after_deck_exhausted: bool = False
 
     # Dirty trick window
     dirty_trick_window_team: int | None = None
@@ -1713,6 +1714,9 @@ class MileByMileGame(Game):
 
             self.play_sound("game_milebymile/winround.ogg")
             self.race_winner_team_index = player.team_index
+            self.race_completed_after_deck_exhausted = (
+                self.deck.is_empty() and not self.options.reshuffle_discard_pile
+            )
 
         self._end_turn()
 
@@ -1896,21 +1900,7 @@ class MileByMileGame(Game):
             )
             self.play_sound("mention.ogg")
 
-            # Remove the hazard that triggered this
-            hazard = SAFETY_TO_HAZARD.get(card.value)
-            if hazard:
-                race_state.remove_problem(hazard)
-            if card.value == SafetyType.RIGHT_OF_WAY:
-                race_state.remove_problem(HazardType.SPEED_LIMIT)
-                race_state.remove_problem(HazardType.STOP)
-
-            # A dirty trick cancels the incoming hazard before it truly stops the car.
-            # Keep Stop only if another critical hazard still requires a Green Light.
-            if not any(
-                problem != HazardType.STOP and is_critical_problem(problem)
-                for problem in race_state.problems
-            ):
-                race_state.remove_problem(HazardType.STOP)
+            self._apply_safety_protection(race_state, card.value)
         else:
             self._broadcast_actor_card_l(
                 player,
@@ -1930,13 +1920,7 @@ class MileByMileGame(Game):
             if card.value in safety_sounds:
                 self.play_sound(safety_sounds[card.value])
 
-            # Remove matching problem
-            hazard = SAFETY_TO_HAZARD.get(card.value)
-            if hazard:
-                race_state.remove_problem(hazard)
-            if card.value == SafetyType.RIGHT_OF_WAY:
-                race_state.remove_problem(HazardType.SPEED_LIMIT)
-                race_state.remove_problem(HazardType.STOP)
+            self._apply_safety_protection(race_state, card.value)
 
         # Safety cards go to protections pile (never reshuffled)
         self.protections_pile.append(card)
@@ -1957,6 +1941,27 @@ class MileByMileGame(Game):
         # Jolt bot to think about next play
         if player.is_bot:
             BotHelper.jolt_bot(player, ticks=random.randint(30, 40))
+
+    def _apply_safety_protection(self, race_state: RaceState, safety: str) -> None:
+        """Cancel active hazards covered by a newly played safety."""
+        protected_hazard = SAFETY_TO_HAZARD.get(safety)
+        had_matching_hazard = (
+            protected_hazard is not None and race_state.has_problem(protected_hazard)
+        )
+
+        if protected_hazard:
+            race_state.remove_problem(protected_hazard)
+
+        if safety == SafetyType.RIGHT_OF_WAY:
+            race_state.remove_problem(HazardType.SPEED_LIMIT)
+            race_state.remove_problem(HazardType.STOP)
+            return
+
+        if had_matching_hazard and not any(
+            problem != HazardType.STOP and is_critical_problem(problem)
+            for problem in race_state.problems
+        ):
+            race_state.remove_problem(HazardType.STOP)
 
     def _play_special(self, player: MileByMilePlayer, slot: int, card: Card) -> None:
         """Play a special card (False Virtue)."""
@@ -2081,6 +2086,7 @@ class MileByMileGame(Game):
         """Start a new race."""
         self.current_race += 1
         self.race_winner_team_index = None
+        self.race_completed_after_deck_exhausted = False
 
         # Reset race states for new race
         for race_state in self.race_states:
@@ -2208,6 +2214,10 @@ class MileByMileGame(Game):
                 # Trip complete bonus
                 score += 400
                 bonus_parts.append(("milebymile-from-trip", {"points": 400}))
+
+                if self.race_completed_after_deck_exhausted:
+                    score += 300
+                    bonus_parts.append(("milebymile-from-delayed", {"points": 300}))
 
                 # Perfect crossing (only if not forced)
                 if not self.options.only_allow_perfect_crossing:
@@ -2724,8 +2734,9 @@ class MileByMileGame(Game):
                 "winner_ids": winner_ids if winner_ids else None,
                 "winner_score": winner_score,
                 "final_scores": final_scores,
-                "rounds_played": self.round,
-                "target_score": self.options.round_distance,
+                "rounds_played": self.current_race,
+                "target_score": self.options.winning_score,
+                "race_distance": self.options.round_distance,
                 "team_mode": self.options.team_mode,
             },
         )

@@ -80,6 +80,7 @@ milebymile-team-score = { $name }: { $score } điểm
 
 milebymile-from-distance = { $miles } dặm từ quãng đường đi được
 milebymile-from-trip = { $points } từ việc hoàn thành hành trình
+milebymile-from-delayed = { $points } từ về đích sau khi hết chồng rút
 milebymile-from-perfect = { $points } từ việc về đích chuẩn xác
 milebymile-from-safe = { $points } từ chuyến đi an toàn
 milebymile-from-shutout = { $points } từ việc thắng trắng

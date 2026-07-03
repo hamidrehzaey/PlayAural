@@ -77,7 +77,13 @@ Nếu bạn chọn một lá bài hiện không thể đánh, trò chơi sẽ gi
 
 \* \*\*Quãng đường:\*\* 1 điểm cho mỗi dặm đi được.
 
+\* \*\*Lá bảo hộ:\*\* 100 điểm cho mỗi lá bảo hộ bạn đã đánh.
+
+\* \*\*Đủ bộ bảo hộ:\*\* 300 điểm thưởng nếu bạn đã đánh đủ 4 lá bảo hộ.
+
 \* \*\*Hoàn thành chuyến đi:\*\* 400 điểm.
+
+\* \*\*Về đích muộn:\*\* 300 điểm nếu bạn hoàn thành chuyến đi sau khi chồng rút đã hết bài.
 
 \* \*\*Chuyến đi an toàn:\*\* 300 điểm (về đích mà không sử dụng bất kỳ lá 200 dặm nào).
 
@@ -117,7 +123,7 @@ Nếu bạn chọn một lá bài hiện không thể đánh, trò chơi sẽ gi
 
 \* \*\*D:\*\* Đánh Đòn Phản Công (Coup Fourré).
 
-\* \*\*I:\*\* Xem thông tin các lá bài trên tay.
+\* \*\*I:\*\* Xem thông tin xe hoặc đội của bạn.
 
 \* \*\*S:\*\* Kiểm tra trạng thái.
 

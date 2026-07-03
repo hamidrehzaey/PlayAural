@@ -262,6 +262,54 @@ class TestMileByMileTargetSelectionGuard:
 
 
 class TestMileByMileDirtyTricks:
+    def test_normal_safety_cancels_matching_hazard_and_restores_movement(self):
+        game = MileByMileGame()
+        alice_user = MockUser("Alice", uuid="p1")
+        bob_user = MockUser("Bob", uuid="p2")
+        alice = game.add_player("Alice", alice_user)
+        game.add_player("Bob", bob_user)
+        game.on_start()
+
+        safety = Card(id=1000, card_type=CardType.SAFETY, value=SafetyType.EXTRA_TANK)
+        alice.hand = [safety]
+        alice_state = game.get_player_race_state(alice)
+        assert alice_state is not None
+        alice_state.problems = [HazardType.OUT_OF_GAS, HazardType.STOP]
+        game.deck.cards = []
+        game.current_player = alice
+        game._update_turn_actions(alice)
+
+        game.execute_action(alice, "card_slot_1")
+
+        assert SafetyType.EXTRA_TANK in alice_state.safeties
+        assert HazardType.OUT_OF_GAS not in alice_state.problems
+        assert HazardType.STOP not in alice_state.problems
+        assert alice_state.can_play_distance() is True
+        assert game.current_player == alice
+
+    def test_normal_safety_does_not_start_a_stopped_car_without_matching_hazard(self):
+        game = MileByMileGame()
+        alice_user = MockUser("Alice", uuid="p1")
+        bob_user = MockUser("Bob", uuid="p2")
+        alice = game.add_player("Alice", alice_user)
+        game.add_player("Bob", bob_user)
+        game.on_start()
+
+        safety = Card(id=1002, card_type=CardType.SAFETY, value=SafetyType.EXTRA_TANK)
+        alice.hand = [safety]
+        alice_state = game.get_player_race_state(alice)
+        assert alice_state is not None
+        alice_state.problems = [HazardType.STOP]
+        game.deck.cards = []
+        game.current_player = alice
+        game._update_turn_actions(alice)
+
+        game.execute_action(alice, "card_slot_1")
+
+        assert SafetyType.EXTRA_TANK in alice_state.safeties
+        assert HazardType.STOP in alice_state.problems
+        assert alice_state.can_play_distance() is False
+
     def test_playing_matching_safety_card_normally_counts_as_dirty_trick(self):
         game = MileByMileGame()
         alice_user = MockUser("Alice", uuid="p1")
@@ -701,6 +749,7 @@ class TestMileByMileBroadcastsAndOptions:
         alice = game.add_player("Alice", MockUser("Alice", uuid="p1"))
         bob = game.add_player("Bob", MockUser("Bob", uuid="p2"))
         game.on_start()
+        game.current_race = 3
         game._team_manager.teams[alice.team_index].total_score = 900
         game._team_manager.teams[bob.team_index].total_score = 500
         game.race_winner_team_index = bob.team_index
@@ -710,6 +759,46 @@ class TestMileByMileBroadcastsAndOptions:
         assert result.custom_data["winner_name"] == "Alice"
         assert result.custom_data["winner_ids"] == [alice.id]
         assert result.custom_data["winner_score"] == 900
+        assert result.custom_data["rounds_played"] == 3
+        assert result.custom_data["target_score"] == game.options.winning_score
+        assert result.custom_data["race_distance"] == game.options.round_distance
+
+    def test_delayed_action_bonus_when_trip_finishes_after_draw_pile_exhausted(self):
+        game = MileByMileGame(
+            options=MileByMileOptions(
+                round_distance=300,
+                winning_score=5000,
+                reshuffle_discard_pile=False,
+            )
+        )
+        alice_user = MockUser("Alice", uuid="p1")
+        bob_user = MockUser("Bob", uuid="p2")
+        alice = game.add_player("Alice", alice_user)
+        bob = game.add_player("Bob", bob_user)
+        game.on_start()
+
+        winning_card = Card(id=4001, card_type=CardType.DISTANCE, value="100")
+        alice.hand = [winning_card]
+        alice_state = game.get_player_race_state(alice)
+        bob_state = game.get_player_race_state(bob)
+        assert alice_state is not None
+        assert bob_state is not None
+        alice_state.problems = []
+        alice_state.miles = 200
+        bob_state.miles = 25
+        game.deck.cards = []
+        game.discard_pile = []
+        game.current_player = alice
+        game._update_turn_actions(alice)
+        alice_user.clear_messages()
+
+        game.execute_action(alice, "card_slot_1")
+
+        assert game.race_completed_after_deck_exhausted is True
+        assert game.get_team_score(alice.team_index) == 1300
+        assert any(
+            "300 from delayed action" in text for text in speech_texts(alice_user)
+        )
 
 
 def test_status_score_format_includes_localized_unit() -> None:
