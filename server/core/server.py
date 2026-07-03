@@ -220,6 +220,14 @@ class Server:
         TABLE_MEMBERS_MENU, TABLE_MEMBER_ACTIONS_MENU,
     }
 
+    GAMEPLAY_CLIENT_MENU_IDS = {
+        "turn_menu",
+        "actions_menu",
+        "action_input_menu",
+        "action_input_editbox",
+        "leave_game_confirm",
+    }
+
     def __init__(
         self,
         host: str = "0.0.0.0",
@@ -1130,6 +1138,7 @@ PlayAural Server
                                 # flush sends it within the same tick as today.
                                 if hasattr(table.game, "refresh_menus"):
                                     table.game.refresh_menus(player)
+                                    self._flush_game_menus_now(table.game)
                                 if table.is_power_restore_grace_active():
                                     user.speak_l(
                                         "server-power-restore-waiting",
@@ -3516,6 +3525,30 @@ PlayAural Server
         self._set_in_game_state(user, table_id)
 
     @staticmethod
+    def _flush_game_menus_now(game: Any) -> None:
+        if hasattr(game, "flush_menus"):
+            game.flush_menus()
+
+    def _recover_gameplay_menu_desync(
+        self,
+        user: NetworkUser,
+        current_menu: str | None,
+        packet: dict,
+    ) -> str | None:
+        if current_menu not in self.GLOBAL_SYSTEM_MENUS:
+            return current_menu
+        packet_menu = str(packet.get("menu_id") or packet.get("input_id") or "")
+        if packet_menu not in self.GAMEPLAY_CLIENT_MENU_IDS:
+            return current_menu
+        if getattr(user, "_last_menu_packet_id", None) != packet_menu:
+            return current_menu
+        table = self._tables.find_user_table(user.username)
+        if not table or not table.game:
+            return current_menu
+        self._set_in_game_state(user, table.table_id)
+        return "in_game"
+
+    @staticmethod
     def _normalized_keybind_key(packet: dict) -> str:
         key = str(packet.get("key") or "").lower()
         if packet.get("shift") and not key.startswith("shift+"):
@@ -3946,6 +3979,12 @@ PlayAural Server
         state = self._user_states.get(username, {})
         current_menu = state.get("menu")
         self._remember_current_menu_focus(user, current_menu, packet)
+        current_menu = self._recover_gameplay_menu_desync(
+            user,
+            current_menu,
+            packet,
+        )
+        state = self._user_states.get(username, {})
 
         if state.get("_transient") and selection_id == "back":
             self._cancel_input_state(user, state)
@@ -5951,6 +5990,7 @@ PlayAural Server
                 game.broadcast_l("table-joined", buffer="system", player=user.username)
                 game.play_table_join_sound(joined_player, is_spectator=False)
                 game.refresh_menus()
+                self._flush_game_menus_now(game)
             else:
                 # Join as spectator
                 if not table.add_member(user.username, user, as_spectator=True):
@@ -5962,6 +6002,7 @@ PlayAural Server
                 game.broadcast_l("now-spectating", buffer="system", player=user.username)
                 game.play_table_join_sound(joined_player, is_spectator=True)
                 game.refresh_menus()
+                self._flush_game_menus_now(game)
 
     def _find_reclaimable_bot_player(self, game: Any, user: NetworkUser) -> Any | None:
         """Find the bot-held seat that belongs to this user's UUID, if any."""
@@ -6076,6 +6117,7 @@ PlayAural Server
         if hasattr(game, "_on_replacement_slot_reclaimed"):
             game._on_replacement_slot_reclaimed(bot_name, human_name)
         game.refresh_menus()
+        self._flush_game_menus_now(game)
         self.on_tables_changed()
 
     def _leave_current_table_for_transfer(
@@ -6130,6 +6172,7 @@ PlayAural Server
                     table.game.request_menu_focus(player, focus_id)
                 else:
                     table.game.refresh_menus(player)
+                self._flush_game_menus_now(table.game)
         else:
             self._show_main_menu(user)
 
@@ -6150,6 +6193,7 @@ PlayAural Server
                 if player and hasattr(table.game, "refresh_menus"):
                     self._user_states[user.username] = state
                     table.game.refresh_menus(player)
+                    self._flush_game_menus_now(table.game)
                     return
         elif menu and menu != "table_invite_prompt":
             # Delegate to _restore_frame so any known GLOBAL_SYSTEM_MENU or
@@ -6535,6 +6579,7 @@ PlayAural Server
             state = self._user_states.get(invitee_name, {})
             if state.get("menu") == "table_invite_prompt" and state.get("table_id") == table_id:
                 invitee_user.speak_l("table-invite-expired", buffer="system")
+                invitee_user.remove_menu("table_invite_prompt", send_packet=False)
                 prev_state = state.get("prev_state", {})
                 self._restore_menu_from_state(invitee_user, prev_state)
             elif invite and invite.get("deferred"):
@@ -6565,10 +6610,12 @@ PlayAural Server
 
         invite = self._pending_invites.get(user.username)
         if not invite or invite.get("table_id") != table_id:
+            user.remove_menu("table_invite_prompt", send_packet=False)
             self._restore_menu_from_state(user, prev_state)
             return
 
         self._cancel_invite(user.username, table_id=table_id)
+        user.remove_menu("table_invite_prompt", send_packet=False)
 
         table = self._tables.get_table(table_id)
 
@@ -8600,6 +8647,13 @@ PlayAural Server
 
         state = self._user_states.get(username, {})
         current_menu = state.get("menu")
+        if user:
+            current_menu = self._recover_gameplay_menu_desync(
+                user,
+                current_menu,
+                packet,
+            )
+            state = self._user_states.get(username, {})
 
         if user and current_menu in self.GLOBAL_SYSTEM_MENUS:
             key = (packet.get("key") or "").lower()
@@ -8652,6 +8706,12 @@ PlayAural Server
 
         user_state = self._user_states.get(username, {})
         current_menu = user_state.get("menu")
+        current_menu = self._recover_gameplay_menu_desync(
+            user,
+            current_menu,
+            packet,
+        )
+        user_state = self._user_states.get(username, {})
 
         # Check if user is in a game and interacting with a game's editbox (not a system editbox)
         if current_menu not in self.GLOBAL_SYSTEM_MENUS:

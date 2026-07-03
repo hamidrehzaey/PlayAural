@@ -148,9 +148,10 @@ class MockUser(User):
             )
         )
 
-    def remove_menu(self, menu_id: str) -> None:
+    def remove_menu(self, menu_id: str, *, send_packet: bool = True) -> None:
         self.menus.pop(menu_id, None)
-        self.messages.append(Message("remove_menu", {"menu_id": menu_id}))
+        if send_packet:
+            self.messages.append(Message("remove_menu", {"menu_id": menu_id}))
 
     def show_editbox(
         self,

@@ -94,7 +94,7 @@ class Bot(User):
     ) -> None:
         pass
 
-    def remove_menu(self, menu_id: str) -> None:
+    def remove_menu(self, menu_id: str, *, send_packet: bool = True) -> None:
         pass
 
     def show_editbox(

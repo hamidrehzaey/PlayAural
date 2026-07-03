@@ -310,6 +310,12 @@ class TestTableInviteReclaim:
         assert game.get_user(reclaimed) is guest
         assert table.get_user(guest.username) is guest
         assert self.server._tables.find_user_table(guest.username) is table
+        assert self.server._user_states[guest.username] == {
+            "menu": "in_game",
+            "table_id": table.table_id,
+        }
+        assert "table_invite_prompt" not in guest.menus
+        assert "turn_menu" in guest.menus
         assert sum(1 for member in table.members if member.username == guest.username) == 1
         assert sum(1 for player in game.players if player.name == guest.username) == 1
         expected = Localization.get(

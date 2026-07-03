@@ -214,12 +214,13 @@ class User(ABC):
         ...
 
     @abstractmethod
-    def remove_menu(self, menu_id: str) -> None:
+    def remove_menu(self, menu_id: str, *, send_packet: bool = True) -> None:
         """
         Remove a menu.
 
         Args:
             menu_id: The menu to remove.
+            send_packet: Whether to notify the client with an empty menu packet.
         """
         ...
 

@@ -150,7 +150,7 @@ class EventHandlingMixin:
         elif menu_id == "status_box":
             user = self.get_user(player)
             if user:
-                user.remove_menu("status_box")
+                user.remove_menu("status_box", send_packet=False)
                 user.speak_l("status-box-closed", buffer="game")
                 self._status_box_open.discard(player.id)
                 self._live_status_boxes.pop(player.id, None)
@@ -213,7 +213,7 @@ class EventHandlingMixin:
         elif menu_id == "leave_game_confirm":
             user = self.get_user(player)
             if user:
-                user.remove_menu("leave_game_confirm")
+                user.remove_menu("leave_game_confirm", send_packet=False)
             if player.id in self._pending_actions:
                 self._pending_actions.pop(player.id, None)
             return_focus = self._pending_action_return_focus.pop(player.id, None)

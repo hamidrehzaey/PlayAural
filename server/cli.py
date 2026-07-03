@@ -156,7 +156,7 @@ class SpectatorUser(User):
     ) -> None:
         self.show_menu(menu_id, items)
 
-    def remove_menu(self, menu_id: str) -> None:
+    def remove_menu(self, menu_id: str, *, send_packet: bool = True) -> None:
         self._menus.pop(menu_id, None)
 
     def show_editbox(

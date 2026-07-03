@@ -363,10 +363,12 @@ class NetworkUser(User):
         self._last_menu_packet_id = menu_id
         self._queue_packet(packet)
 
-    def remove_menu(self, menu_id: str) -> None:
+    def remove_menu(self, menu_id: str, *, send_packet: bool = True) -> None:
         self._current_menus.pop(menu_id, None)
         if self._last_menu_packet_id == menu_id:
             self._last_menu_packet_id = None
+        if not send_packet:
+            return
         # Send empty menu to clear it
         self._queue_packet(
             {

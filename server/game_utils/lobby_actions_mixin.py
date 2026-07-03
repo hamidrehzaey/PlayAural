@@ -790,7 +790,7 @@ class LobbyActionsMixin:
         user = self.get_user(player)
         if not user:
             return
-        return_focus = self._get_action_return_focus_id(player, action_id)
+        return_focus = self._get_action_return_focus_id(player, None)
         if return_focus:
             self._pending_action_return_focus[player.id] = return_focus
         self._pending_actions[player.id] = "leave_game_confirm"

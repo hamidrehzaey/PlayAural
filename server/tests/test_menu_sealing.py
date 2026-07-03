@@ -741,3 +741,33 @@ class TestActionMenuFocus:
 
         assert p1.id not in game._pending_actions
         assert turn_menu_messages(user1)[-1].data["selection_id"] == "web_leave_table"
+
+    def test_leave_confirmation_no_from_keybind_has_no_stale_focus(self) -> None:
+        game = make_game()
+        p1 = game.players[0]
+        user1 = game.get_user(p1)
+
+        game.refresh_menus(p1)
+        game.flush_menus()
+        user1.clear_messages()
+
+        game.handle_event(
+            p1,
+            {
+                "type": "keybind",
+                "key": "ctrl+q",
+            },
+        )
+        assert p1.id in game._pending_actions
+
+        game.handle_event(
+            p1,
+            {
+                "type": "menu",
+                "menu_id": "leave_game_confirm",
+                "selection_id": "no",
+            },
+        )
+
+        assert p1.id not in game._pending_actions
+        assert turn_menu_messages(user1)[-1].data["selection_id"] is None

@@ -414,6 +414,58 @@ async def test_rules_keybind_from_actions_menu_restores_turn_menu_after_status_c
 
 
 @pytest.mark.asyncio
+async def test_stale_global_state_recovers_from_last_sent_actions_menu() -> None:
+    server, host, _guest, table, game, host_player = _make_playing_game_server()
+    try:
+        game._action_show_actions_menu(host_player, "show_actions_menu")
+        host._last_menu_packet_id = "actions_menu"
+        server._user_states[host.username] = {"menu": "options_menu"}
+
+        await server._handle_menu(
+            SimpleNamespace(username=host.username),
+            {
+                "type": "menu",
+                "menu_id": "actions_menu",
+                "selection_id": "go_back",
+            },
+        )
+
+        assert server._user_states[host.username] == {
+            "menu": "in_game",
+            "table_id": table.table_id,
+        }
+        assert host_player.id not in game._actions_menu_open
+        assert "turn_menu" in host.menus
+    finally:
+        server._db.close()
+
+
+@pytest.mark.asyncio
+async def test_stale_global_state_recovers_keybind_from_last_sent_game_menu() -> None:
+    server, host, _guest, table, _game, _host_player = _make_playing_game_server()
+    try:
+        host._last_menu_packet_id = "turn_menu"
+        server._user_states[host.username] = {"menu": "options_menu"}
+
+        await server._handle_keybind(
+            SimpleNamespace(username=host.username),
+            {
+                "type": "keybind",
+                "key": "ctrl+q",
+                "menu_id": "turn_menu",
+            },
+        )
+
+        assert server._user_states[host.username] == {
+            "menu": "in_game",
+            "table_id": table.table_id,
+        }
+        assert "leave_game_confirm" in host.menus
+    finally:
+        server._db.close()
+
+
+@pytest.mark.asyncio
 async def test_active_game_input_blocks_navigation_without_deferring() -> None:
     server, host, _guest, _table, game, host_player = _make_playing_game_server()
     try:

@@ -53,6 +53,19 @@ def test_distinct_menu_ids_both_survive():
     assert {m["menu_id"] for m in menus} == {"turn_menu", "status_box"}
 
 
+def test_quiet_remove_forgets_overlay_without_blank_menu_packet():
+    user = _user()
+    user.show_menu("status_box", _items("summary"))
+    user.get_queued_messages()
+
+    user.remove_menu("status_box", send_packet=False)
+    user.show_menu("turn_menu", _items("roll"))
+
+    menus = [m for m in user.get_queued_messages() if m["type"] == "menu"]
+    assert [m["menu_id"] for m in menus] == ["turn_menu"]
+    assert [item["id"] for item in menus[0]["items"]] == ["roll"]
+
+
 def test_focus_intent_survives_a_later_blanket_rebuild():
     # The real 99 land-on-drawn-card ordering: the handler targets the drawn
     # card's slot, then the event framework fires a post-action rebuild with no
