@@ -117,7 +117,9 @@ class TienLenRuleSet:
             )
 
         if current_combo.type_name == "pair" and all(card.rank == 2 for card in current_combo.cards):
-            return play_combo.type_name == "consecutive_pairs" and play_combo.pair_count >= 4
+            return play_combo.type_name == "four_of_a_kind" or (
+                play_combo.type_name == "consecutive_pairs" and play_combo.pair_count >= 4
+            )
 
         if current_combo.type_name == "triple" and all(card.rank == 2 for card in current_combo.cards):
             return play_combo.type_name == "consecutive_pairs" and play_combo.pair_count >= 5

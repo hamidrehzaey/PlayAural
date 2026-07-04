@@ -8,7 +8,7 @@ Tien Len uses a standard 52-card deck. Each player receives 13 cards.
 
 \* \*\*Card ranking:\*\* 3 is lowest, then 4, 5, 6, 7, 8, 9, 10, J, Q, K, A, and 2 is highest.
 \* \*\*Suit ranking:\*\* Spades are lowest, then Clubs, Diamonds, and Hearts.
-\* \*\*First hand:\*\* The player holding the 3 of Spades starts. They may lead any legal combination; the opening play does not have to include the 3 of Spades.
+\* \*\*First hand:\*\* The player holding the 3 of Spades starts. The opening play must include that card. If the 3 of Spades was not dealt in a 2- or 3-player hand, the lowest dealt card starts instead.
 \* \*\*Later hands:\*\* The first-place finisher from the previous hand starts the next hand.
 \* \*\*On your turn:\*\* Play a legal combination that beats the current trick, or pass.
 \* \*\*Locked pass:\*\* Passing locks you out of the current trick until the table clears, except for legal Southern chop windows.
@@ -39,7 +39,7 @@ Southern Tien Len is the looser, more tactical variant.
 \*\*Southern Chopping\*\*
 
 \* A four-of-a-kind or three consecutive pairs can chop a single 2.
-\* Four consecutive pairs can chop a pair of 2s.
+\* A four-of-a-kind or four consecutive pairs can chop a pair of 2s.
 \* Five consecutive pairs can chop three 2s.
 \* A four-of-a-kind or four consecutive pairs can chop three consecutive pairs.
 \* Four consecutive pairs can chop a four-of-a-kind.
@@ -51,6 +51,9 @@ At the deal, Southern hands can win immediately with:
 
 \* \*\*Six pairs:\*\* exactly six pair units in the 13-card hand.
 \* \*\*Five consecutive pairs:\*\* five or more consecutive ranks with at least two cards of each rank, excluding 2s.
+\* \*\*Three consecutive triples:\*\* three consecutive ranks with at least three cards of each rank, excluding 2s.
+\* \*\*Four 2s:\*\* all four 2s.
+\* \*\*Dragon straight:\*\* at least one card of every rank from 3 through Ace.
 
 \*\*Northern Tien Len\*\*
 
@@ -66,21 +69,21 @@ Northern Tien Len is stricter.
 
 \*\*Scoring\*\*
 
-PlayAural uses virtual coins instead of real-money settlement.
+PlayAural uses virtual coins instead of real-money settlement. Each player starts with the selected number of coins. Players who reach 0 coins are eliminated, and the last player with coins wins the match.
 
 For each hand:
 
-\* \*\*2 players:\*\* 1st +10 coins, last -10 coins.
-\* \*\*3 players:\*\* 1st +20 coins, 2nd 0 coins, last -20 coins.
-\* \*\*4 players:\*\* 1st +30 coins, 2nd +10 coins, 3rd -10 coins, last -30 coins.
-\* \*\*Instant win bonus:\*\* the instant winner gains an additional +20 coins.
+\* \*\*2 players:\*\* 1st +20 coins, last -20 coins.
+\* \*\*3 players:\*\* 1st +30 coins, 2nd -10 coins, last -20 coins.
+\* \*\*4 players:\*\* 1st +20 coins, 2nd +10 coins, 3rd -10 coins, last -20 coins.
+\* \*\*Instant win:\*\* normal placement settlement is skipped. The instant winner gains 20 coins from each opponent; each opponent loses 20 coins.
 
-The match ends when a player reaches the selected coin target.
+If a player does not have enough coins to pay a loss, their total stops at 0 and they are eliminated before the next hand.
 
 \*\*Game Options\*\*
 
 \* \*\*Variant:\*\* Choose Southern Tien Len or Northern Tien Len (default Southern Tien Len).
-\* \*\*Coin Target:\*\* Choose the coin target (default 50 coins, choices: 50, 100, or 200 coins).
+\* \*\*Starting Coins:\*\* Choose each player's starting bankroll (default 50 coins, choices: 50, 100, or 200 coins).
 \* \*\*Turn Timer:\*\* Choose the per-turn time limit (default Unlimited, choices: 10, 15, 20, 30, 45, 60, or 90 seconds, or Unlimited).
 
 \*\*Keyboard Shortcuts\*\*

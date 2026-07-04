@@ -8,7 +8,7 @@ Tiến Lên dùng bộ bài tây 52 lá. Mỗi người chơi được chia 13 l
 
 \* \*\*Thứ tự quân bài:\*\* 3 nhỏ nhất, rồi đến 4, 5, 6, 7, 8, 9, 10, J, Q, K, A, và 2 lớn nhất.
 \* \*\*Thứ tự chất:\*\* Bích nhỏ nhất, rồi Chuồn, Rô, và Cơ lớn nhất.
-\* \*\*Ván đầu tiên:\*\* Người cầm 3 Bích được quyền khai ván. Người đó có thể đánh bất kỳ bộ hợp lệ nào; nước mở đầu không bắt buộc phải có 3 Bích.
+\* \*\*Ván đầu tiên:\*\* Người cầm 3 Bích được quyền khai ván. Nước mở đầu phải có lá 3 Bích. Nếu ván 2 hoặc 3 người không chia ra 3 Bích, lá nhỏ nhất đã được chia sẽ khai ván.
 \* \*\*Các ván sau:\*\* Người về nhất ván trước được khai ván kế tiếp.
 \* \*\*Trong lượt của mình:\*\* Bạn đánh một bộ hợp lệ để chặn bộ đang nằm trên bàn, hoặc bỏ lượt.
 \* \*\*Khóa bỏ lượt:\*\* Khi đã bỏ lượt, bạn bị khóa khỏi vòng chặn hiện tại cho đến khi bàn dọn vòng, trừ các cửa chặt hợp lệ trong luật Miền Nam.
@@ -39,7 +39,7 @@ Miền Nam là biến thể thoáng và giàu chiến thuật hơn.
 \*\*Luật Chặt Miền Nam\*\*
 
 \* Tứ quý hoặc ba đôi thông chặt được một Heo lẻ.
-\* Bốn đôi thông chặt được đôi Heo.
+\* Tứ quý hoặc bốn đôi thông chặt được đôi Heo.
 \* Năm đôi thông chặt được ba Heo.
 \* Tứ quý hoặc bốn đôi thông chặt được ba đôi thông.
 \* Bốn đôi thông chặt được tứ quý.
@@ -51,6 +51,9 @@ Ngay sau khi chia bài, người chơi Tiến Lên Miền Nam có thể tới tr
 
 \* \*\*Sáu đôi:\*\* đúng sáu đơn vị đôi trong 13 lá.
 \* \*\*Năm đôi thông:\*\* năm hạng liên tiếp trở lên, mỗi hạng có ít nhất hai lá, không tính Heo.
+\* \*\*Ba sám cô thông:\*\* ba hạng liên tiếp, mỗi hạng có ít nhất ba lá, không tính Heo.
+\* \*\*Tứ quý Heo:\*\* đủ cả bốn lá Heo.
+\* \*\*Sảnh rồng:\*\* có đủ mỗi hạng từ 3 đến Xì.
 
 \*\*Tiến Lên Miền Bắc / Tú Lơ Khơ\*\*
 
@@ -66,21 +69,21 @@ Miền Bắc chặt chẽ hơn nhiều.
 
 \*\*Cách Tính Xu\*\*
 
-PlayAural dùng xu ảo để thay cho luật ăn tiền ngoài đời.
+PlayAural dùng xu ảo để thay cho luật ăn tiền ngoài đời. Mỗi người bắt đầu với số xu đã chọn. Ai còn 0 xu sẽ bị loại, và người cuối cùng còn xu sẽ thắng trận.
 
 Mỗi ván được cộng trừ như sau:
 
-\* \*\*2 người:\*\* nhất +10 xu, chót -10 xu.
-\* \*\*3 người:\*\* nhất +20 xu, nhì 0 xu, chót -20 xu.
-\* \*\*4 người:\*\* nhất +30 xu, nhì +10 xu, ba -10 xu, chót -30 xu.
-\* \*\*Thưởng tới trắng:\*\* người tới trắng nhận thêm +20 xu.
+\* \*\*2 người:\*\* nhất +20 xu, chót -20 xu.
+\* \*\*3 người:\*\* nhất +30 xu, nhì -10 xu, chót -20 xu.
+\* \*\*4 người:\*\* nhất +20 xu, nhì +10 xu, ba -10 xu, chót -20 xu.
+\* \*\*Tới trắng:\*\* bỏ qua cộng trừ theo hạng. Người tới trắng nhận 20 xu từ mỗi đối thủ; mỗi đối thủ mất 20 xu.
 
-Trận đấu kết thúc khi có người đạt mốc xu đã chọn.
+Nếu người chơi không đủ xu để trả, số xu dừng ở 0 và người đó bị loại trước ván tiếp theo.
 
 \*\*Tùy Chọn Trò Chơi\*\*
 
 \* \*\*Biến thể:\*\* Chọn Tiến Lên Miền Nam hoặc Tiến Lên Miền Bắc (mặc định Tiến Lên Miền Nam).
-\* \*\*Mốc xu:\*\* Chọn mốc xu của trận (mặc định 50 xu, lựa chọn: 50, 100, hoặc 200 xu).
+\* \*\*Xu khởi đầu:\*\* Chọn vốn xu ban đầu của mỗi người (mặc định 50 xu, lựa chọn: 50, 100, hoặc 200 xu).
 \* \*\*Thời gian mỗi lượt:\*\* Chọn giới hạn thời gian mỗi lượt (mặc định Không giới hạn, lựa chọn: 10, 15, 20, 30, 45, 60 hoặc 90 giây, hoặc Không giới hạn).
 
 \*\*Phím Tắt\*\*

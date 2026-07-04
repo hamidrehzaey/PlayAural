@@ -46,8 +46,11 @@ def make_game(
     game.host = "Player1"
     if start:
         game.on_start()
-        game.intro_wait_ticks = 1
-        game.on_tick()
+        for _ in range(5):
+            if game.hand_wait_ticks == 0 or game.status != "playing":
+                break
+            game.hand_wait_ticks = 1
+            game.on_tick()
     return game
 
 
@@ -68,20 +71,12 @@ def test_game_registered_and_defaults() -> None:
     assert game.options.match_length == "50"
 
 
-def test_tienlen_match_target_uses_virtual_coins() -> None:
-    assert (
-        TienLenGame(options=TienLenOptions(match_length="50")).get_score_target()
-        == 50
-    )
-    assert (
-        TienLenGame(options=TienLenOptions(match_length="100")).get_score_target()
-        == 100
-    )
-    assert (
-        TienLenGame(options=TienLenOptions(match_length="200")).get_score_target()
-        == 200
-    )
-    assert TienLenGame(options=TienLenOptions(match_length="1")).get_score_target() == 50
+def test_tienlen_match_length_sets_starting_coins_without_score_target() -> None:
+    assert TienLenGame(options=TienLenOptions(match_length="50"))._starting_coins() == 50
+    assert TienLenGame(options=TienLenOptions(match_length="100"))._starting_coins() == 100
+    assert TienLenGame(options=TienLenOptions(match_length="200"))._starting_coins() == 200
+    assert TienLenGame(options=TienLenOptions(match_length="1"))._starting_coins() == 50
+    assert TienLenGame(options=TienLenOptions(match_length="50")).get_score_target() is None
 
 
 def test_tienlen_uses_ninetynine_background_music_on_start() -> None:
@@ -96,6 +91,23 @@ def test_tienlen_uses_ninetynine_background_music_on_start() -> None:
         and message.data["name"] == "game_ninetynine/mus.ogg"
         for message in first_user.messages
     )
+
+
+def test_tienlen_starts_first_hand_without_intro_delay_or_intro_sound() -> None:
+    game = make_game()
+    first_user = game.get_user(game.players[0])
+    assert isinstance(first_user, MockUser)
+
+    game.on_start()
+
+    assert game.round == 1
+    assert game.intro_wait_ticks == 0
+    assert not any(
+        message.type == "play_sound"
+        and message.data["name"] == "game_crazyeights/intro.ogg"
+        for message in first_user.messages
+    )
+    assert all(player.coins == 50 for player in game.players)
 
 
 def test_southern_combo_evaluation_supports_straights_and_consecutive_pairs() -> None:
@@ -140,6 +152,7 @@ def test_southern_chop_matrix() -> None:
     assert single_two and pair_twos and tu_quy and ba_doi_thong and bon_doi_thong
     assert rules.combo_beats(tu_quy, single_two) is True
     assert rules.combo_beats(ba_doi_thong, single_two) is True
+    assert rules.combo_beats(tu_quy, pair_twos) is True
     assert rules.combo_beats(bon_doi_thong, pair_twos) is True
     assert rules.combo_beats(bon_doi_thong, tu_quy) is True
 
@@ -169,14 +182,30 @@ def test_northern_cannot_finish_on_two() -> None:
     assert error_key == "tienlen-error-cannot-finish-on-two"
 
 
-def test_first_turn_holder_of_three_spades_can_lead_any_legal_combo() -> None:
-    rules = get_rules(SOUTHERN_VARIANT)
-    hand = [c(1, 3, 4), c(2, 4, 4), c(3, 5, 4)]
+def test_first_hand_opening_play_must_include_lowest_opening_card() -> None:
+    game = make_game(start=True, variant=SOUTHERN_VARIANT)
+    opener = game.current_player
+    assert opener is not None
+    other = next(player for player in game.players if player.id != opener.id)
+    game.set_turn_players([opener, other])
+    game.turn_index = 0
+    game.hand_winner_id = None
+    game.current_combo = None
+    game.is_first_turn = True
+    opener.hand = [c(1, 3, 4), c(2, 4, 4), c(3, 5, 4)]
+    other.hand = [c(4, 7, 4)]
+    opener.selected_cards = {2}
 
-    is_valid, error_key, _ = rules.validate_play(hand, [hand[1]], None, True, False)
+    game.execute_action(opener, "play_selected")
 
-    assert is_valid is True
-    assert error_key is None
+    user = game.get_user(opener)
+    assert isinstance(user, MockUser)
+    assert "opening play must include" in (user.get_last_spoken() or "")
+
+    opener.selected_cards = {1, 2, 3}
+    game.execute_action(opener, "play_selected")
+
+    assert game.trick_winner_id == opener.id
 
 
 def test_southern_three_consecutive_pairs_can_open_trick() -> None:
@@ -448,7 +477,7 @@ def test_player_finishing_does_not_end_hand_until_places_are_known() -> None:
     assert game.current_player == player2
 
 
-def test_two_player_hand_settles_to_virtual_coins() -> None:
+def test_two_player_hand_settles_bankroll_coins() -> None:
     game = make_game(player_count=2, start=True, variant=SOUTHERN_VARIANT)
     player1, player2 = game.players
     player1.hand = []
@@ -458,14 +487,36 @@ def test_two_player_hand_settles_to_virtual_coins() -> None:
     game._player_finishes(player1)
 
     assert game.hand_wait_ticks > 0
-    assert player1.coins == 10
-    assert player2.coins == -10
+    assert player1.coins == 70
+    assert player2.coins == 30
     assert game.hand_winner_id == player1.id
 
 
-def test_southern_instant_win_reasons_include_six_pairs_and_five_consecutive_pairs() -> None:
+def test_southern_instant_win_reasons_include_common_an_trang_hands() -> None:
     game = make_game(player_count=2, variant=SOUTHERN_VARIANT)
     player = game.players[0]
+    player.hand = [
+        c(100, 2, 4), c(101, 2, 2), c(102, 2, 1), c(103, 2, 3),
+        c(104, 3, 4), c(105, 5, 2), c(106, 7, 1), c(107, 9, 3),
+        c(108, 11, 4), c(109, 12, 2), c(110, 13, 1), c(111, 1, 3), c(112, 4, 4),
+    ]
+    assert game._instant_win_reason(player) == "tienlen-instant-four-twos"
+
+    player.hand = [
+        c(120, 3, 4), c(121, 4, 2), c(122, 5, 1), c(123, 6, 3),
+        c(124, 7, 4), c(125, 8, 2), c(126, 9, 1), c(127, 10, 3),
+        c(128, 11, 4), c(129, 12, 2), c(130, 13, 1), c(131, 1, 3), c(132, 9, 4),
+    ]
+    assert game._instant_win_reason(player) == "tienlen-instant-dragon"
+
+    player.hand = [
+        c(140, 4, 4), c(141, 4, 2), c(142, 4, 1),
+        c(143, 5, 4), c(144, 5, 2), c(145, 5, 1),
+        c(146, 6, 4), c(147, 6, 2), c(148, 6, 1),
+        c(149, 9, 4), c(150, 11, 2), c(151, 13, 1), c(152, 1, 3),
+    ]
+    assert game._instant_win_reason(player) == "tienlen-instant-three-consecutive-triples"
+
     player.hand = [
         c(1, 3, 4), c(2, 3, 2),
         c(3, 5, 4), c(4, 5, 2),
@@ -488,7 +539,7 @@ def test_southern_instant_win_reasons_include_six_pairs_and_five_consecutive_pai
     assert game._instant_win_reason(player) == "tienlen-instant-five-consecutive-pairs"
 
 
-def test_instant_win_settles_with_bonus() -> None:
+def test_instant_win_settles_as_per_opponent_payment() -> None:
     game = make_game(player_count=3, start=True, variant=SOUTHERN_VARIANT)
     player1, player2, player3 = game.players
     player1.hand = [c(index, 3 + (index // 2), 4 if index % 2 == 0 else 2) for index in range(12)]
@@ -498,10 +549,26 @@ def test_instant_win_settles_with_bonus() -> None:
 
     game._handle_instant_win(player1, "tienlen-instant-six-pairs", [player1, player2, player3])
 
-    assert player1.coins == 40
-    assert player2.coins == 0
-    assert player3.coins == -20
+    assert player1.coins == 90
+    assert player2.coins == 30
+    assert player3.coins == 30
     assert game.hand_wait_ticks > 0
+
+
+def test_bankroll_eliminates_zero_coin_players_and_ends_at_last_standing() -> None:
+    game = make_game(player_count=2, start=True, match_length="50", variant=SOUTHERN_VARIANT)
+    player1, player2 = game.players
+    player1.coins = 50
+    player2.coins = 20
+    player1.hand = []
+    player2.hand = [c(2, 6, 4)]
+    game.finishing_order_ids = []
+
+    game._player_finishes(player1)
+
+    assert player2.coins == 0
+    assert player2.eliminated is True
+    assert game.status == "finished"
 
 
 def test_out_of_turn_southern_chop_can_override_current_two() -> None:
