@@ -5,6 +5,7 @@ from pathlib import Path
 import random
 
 from ..games.battle.game import (
+    BattleFighter,
     BattleGame,
     BattleOptions,
     DIFFICULTY_PROFESSIONAL,
@@ -20,7 +21,7 @@ from ..games.battle.game import (
     PHASE_SELECTION,
     TURN_MODE_ROUND_ROBIN,
 )
-from ..games.battle.content import get_move_map, load_battle_registry
+from ..games.battle.content import get_move_map, get_preset_map, load_battle_registry
 from ..game_utils.stats_extractor import StatsExtractor
 from ..games.registry import GameRegistry
 from ..messages.localization import Localization
@@ -104,6 +105,16 @@ def test_prestart_validation_checks_mode_and_survival_conflicts() -> None:
 
     game = make_game(player_count=3, game_mode=MODE_TEAM_BATTLE, team_mode="2v2")
     assert "game-error-invalid-team-mode" in game.prestart_validate()
+
+
+def test_switching_away_from_team_battle_resets_hidden_team_mode() -> None:
+    game = make_game(player_count=4, game_mode=MODE_TEAM_BATTLE, team_mode="2v2")
+
+    game._handle_option_change("game_mode", MODE_ONE_EACH)
+
+    assert game.options.game_mode == MODE_ONE_EACH
+    assert game.options.team_mode == "individual"
+    assert "battle-error-team-mode-only-team-battle" not in game.prestart_validate()
 
 
 def test_team_mode_option_only_appears_for_team_battle() -> None:
@@ -430,6 +441,46 @@ def test_bot_heals_critically_wounded_allies_before_chipping_tank() -> None:
 
     assert plan.target == ally
     assert any(block.type == "healing" for block in plan.move.blocks)
+
+
+def test_bot_repetition_memory_promotes_strong_alternate_moves() -> None:
+    game = BattleGame()
+    preset = get_preset_map()["novice_boxer"]
+    attacker = BattleFighter(
+        id="attacker",
+        base_name=preset.name,
+        owner_player_id="p1",
+        team_id="team_1",
+        max_health=preset.health,
+        health=preset.health,
+        attack=preset.attack,
+        defense=preset.defense,
+        speed=preset.speed,
+        move_ids=["left_jab", "right_jab"],
+    )
+    defender = BattleFighter(
+        id="defender",
+        base_name=preset.name,
+        owner_player_id="p2",
+        team_id="team_2",
+        max_health=preset.health,
+        health=preset.health,
+        attack=preset.attack,
+        defense=preset.defense,
+        speed=preset.speed,
+        move_ids=list(preset.move_ids),
+    )
+    game.fighters = [attacker, defender]
+
+    first_plan = game._choose_bot_plan(attacker)
+    assert first_plan is not None
+    assert first_plan.move.id == "left_jab"
+
+    game._remember_bot_plan(attacker, first_plan)
+    second_plan = game._choose_bot_plan(attacker)
+
+    assert second_plan is not None
+    assert second_plan.move.id == "right_jab"
 
 
 def test_single_team_selection_finishes_without_hanging() -> None:
@@ -1018,6 +1069,12 @@ def test_battle_registry_has_complete_functioning_loadouts() -> None:
     registry = load_battle_registry()
     move_map = {move.id: move for move in registry.moves}
     assigned_counts: Counter[str] = Counter()
+    repo_root = Path(__file__).parents[2]
+    sound_roots = [
+        repo_root / "client" / "sounds",
+        repo_root / "web_client" / "sounds",
+        repo_root / "mobile_client" / "sounds",
+    ]
 
     for preset in registry.presets:
         assert preset.move_ids, preset.id
@@ -1039,6 +1096,8 @@ def test_battle_registry_has_complete_functioning_loadouts() -> None:
         }
         assert all(block.type for block in move.blocks)
         assert move.sound_path
+        for sound_root in sound_roots:
+            assert (sound_root / move.sound_path).is_file(), move.sound_path
 
     unique_moves_by_preset = {
         preset.id: [move_id for move_id in preset.move_ids if assigned_counts[move_id] == 1]

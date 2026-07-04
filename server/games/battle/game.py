@@ -71,6 +71,8 @@ CRIT_DENOMINATOR = 20
 PACE_RATIO_NUMERATOR = 7
 PACE_RATIO_DENOMINATOR = 10
 DEFAULT_SOUND_DURATION_TICKS = 22
+BOT_DECISIVE_SCORE = 8000
+BOT_RECENT_MEMORY_LIMIT = 3
 SOUND_FIGHTER_LOSE = "game_pig/lose.ogg"
 SOUND_BATTLE_WIN = "game_chaosbear/wingame.ogg"
 DEATH_SOUND_VARIANTS = [f"battle/death{index}.ogg" for index in range(1, 5)]
@@ -175,6 +177,8 @@ class BattleFighter(DataClassJSONMixin):
     is_arena_enemy: bool = False
     since_turn: int = 1
     display_number: int = 0
+    bot_recent_move_ids: list[str] = field(default_factory=list)
+    bot_recent_target_ids: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -829,6 +833,18 @@ class BattleGame(Game):
             errors.append("battle-error-invalid-classic-preset")
         return errors
 
+    def _handle_option_change(self, option_name: str, value: str) -> None:
+        super()._handle_option_change(option_name, value)
+        if (
+            option_name == "game_mode"
+            and self.options.game_mode != MODE_TEAM_BATTLE
+            and self.options.team_mode != "individual"
+        ):
+            self.options.team_mode = "individual"
+            if hasattr(self.options, "update_options_labels"):
+                self.options.update_options_labels(self)
+            self.refresh_menus()
+
     def on_start(self) -> None:
         active_players = self.get_active_players()
         if self._is_team_battle_mode():
@@ -893,12 +909,32 @@ class BattleGame(Game):
         presets = list(get_preset_map().values())
         chosen: list[str] = []
         while len(chosen) < selection_count and len(chosen) < len(presets):
-            best_preset = max(
-                (preset for preset in presets if preset.id not in chosen),
-                key=lambda preset: self._score_bot_preset(preset, chosen),
-            )
+            scored_presets = [
+                (preset, self._score_bot_preset(preset, chosen))
+                for preset in presets
+                if preset.id not in chosen
+            ]
+            best_preset = self._weighted_top_bot_preset(scored_presets)
             chosen.append(best_preset.id)
         return chosen
+
+    def _weighted_top_bot_preset(
+        self, scored_presets: list[tuple[BattlePreset, float]]
+    ) -> BattlePreset:
+        best_score = max(score for _, score in scored_presets)
+        window = max(30.0, abs(best_score) * 0.1)
+        candidates = [
+            (preset, score)
+            for preset, score in scored_presets
+            if best_score - score <= window
+        ]
+        low_score = min(score for _, score in candidates)
+        weights = [max(1.0, (score - low_score + 1.0) ** 2) for _, score in candidates]
+        return random.choices(
+            [preset for preset, _ in candidates],
+            weights=weights,
+            k=1,
+        )[0]
 
     def _score_bot_preset(self, preset: BattlePreset, chosen_ids: list[str]) -> float:
         move_map = get_move_map()
@@ -1614,6 +1650,7 @@ class BattleGame(Game):
         if not plan:
             self._begin_next_turn()
             return
+        self._remember_bot_plan(fighter, plan)
         self._begin_move_resolution(fighter, plan.target, plan.move)
 
     def _choose_bot_plan(self, fighter: BattleFighter) -> BattleBotPlan | None:
@@ -1622,9 +1659,36 @@ class BattleGame(Game):
         for move in moves:
             for target in self._valid_targets(fighter, move):
                 score = self._score_bot_move(fighter, move, target)
+                score -= self._bot_repetition_penalty(fighter, move, target, score)
                 if best_plan is None or score > best_plan.score:
                     best_plan = BattleBotPlan(move=move, target=target, score=score)
         return best_plan
+
+    def _remember_bot_plan(self, fighter: BattleFighter, plan: BattleBotPlan) -> None:
+        fighter.bot_recent_move_ids.append(plan.move.id)
+        fighter.bot_recent_target_ids.append(plan.target.id)
+        del fighter.bot_recent_move_ids[:-BOT_RECENT_MEMORY_LIMIT]
+        del fighter.bot_recent_target_ids[:-BOT_RECENT_MEMORY_LIMIT]
+
+    def _bot_repetition_penalty(
+        self,
+        fighter: BattleFighter,
+        move: BattleMove,
+        target: BattleFighter,
+        base_score: float,
+    ) -> float:
+        if base_score >= BOT_DECISIVE_SCORE:
+            return 0.0
+        penalty = 0.0
+        recent_move_penalties = [42.0, 24.0, 12.0]
+        recent_target_penalties = [14.0, 8.0, 4.0]
+        for index, recent_move_id in enumerate(reversed(fighter.bot_recent_move_ids)):
+            if recent_move_id == move.id:
+                penalty += recent_move_penalties[min(index, len(recent_move_penalties) - 1)]
+        for index, recent_target_id in enumerate(reversed(fighter.bot_recent_target_ids)):
+            if recent_target_id == target.id:
+                penalty += recent_target_penalties[min(index, len(recent_target_penalties) - 1)]
+        return penalty
 
     def _choose_bot_move(self, fighter: BattleFighter) -> BattleMove | None:
         plan = self._choose_bot_plan(fighter)
@@ -2143,7 +2207,18 @@ class BattleGame(Game):
         return [self._target_option_label_for_player(locale, target, player) for target in self._valid_targets(fighter, move)]
 
     def _bot_select_target_for_move(self, player: Player, options: list[str]) -> str | None:
-        return options[0] if options else None
+        fighter = self._fighter_for_player(self._as_battle_player(player))
+        action_id = self._pending_actions.get(player.id, "")
+        move = get_move_map().get(action_id.removeprefix("battle_move_"))
+        if not fighter or not move or not options:
+            return options[0] if options else None
+        targets = self._valid_targets(fighter, move)
+        if not targets:
+            return options[0]
+        target = self._choose_bot_target(fighter, move, targets)
+        locale = self._player_locale(player)
+        label = self._target_option_label_for_player(locale, target, player)
+        return label if label in options else options[0]
 
     def _target_from_input(self, input_value: str, locale: str, targets: list[BattleFighter]) -> BattleFighter | None:
         for target in targets:
