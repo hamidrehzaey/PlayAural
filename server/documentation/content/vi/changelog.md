@@ -1,27 +1,37 @@
 Nhật ký thay đổi
 
+Thứ Bảy 18 Tháng Bảy 2026
+
+Tính năng mới:
+
+* Mèo Nổ đã được thêm cho 2 đến 5 người chơi với trọn bộ Cơ Bản 56 lá, người máy có chiến thuật, các tùy chọn Ván Nhanh và Bộ Cùng Tên Nâng Cao, Thời Gian Phản Hồi Phủ Nhận có thể điều chỉnh, âm thanh riêng, cùng tài liệu cho người mới bằng tiếng Anh và tiếng Việt.
+* Tiếng Ba Tư đã được bổ sung trên máy chủ, phần mềm máy tính, web, và di động, kèm bản dịch nội dung trò chơi và tài liệu dành cho người chơi.
+
+Cải thiện:
+
+* Bản dịch và tài liệu tiếng Việt của Đường Đua Ngàn Dặm giờ dùng thuật ngữ đua xe rõ ràng, thống nhất hơn và thông báo ngắn gọn hơn cho trình đọc màn hình.
+* Âm thanh tung xúc xắc giờ đa dạng hơn trong Pig, Farkle, Yahtzee, và các trò chơi xúc xắc khác.
+
 Chủ Nhật 5 Tháng Bảy 2026
 
 Tính năng mới:
 
-* Tiến Lên có thêm tùy chọn 20 xu khởi đầu cho các trận nhanh.
+* Tiến Lên giờ dùng Xu khởi đầu làm vốn xu, có tùy chọn 20 xu cho trận nhanh, loại người chơi khi còn 0 xu, tính đúng tiền hạng, tiền chặt, phạt thối, tới trắng, và tổng kết cuối ván gọn theo từng khoản.
 
 Cải thiện:
 
-* Tổng kết cuối ván trong Tiến Lên giờ hiển thị gọn từng phần: tiền hạng, tiền chặt, phạt thối Heo và hàng, tới trắng, thay đổi ròng, và tổng xu cuối cùng.
 * Tiêu điểm menu trên phần mềm máy tính, web, và di động ổn định hơn: khi dòng đang được chọn biến mất, tiêu điểm chuyển tới mục hữu ích kế tiếp thay vì nhảy theo vị trí cũ.
+* Khi trận đấu bắt đầu, tiêu điểm giờ chuyển từ menu phòng chờ tới mục đầu tiên của ván, giúp bài và hành động trong lượt xuất hiện ngay.
 
 Sửa lỗi:
 
 * Tiến Lên giờ giữ đúng trạng thái bỏ lượt trong vòng chặn hiện tại cho đến khi bàn dọn vòng, đồng thời vẫn cho phép các lượt chặt hợp lệ theo luật Miền Nam.
-* Tính xu trong Tiến Lên giờ xử lý chính xác hơn tiền hạng, tiền chặt, phạt thối, tới trắng, và trường hợp người chơi còn ít xu.
 
 Thứ Bảy 4 Tháng Bảy 2026
 
 Tính năng mới:
 
-* Đường Đua Nghìn Dặm giờ có điểm Về đích muộn khi hoàn thành chuyến đi sau khi chồng rút đã hết bài, kèm tóm tắt điểm và tài liệu đã cập nhật.
-* Tiến Lên giờ dùng Xu khởi đầu như vốn xu: ai còn 0 xu sẽ bị loại, và người cuối cùng còn xu sẽ thắng trận.
+* Đường Đua Ngàn Dặm giờ thưởng điểm Về đích sau khi hết chồng rút, kèm tóm tắt điểm và tài liệu đã cập nhật.
 
 Cải thiện:
 
@@ -35,7 +45,7 @@ Sửa lỗi:
 * Menu trong bàn giờ phục hồi ổn định hơn sau màn hình trạng thái, xác nhận rời bàn, thao tác cũ, kết nối lại, khôi phục bàn, và chấp nhận lời mời bàn, nên ít gặp menu trống hoặc bị kẹt hơn.
 * UNO giờ áp dụng hiệu ứng lá mở đầu chính thức cho Mất lượt, Đảo chiều, Rút Hai, và Đổi màu; Đổi màu Rút Bốn được trả lại vào bộ bài trước khi lật lá mở đầu mới.
 * UNO giờ cho phép bắt lỗi quên hô UNO trước khi người kế tiếp đánh hoặc rút bài, và các lượt hô hoặc bắt lỗi UNO không hợp lệ có phản hồi rõ hơn.
-* Đường Đua Nghìn Dặm giờ cho Lá bảo hộ dọn đúng các Sự cố đang có, và kết quả cuối ván hiển thị đúng điểm thắng cùng quãng đường chặng đua.
+* Đường Đua Ngàn Dặm giờ cho lá bảo vệ dọn đúng các Sự cố đang có, và kết quả cuối ván hiển thị đúng điểm thắng cùng cự ly chặng đua.
 * Đấu Trường Chiến Kỹ không còn bị chặn thiết lập bởi Chế độ đội ẩn sau khi chuyển khỏi Đấu đội.
 * Tiến Lên giờ nhận đúng thêm các thế tới trắng chuẩn của miền Nam, gồm sảnh rồng, tứ quý Heo, và ba sám cô thông.
 * Tiến Lên giờ bám sát hơn luật khai ván đầu và luật chặt, gồm tứ quý chặt được đôi Heo.
@@ -162,9 +172,9 @@ Sửa lỗi:
 * Người máy trong Hải Tặc: Những Vùng Biển Thất Lạc giờ có chiến thuật tốt hơn và dùng kỹ năng thông minh hơn.
 * Cân bằng kỹ năng, thông báo kỹ năng, và lời giải thích khóa hành động của Cổng Dịch Chuyển trong Hải Tặc: Những Vùng Biển Thất Lạc giờ rõ hơn.
 * Luật, tài liệu, thuật ngữ bộ bóng, và thông báo của Bóng Lăn giờ rõ hơn bằng tiếng Anh và tiếng Việt.
-* Đường Đua Nghìn Dặm giờ giải thích giới hạn lá dặm đường rõ ràng và cho đánh các lá hợp lệ nếu không vượt đích.
-* Đường Đua Nghìn Dặm giờ tôn trọng đúng tùy chọn Yêu cầu về đích chính xác và cho phép vượt đích khi tùy chọn đó cho phép.
-* Lời nhắc bỏ bài trong Đường Đua Nghìn Dặm giờ khôi phục tiêu điểm về lá bạn vừa chọn.
+* Đường Đua Ngàn Dặm giờ giải thích giới hạn lá cự ly rõ ràng và cho đánh các lá hợp lệ nếu không vượt đích.
+* Đường Đua Ngàn Dặm giờ tôn trọng đúng tùy chọn Phải về đích đúng cự ly và cho phép vượt đích khi tùy chọn đó cho phép.
+* Lời nhắc Bỏ lá trong Đường Đua Ngàn Dặm giờ khôi phục tiêu điểm về lá bạn vừa chọn.
 * Rắn và Thang giờ có thông báo rõ hơn khi bắt đầu, leo thang, trượt theo rắn, bật ngược, cần gieo đúng để về đích, và thắng ván.
 * 1-4-24 giờ giữ tiêu điểm Gieo và chốt điểm ổn định hơn cho người chơi cảm ứng.
 * Ba điểm giờ giữ tiêu điểm kết quả xúc xắc, Gieo, và ghi điểm ổn định hơn cho người chơi cảm ứng.
@@ -272,7 +282,7 @@ Sửa lỗi:
 * Scopa giờ có luật rõ hơn, lời nhắc tốt hơn, và thông báo tự nhiên hơn.
 * Blackjack giờ có luật rõ hơn, lời nhắc tốt hơn, và thông báo tự nhiên hơn.
 * Chín mươi chín giờ đây có luật rõ hơn, lời nhắc tốt hơn, và thông báo tự nhiên hơn.
-* Đường Đua Nghìn Dặm giờ có luật rõ hơn, lời nhắc tốt hơn, và thông báo tự nhiên hơn.
+* Đường Đua Ngàn Dặm giờ có luật rõ hơn, lời nhắc tốt hơn, và thông báo tự nhiên hơn.
 * Đô-mi-nô giờ có luật rõ hơn, lời nhắc tốt hơn, và thông báo tự nhiên hơn.
 * 21 giờ có luật rõ hơn, lời nhắc tốt hơn, và thông báo tự nhiên hơn.
 * Tiến Lên giờ có luật rõ hơn, lời nhắc tốt hơn, và thông báo tự nhiên hơn.
@@ -290,8 +300,8 @@ Sửa lỗi:
 * Chín mươi chín đã sửa lỗi hiếm khiến tổng điểm tăng vượt mức hợp lệ.
 * Poker Tử Thần giờ theo dõi số vòng thắng lúc so bài chính xác hơn và đọc các ván hòa rõ hơn.
 * Poker Tử Thần giờ cho đổi bài một lần mỗi ván và chặn Tất tay ở vòng đầu.
-* Đường Đua Nghìn Dặm giờ nhận đúng Dirty Trick khi bạn đánh đúng lá an toàn trong cửa sổ phản ứng.
-* Lá không đánh được trong Đường Đua Nghìn Dặm giờ giải thích lý do và cho chọn bỏ bài hoặc hủy.
+* Đường Đua Ngàn Dặm giờ nhận đúng Phản đòn khi bạn đánh đúng lá bảo vệ trong cửa sổ phản ứng.
+* Lá không đánh được trong Đường Đua Ngàn Dặm giờ giải thích lý do và cho chọn Bỏ lá hoặc hủy.
 * Dominos giờ giữ các nhánh spinner ổn định.
 * Dominos giờ để đúng người mở đầu chọn quân mở đầu.
 * Tiến Lên giờ bám sát hơn luật miền Nam và miền Bắc.
@@ -392,7 +402,7 @@ Sửa lỗi:
 
 * Giao diện phần mềm máy tính được tối ưu để chơi mượt và ổn định hơn.
 * Kiểm tra độ trễ mạng trên di động giờ có kết quả khi tắt chế độ tự đọc.
-* Người chơi di động giờ có thể bỏ bài trong Đường Đua Nghìn Dặm bằng cử chỉ nhấn giữ của trình đọc màn hình.
+* Người chơi di động giờ có thể Bỏ lá trong Đường Đua Ngàn Dặm bằng cử chỉ nhấn giữ của trình đọc màn hình.
 * Nhận diện ngôn ngữ thiết bị trên di động mượt hơn trong lần mở đầu tiên.
 * Kết nối mạng trên di động ổn định và phản hồi tốt hơn.
 
@@ -403,7 +413,7 @@ Tính năng mới:
 * Quản lý bàn giờ có Khởi động lại ván chơi để đưa bàn về phòng chờ mà không cần tạo lại bàn.
 * Các lá lựa chọn trong Chín mươi chín như 10 và Át giờ có Hủy.
 * Chín mươi chín giờ đây có phản hồi Chưa đến lượt của bạn rõ ràng.
-* Đường Đua Nghìn Dặm giờ có phản hồi Chưa đến lượt của bạn rõ ràng.
+* Đường Đua Ngàn Dặm giờ có phản hồi Chưa đến lượt của bạn rõ ràng.
 * Scopa giờ có phản hồi Chưa đến lượt của bạn rõ ràng.
 
 Sửa lỗi:
