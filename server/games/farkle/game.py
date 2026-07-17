@@ -13,7 +13,7 @@ from ..base import Game, Player, GameOptions
 from ..registry import register_game
 from ...game_utils.actions import Action, ActionSet, Visibility
 from ...game_utils.bot_helper import BotHelper
-from ...game_utils.dice import DiceSet
+from ...game_utils.dice import DiceSet, random_dice_throw_sound
 from ...game_utils.game_result import GameResult, PlayerResult
 from ...game_utils.options import IntOption, option_field
 from ...messages.localization import Localization
@@ -1097,7 +1097,7 @@ class FarkleGame(Game):
             brief_others_key="farkle-player-rolls-brief",
             count=num_dice,
         )
-        self.play_sound("game_pig/roll.ogg")
+        self.play_sound(random_dice_throw_sound())
 
         # Jolt bot to pause before next action
         BotHelper.jolt_bot(player, ticks=random.randint(10, 20))

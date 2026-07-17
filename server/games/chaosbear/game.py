@@ -13,6 +13,7 @@ from datetime import datetime
 from ..base import Game, Player
 from ..registry import register_game
 from ...game_utils.bot_helper import BotHelper
+from ...game_utils.dice import random_dice_throw_sound
 from ...game_utils.game_result import GameResult, PlayerResult
 from ...game_utils.actions import Action, ActionSet, Visibility
 from ...game_utils.sequence_runner_mixin import SequenceBeat, SequenceOperation
@@ -1108,7 +1109,7 @@ class ChaosBearGame(Game):
         self.is_rolling = True
         self.refresh_menus()
 
-        self.play_sound("game_pig/roll.ogg")
+        self.play_sound(random_dice_throw_sound())
 
         roll = random.randint(1, 6)
 

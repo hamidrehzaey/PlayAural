@@ -8,6 +8,7 @@ from ..base import Game, Player, GameOptions
 from ..registry import register_game
 from ...game_utils.actions import Action, ActionSet, Visibility
 from ...game_utils.bot_helper import BotHelper
+from ...game_utils.dice import random_dice_throw_sound
 from ...game_utils.game_result import GameResult, PlayerResult
 from ...game_utils.options import IntOption, MenuOption, option_field
 from ...messages.localization import Localization
@@ -489,7 +490,7 @@ class TossUpGame(Game):
             return
         self._clear_risky_confirmation(tossup_player)
 
-        self.play_sound("game_pig/roll.ogg")
+        self.play_sound(random_dice_throw_sound())
 
         # Roll the dice
         green = 0

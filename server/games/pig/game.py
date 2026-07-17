@@ -8,6 +8,7 @@ from ..base import Game, GameOptions, Player
 from ..registry import register_game
 from ...game_utils.actions import Action, ActionSet, Visibility
 from ...game_utils.bot_helper import BotHelper
+from ...game_utils.dice import random_dice_throw_sound
 from ...game_utils.game_result import GameResult, PlayerResult
 from ...game_utils.options import IntOption, TeamModeOption, option_field
 from ...game_utils.sequence_runner_mixin import SequenceBeat, SequenceOperation
@@ -517,7 +518,7 @@ class PigGame(Game):
         payload = {"player_id": player.id, "roll": roll}
         beats = [
             SequenceBeat(
-                ops=[SequenceOperation.sound_op("game_pig/roll.ogg")],
+                ops=[SequenceOperation.sound_op(random_dice_throw_sound())],
                 delay_after_ticks=ROLL_REVEAL_DELAY_TICKS,
             ),
             SequenceBeat(

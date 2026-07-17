@@ -14,7 +14,7 @@ from ..registry import register_game
 from .bot import bot_think as yahtzee_bot_think
 from ...game_utils.actions import Action, ActionSet, MenuInput, Visibility
 from ...game_utils.bot_helper import BotHelper
-from ...game_utils.dice import DiceSet
+from ...game_utils.dice import DiceSet, random_dice_throw_sound
 from ...game_utils.dice_game_mixin import DiceGameMixin
 from ...game_utils.game_result import GameResult, PlayerResult
 from ...game_utils.options import IntOption, option_field
@@ -585,7 +585,7 @@ class YahtzeeGame(Game, DiceGameMixin):
         else:
             rolled_indices = list(range(ytz_player.dice.num_dice))
 
-        self.play_sound("game_pig/roll.ogg")
+        self.play_sound(random_dice_throw_sound())
 
         user = self.get_user(player)
         clear_kept = (
