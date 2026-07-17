@@ -1,27 +1,37 @@
 Changelog
 
+Saturday 18 July 2026
+
+New Additions:
+
+* Exploding Kittens has been added for 2 to 5 players with the complete 56-card Original Edition game, strategic bots, Faster game and Advanced combos options, configurable Nope response time, dedicated audio, and beginner guides in English and Vietnamese.
+* Persian is now available across the server, desktop, web, and mobile, with translated game text and player guides.
+
+Improvements:
+
+* Mile by Mile's Vietnamese text and guide now use clearer, consistent racing terms and shorter screen-reader-friendly announcements.
+* Dice rolls now use a varied set of sounds across Pig, Farkle, Yahtzee, and other dice-driven games.
+
 Sunday 5 July 2026
 
 New Additions:
 
-* Tien Len now includes a 20-coin starting bankroll option for quick matches.
+* Tien Len now uses starting coins as a bankroll, with a 20-coin quick-match option, elimination at 0 coins, standard placement, chop, leftover, and instant-win payments, and concise itemized end-hand settlements.
 
 Improvements:
 
-* Tien Len end-hand summaries now give a concise breakdown of rank payments, chops, leftover 2s and special combinations, instant wins, net change, and final coin totals.
 * Menu focus is steadier on desktop, web, and mobile: when the focused row disappears, focus now moves to the next useful menu item instead of jumping by old position.
+* When a match begins, focus now moves from the waiting-room menu to the first active game item, so cards and turn actions are immediately available.
 
 Bug Fixes:
 
 * Tien Len now keeps players who passed locked out of the current trick until it clears, while still allowing valid Southern chop responses.
-* Tien Len coin payouts now handle rank payments, chops, leftover penalties, instant wins, and players with low coin totals more accurately.
 
 Saturday 4 July 2026
 
 New Additions:
 
 * Mile by Mile now includes Delayed Action scoring for trips completed after the draw pile runs out, with scoring summaries and documentation updated.
-* Tien Len now uses starting coins as a bankroll: players who reach 0 coins are eliminated, and the last player with coins wins.
 
 Improvements:
 

@@ -1,7 +1,13 @@
 """Shared game utilities."""
 
 from .actions import Action, ActionSet, MenuInput, EditboxInput
-from .dice import DiceSet, roll_dice, roll_die
+from .dice import (
+    DICE_THROW_SOUNDS,
+    DiceSet,
+    random_dice_throw_sound,
+    roll_dice,
+    roll_die,
+)
 from .dice_game_mixin import DiceGameMixin
 from .game_result import GameResult, PlayerResult
 from .player import Player
@@ -29,6 +35,8 @@ __all__ = [
     "MenuInput",
     "EditboxInput",
     "DiceSet",
+    "DICE_THROW_SOUNDS",
+    "random_dice_throw_sound",
     "roll_dice",
     "roll_die",
     "DiceGameMixin",

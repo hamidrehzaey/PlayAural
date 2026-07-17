@@ -11,6 +11,7 @@ from ...game_utils.action_guard_mixin import ActionGuardMixin
 from ...game_utils.actions import Action, ActionSet, MenuInput, Visibility
 from ...game_utils.bot_helper import BotHelper
 from ...game_utils.cards import Card, Deck, card_name
+from ...game_utils.dice import random_dice_throw_sound
 from ...game_utils.game_result import GameResult, PlayerResult
 from ...game_utils.options import IntOption, option_field
 from ...messages.localization import Localization
@@ -263,7 +264,6 @@ SOUND_MOD_DRAW = "game_cards/draw3.ogg"
 SOUND_MOD_CONTROL = "game_cards/play3.ogg"
 SOUND_MOD_ENEMY = "game_cards/play4.ogg"
 SOUND_MOD_ENDGAME = "game_cards/draw4.ogg"
-SOUND_TARGET_17 = "game_pig/roll.ogg"
 SOUND_TARGET_24 = "game_cards/shuffle2.ogg"
 SOUND_TARGET_27 = "game_cards/shuffle3.ogg"
 SOUND_MOD_REFRESH = "game_cards/shuffle1.ogg"
@@ -1930,7 +1930,7 @@ class TwentyOneGame(ActionGuardMixin, Game):
 
     def _play_target_change_sound(self, modifier: str) -> None:
         if modifier == MODIFIER_TARGET_17:
-            self.play_sound(SOUND_TARGET_17, volume=75)
+            self.play_sound(random_dice_throw_sound(), volume=75)
             return
         if modifier == MODIFIER_TARGET_24:
             self.play_sound(SOUND_TARGET_24, volume=75)
@@ -1938,14 +1938,14 @@ class TwentyOneGame(ActionGuardMixin, Game):
         if modifier == MODIFIER_TARGET_27:
             self.play_sound(SOUND_TARGET_27, volume=75)
             return
-        self.play_sound(SOUND_TARGET_17, volume=75)
+        self.play_sound(random_dice_throw_sound(), volume=75)
 
     def _play_target_reminder_sound(self, player: TwentyOnePlayer) -> None:
         target = self._current_target()
         if target == 21:
             return
         if target == 17:
-            self._play_sound_for_player(player, SOUND_TARGET_17, volume=60)
+            self._play_sound_for_player(player, random_dice_throw_sound(), volume=60)
             return
         if target == 24:
             self._play_sound_for_player(player, SOUND_TARGET_24, volume=60)

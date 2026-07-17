@@ -6,6 +6,14 @@ import random
 from mashumaro.mixins.json import DataClassJSONMixin
 
 
+DICE_THROW_SOUNDS = (
+    "game_dice/dieThrow1.ogg",
+    "game_dice/dieThrow2.ogg",
+    "game_dice/dieThrow3.ogg",
+)
+_SOUND_RANDOM = random.Random()
+
+
 @dataclass
 class DiceSet(DataClassJSONMixin):
     """
@@ -224,3 +232,8 @@ def roll_dice(num_dice: int = 1, sides: int = 6) -> list[int]:
 def roll_die(sides: int = 6) -> int:
     """Roll a single die and return its value."""
     return random.randint(1, sides)
+
+
+def random_dice_throw_sound() -> str:
+    """Return a random shared dice-throw sound path."""
+    return _SOUND_RANDOM.choice(DICE_THROW_SOUNDS)

@@ -13,7 +13,7 @@ from ..base import Game, Player, GameOptions
 from ..registry import register_game
 from ...game_utils.actions import Action, ActionSet, Visibility
 from ...game_utils.bot_helper import BotHelper
-from ...game_utils.dice import DiceSet
+from ...game_utils.dice import DiceSet, random_dice_throw_sound
 from ...game_utils.dice_game_mixin import DiceGameMixin
 from ...game_utils.game_result import GameResult, PlayerResult
 from ...game_utils.options import IntOption, option_field
@@ -375,7 +375,7 @@ class MidnightGame(Game, DiceGameMixin):
         """Handle roll action."""
         midnight_player: MidnightPlayer = player  # type: ignore
 
-        self.play_sound("game_pig/roll.ogg")
+        self.play_sound(random_dice_throw_sound())
 
         # Roll dice (locks kept dice)
         midnight_player.dice.roll(lock_kept=True, clear_kept=True)

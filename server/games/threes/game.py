@@ -13,7 +13,7 @@ from ..base import Game, Player
 from ..registry import register_game
 from ...game_utils.actions import Action, ActionSet, Visibility
 from ...game_utils.bot_helper import BotHelper
-from ...game_utils.dice import DiceSet
+from ...game_utils.dice import DiceSet, random_dice_throw_sound
 from ...game_utils.dice_game_mixin import DiceGameMixin
 from ...game_utils.game_result import GameResult, PlayerResult
 from ...game_utils.options import GameOptions, IntOption, option_field
@@ -530,7 +530,7 @@ class ThreesGame(Game, DiceGameMixin):
             return
 
         # Roll dice (locks kept dice and rerolls unlocked)
-        self.play_sound("game_pig/roll.ogg")
+        self.play_sound(random_dice_throw_sound())
         player.dice.roll()
         self._apply_dice_values_defaults(player)
 
