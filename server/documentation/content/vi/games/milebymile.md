@@ -62,7 +62,7 @@ Các lá này bảo vệ bạn đến hết chặng đua và cho bạn thêm m�
 
 \*\*Phản đòn (Coup Fourré)\*\*
 
-Khi đối thủ đánh một lá sự cố vào bạn, bạn có khoảng \*\*7 giây\*\* để đánh lá bảo vệ tương ứng từ tay bài bằng phím \*\*D\*\*. Hành động này chặn sự cố và cho bạn 300 điểm thưởng cuối chặng.
+Khi đối thủ đánh một lá sự cố vào bạn, \*\*cửa sổ phản hồi 7 giây\*\* sẽ mở trong khi lượt chơi thông thường vẫn tiếp tục. Trong thời gian đó, hãy dùng phím \*\*D\*\* để đánh lá bảo vệ tương ứng từ tay bài. Phản đòn sẽ chặn sự cố, cho bạn 300 điểm thưởng cuối chặng và trao một lượt cho bạn. Bạn rút bù lá bảo vệ ngay lập tức. Nếu lượt của người khác đã bắt đầu, họ hoàn thành lượt đó trước khi lượt được thưởng của bạn bắt đầu và bạn rút bài như thường lệ. Mỗi sự cố vừa đánh có cửa sổ phản hồi riêng, nên một lần phản đòn không làm mất cơ hội của đội khác. Đánh lá khắc phục tương ứng sẽ đóng ngay cửa sổ của sự cố đó. Nếu lá bảo vệ và lá khắc phục được đánh gần như cùng lúc, lá hợp lệ đến trước quyết định kết quả: lá bảo vệ đến trước tạo Phản đòn; lá khắc phục đến trước chấm dứt cơ hội. Nếu không ai phản đòn, cửa sổ chỉ hết hạn mà không làm gián đoạn ván chơi.
 
 Trong khoảng thời gian đó, bạn cũng có thể chọn trực tiếp lá bảo vệ tương ứng từ tay bài. Lá đó sẽ tự động được tính là Phản đòn, không phải lượt đánh lá bảo vệ thông thường.
 

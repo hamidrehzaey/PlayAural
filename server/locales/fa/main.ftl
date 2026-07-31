@@ -8,8 +8,6 @@ auth-error-user-not-found = کاربر وجود ندارد.
 auth-kicked-logged-in-elsewhere = شما قطع شدید زیرا حساب کاربری شما از دستگاه دیگری وارد شده است.
 
 chat-global = { $player } در کانال عمومی می‌گوید: { $message }
-dev-announcement-broadcast = { $dev } یکی از توسعه‌دهندگان PlayAural است.
-admin-announcement-broadcast = { $admin } یکی از مدیران PlayAural است.
 
 admin-smtp-updated-success = تنظیمات SMTP با موفقیت به‌روز شد
 admin-smtp-settings = تنظیمات SMTP
@@ -530,7 +528,6 @@ banned-expires = انقضا: { $expires }
 banned-permanent = انقضا: دائمی
 disconnect = قطع اتصال
 
-enter-custom-ban-reason = دلیل سفارشی مسدودیت را وارد کنید:
 
 mute-user = بی‌صدا کردن کاربر
 unmute-user = لغو بی‌صدا کردن کاربر
@@ -543,7 +540,6 @@ mute-duration-1h = ۱ ساعت
 mute-duration-6h = ۶ ساعت
 mute-duration-1d = ۱ روز
 mute-duration-permanent = دائمی
-enter-custom-mute-reason = دلیل سفارشی بی‌صدا کردن را وارد کنید:
 mute-broadcast = { $target } توسط { $actor } به دلیل { $reason } بی‌صدا شد. مدت: { $duration }.
 unmute-broadcast = بی‌صدایی { $target } توسط { $actor } لغو شد.
 you-have-been-muted = شما بی‌صدا شده‌اید. دلیل: { $reason }. مدت: { $duration }.
@@ -570,9 +566,7 @@ view-motd = مشاهده‌ی پیام روز فعال
 delete-motd = حذف پیام روز
 motd-version-prompt = شماره‌ی نسخه‌ی جدید پیام روز را وارد کنید (باید > ۰ باشد):
 invalid-motd-version = نسخه‌ی پیام روز نامعتبر است. باید یک عدد مثبت باشد.
-motd-prompt = پیام روز را برای { $language } وارد کنید (برای خط جدید از Enter استفاده کنید، در صورت معکوس بودن چندخطی از Shift+Enter برای ارسال استفاده کنید):
 motd-created = پیام روز نسخه‌ی { $version } با موفقیت ایجاد شد.
-motd-cancelled = ایجاد پیام روز لغو شد.
 motd-deleted = پیام روز حذف شد.
 motd-delete-empty = هیچ پیام روز فعالی برای حذف وجود ندارد.
 motd-not-exists = هیچ پیام روز فعالی وجود ندارد.
@@ -615,7 +609,6 @@ server-power-reason-security = امنیت
 server-power-reason-technical = مشکل فنی
 server-power-reason-custom = دلیل سفارشی
 server-power-reason-unspecified = دلیل نامشخص
-server-power-custom-reason-prompt = دلیل اقدام برق سرور را برای { $language } وارد کنید:
 server-power-confirm-summary = تأیید { $action } سرور در { $duration }. دلیل: { $reason }.
 server-power-scheduled = { $action } سرور در { $duration } برنامه‌ریزی شد.
 server-power-already-scheduled = یک اقدام برق سرور قبلاً برنامه‌ریزی شده است. قبل از برنامه‌ریزی مجدد، آن را لغو کنید.
