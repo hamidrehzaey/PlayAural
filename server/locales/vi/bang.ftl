@@ -17,7 +17,7 @@ bang-card-barrel-description = Lá xanh lam. Khi có đạn bay tới, mỗi Th�
 bang-card-beer = Bia
 bang-card-beer-description = Uống để hồi 1 máu, kể cả lúc đang hấp hối ở 0 máu. Khi máu đã đầy hoặc bàn chỉ còn hai người, bạn vẫn được đánh Bia nhưng lá Bia bị bỏ đi mà không có tác dụng.
 bang-card-bible = Kinh Thánh
-bang-card-bible-description = Lá đặt chờ. Đặt trước mặt. Từ lượt sau, bỏ lá này thay cho 1 lá Trượt!, rồi rút 1 lá.
+bang-card-bible-description = Lá đặt chờ. Đặt trước mặt. Từ lượt sau, bỏ lá này thay cho 1 lá Trượt!, rồi rút 1 lá; nếu phát bắn vẫn cần né thêm, lá hợp lệ vừa rút có thể dùng ngay.
 bang-card-binocular = Ống nhòm
 bang-card-binocular-description = Lá xanh lam. Khi bạn nhắm người khác, khoảng cách giảm 1 nhưng không bao giờ thấp hơn 1.
 bang-card-brawl = Ẩu đả
@@ -204,7 +204,7 @@ bang-event-new-identity-description = Đầu lượt, có thể đổi hẳn san
 bang-event-fistful-of-cards = Một nắm bài
 bang-event-fistful-of-cards-description = Đầu lượt, phải đỡ một phát BANG! cho mỗi lá đang cầm trên tay; từng phát đều có thể né.
 bang-event-abandoned-mine = Mỏ bỏ hoang
-bang-event-abandoned-mine-description = Đầu lượt rút từ chồng bỏ; bài dư cuối lượt được úp lên đầu chồng rút.
+bang-event-abandoned-mine-description = Khi rút đầu lượt, lấy từ chồng bỏ tới khi chồng này hết rồi rút phần còn thiếu từ chồng rút. Cuối lượt, úp bài dư lên đầu chồng rút.
 bang-event-ambush = Phục kích
 bang-event-ambush-description = Khoảng cách gốc giữa mọi cặp người chơi là 1; các hiệu chỉnh khác vẫn được tính.
 bang-event-blood-brothers = Anh em kết nghĩa
@@ -214,17 +214,17 @@ bang-event-dead-man-description = Người đầu tiên bị hạ được trở
 bang-event-hard-liquor = Rượu mạnh
 bang-event-hard-liquor-description = Có thể bỏ lượt rút bài để hồi 1 máu.
 bang-event-lasso = Thòng lọng
-bang-event-lasso-description = Mọi lá đang nằm trước mặt người chơi đều mất hiệu lực.
+bang-event-lasso-description = Mọi lá trước mặt đều mất hiệu lực nhưng vẫn nằm nguyên chỗ; Nhà giam và Thuốc nổ không thử vận đầu lượt.
 bang-event-law-of-the-west = Luật miền Tây
 bang-event-law-of-the-west-description = Lá thứ hai rút ở đầu lượt được công khai và phải đánh trong lượt nếu vẫn còn nước hợp lệ.
 bang-event-peyote = Xương rồng gây ảo giác
-bang-event-peyote-description = Thay vì rút bình thường, liên tục đoán đỏ hoặc đen; đoán đúng thì giữ lá và đoán tiếp, đoán sai thì dừng.
+bang-event-peyote-description = Thay vì rút bình thường, liên tục đoán đỏ hoặc đen rồi lật công khai từng lá; đoán đúng thì giữ lá và đoán tiếp, đoán sai thì dừng.
 bang-event-ranch = Trang trại
 bang-event-ranch-description = Một lần sau khi rút đầu lượt, bỏ bao nhiêu lá trên tay tùy ý rồi rút bù đúng bấy nhiêu.
 bang-event-ricochet = Đạn nảy
 bang-event-ricochet-description = Bỏ BANG! để bắn một lá trước mặt ở bất kỳ khoảng cách nào; chủ lá có thể dùng 1 hiệu ứng Trượt! để cứu nó.
 bang-event-russian-roulette = Cò quay Nga
-bang-event-russian-roulette-description = Bắt đầu từ Cảnh trưởng, hoặc Phó cảnh trưởng ở bàn ba người, lần lượt theo chiều kim đồng hồ né một phát súng; người đầu tiên thất bại mất 2 máu và vòng quay dừng lại.
+bang-event-russian-roulette-description = Bắt đầu từ Cảnh trưởng, hoặc Phó cảnh trưởng ở bàn ba người, tiếp tục theo chiều kim đồng hồ và né từng phát súng cho tới khi người đầu tiên thất bại, mất 2 máu và dừng vòng quay.
 bang-event-sniper = Xạ thủ
 bang-event-sniper-description = Bỏ 2 lá BANG! để bắn một người trong tầm; nạn nhân cần 2 lá Trượt! mới thoát.
 bang-event-the-judge = Thẩm phán
@@ -311,12 +311,6 @@ bang-confirm-ranch = { $selected ->
     [one] Xác nhận đổi 1 lá tại Trang trại
    *[other] Xác nhận đổi { $selected } lá tại Trang trại
 }
-bang-confirm-discard-order = { $selected ->
-    [0] Chốt thứ tự bỏ bài hiện tại
-    [one] Chốt thứ tự: xếp trước 1 lá
-   *[other] Chốt thứ tự: xếp trước { $selected } lá
-}
-
 bang-choice-use-barrel = Núp sau Thùng gỗ và thử vận
 bang-choice-unavailable = Lựa chọn không còn hiệu lực
 bang-choice-skip-barrel = Không thử thêm Thùng gỗ
@@ -335,6 +329,9 @@ bang-choice-draw-deck = Rút từ chồng rút
 bang-choice-draw-discard = Lấy lá trên cùng chồng bỏ
 bang-choice-red = Đoán đỏ
 bang-choice-black = Đoán đen
+bang-choice-finish-elimination-discard = Chốt các lá còn lại theo thứ tự menu
+bang-elimination-discard-next = Lá bỏ tiếp theo: { $card}
+bang-elimination-discard-next-in-play = Lá đang bày bỏ tiếp theo: { $card}
 
 bang-game-started = Cuộc đấu súng bắt đầu.
 bang-intro-history = Nắng đứng bóng. Cả thị trấn lặng đi; mọi bàn tay đều chực đặt lên bao súng.
@@ -458,6 +455,10 @@ bang-player-draws-cards = { $count ->
     [one] { $player } rút 1 lá.
    *[other] { $player } rút { $count } lá.
 }
+bang-player-draws-public-cards = { $count ->
+    [one] { $player } rút lá ngửa { $cards}.
+   *[other] { $player } rút các lá ngửa { $cards}.
+}
 bang-you-discard-excess = Bạn bỏ { $cards } rồi kết thúc lượt.
 bang-player-discards-excess = { $count ->
     [one] { $player } bỏ 1 lá thừa rồi kết thúc lượt.
@@ -483,6 +484,10 @@ bang-player-black-jack-succeeds = Black Jack cho { $player } rút thêm 1 lá.
 bang-you-are-eliminated = Bạn đã bị hạ. Thân phận thật: { $role}.
 bang-you-eliminate-player = Bạn hạ { $target}, thân phận { $role}.
 bang-player-is-eliminated = { $player } đã bị hạ; thân phận thật là { $role}.
+bang-you-order-elimination-card = Bạn xếp { $card } tiếp theo vào chồng bỏ.
+bang-player-orders-elimination-card = { $player } xếp { $card } tiếp theo vào chồng bỏ.
+bang-you-finish-elimination-discard = Bạn bỏ các lá còn lại theo thứ tự menu: { $cards}.
+bang-player-finishes-elimination-discard = { $player } bỏ các lá còn lại theo thứ tự menu: { $cards}.
 bang-you-claim-outlaw-reward = Bạn hạ một Kẻ cướp và nhận thưởng 3 lá.
 bang-player-claims-outlaw-reward = { $player } hạ một Kẻ cướp và nhận thưởng 3 lá.
 bang-you-suffer-sheriff-penalty = Bạn hạ nhầm một Phó cảnh trưởng nên phải vứt sạch bài trên tay lẫn trước mặt.
@@ -502,6 +507,7 @@ bang-player-collects-hidden-vulture-card = { $player } nhặt một lá kín t�
 bang-claus-gives-you-card = { $player } trao cho bạn { $card}.
 bang-you-give-claus-card = Bạn trao { $card } cho { $target}.
 bang-claus-gives-hidden-card = { $player } trao một lá kín cho { $target}.
+bang-claus-gives-public-card = { $player } trao lá ngửa { $card } cho { $target}.
 bang-your-peyote-result = Bạn lật { $card}; bạn đoán { $correct ->
     [yes] đúng
    *[no] sai
@@ -620,9 +626,9 @@ bang-prompt-general-store = { $count ->
 bang-prompt-target-card = { $target}: chọn ngẫu nhiên một lá trên tay hoặc chọn một lá trước mặt để { $mode}.
 bang-prompt-ricochet = { $source } đang đe dọa { $card}. Hãy dùng 1 lá Trượt!, hoặc để lá đó bị phá.
 bang-prompt-vulture = Chọn lá tiếp theo Vulture Sam lấy từ { $player}.
-bang-prompt-elimination-discard = { $selected ->
-    [0] Chọn các lá muốn xếp trước vào chồng bỏ, hoặc xác nhận thứ tự hiện tại.
-   *[other] Đã xếp trước { $selected } trên { $total } lá; chọn tiếp hoặc xác nhận.
+bang-prompt-elimination-discard = { $remaining ->
+    [one] Còn 1 lá. Chọn lá đó cho chồng bỏ, hoặc chốt theo thứ tự menu.
+   *[other] Còn { $remaining } lá. Chọn lá tiếp theo cho chồng bỏ, hoặc chốt các lá còn lại theo thứ tự menu.
 }
 bang-prompt-daltons = Băng Dalton vừa tới. Chọn 1 lá xanh lam trước mặt bạn để bỏ ngay.
 bang-you-discard-daltons = Bạn bỏ { $card } vì Băng Dalton.
@@ -631,7 +637,7 @@ bang-prompt-blood-brothers = Trả 1 máu không phải giọt cuối để cứ
 bang-prompt-new-identity = Giữ nhân vật hiện tại, hoặc đổi sang nhân vật dự bị với 2 máu.
 bang-prompt-vera-custer = Chọn một nhân vật còn sống để mượn năng lực tới lượt sau.
 bang-prompt-hard-liquor = Rút bài như thường, hoặc bỏ lượt rút để hồi 1 máu.
-bang-prompt-jesse-jones = Rút từ chồng rút, hoặc cuỗm ngẫu nhiên 1 lá của một người.
+bang-prompt-jesse-jones = Rút bài như thường, hoặc cuỗm ngẫu nhiên 1 lá của một người.
 bang-prompt-pedro-ramirez = Lấy lá trên cùng chồng bỏ, hoặc rút từ chồng rút.
 bang-prompt-pat-brennan = Rút bài như thường, hoặc lấy 1 lá đang bày.
 bang-prompt-kit-carlson = Chọn lá đã xem để { $action}.

@@ -1,6 +1,6 @@
 {
   "name": "playaural-mobile-client",
-  "version": "1.0.4.10",
+  "version": "1.0.4.11",
   "private": true,
   "license": "GPL-2.0-only",
   "main": "index.ts",
@@ -10,6 +10,10 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
+    "postinstall": "npm run patch:android-audio-routing",
+    "patch:android-audio-routing": "node scripts/patch-expo-audio-routing.mjs",
+    "test:android-audio-routing": "node --test tests/android-audio-routing.test.mjs",
+    "test:audio-lifecycle": "node --test tests/mobile-audio-lifecycle.test.mjs",
     "generate:sounds": "node scripts/generate-sound-manifest.mjs",
     "generate:locales": "node scripts/generate-locale-registry.mjs"
   },
@@ -37,5 +41,14 @@
     "@types/react": "^19.1.16",
     "babel-preset-expo": "^55.0.16",
     "typescript": "^5.9.3"
+  },
+  "expo": {
+    "autolinking": {
+      "android": {
+        "buildFromSource": [
+          "expo-audio"
+        ]
+      }
+    }
   }
 }

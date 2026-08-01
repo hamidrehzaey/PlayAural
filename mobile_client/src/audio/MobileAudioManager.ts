@@ -23,6 +23,7 @@ import { Platform } from "react-native";
 
 import { soundManifest } from "../generated/soundManifest";
 import type { AudioCommandPacket, AudioKind } from "../network/packets";
+import { isTerminalNativePlaybackStatus } from "./playbackLifecycle";
 
 type CommandAudioSource = {
   active: boolean;
@@ -1226,7 +1227,7 @@ export class MobileAudioManager {
         && this.commandPausedMusicHandles.has(handle);
       this.register(source);
       player.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
-        if (!status.isLoaded || !status.didJustFinish) {
+        if (!isTerminalNativePlaybackStatus(status)) {
           return;
         }
         player.setOnPlaybackStatusUpdate(null);
@@ -1580,7 +1581,6 @@ export class MobileAudioManager {
               interruptionMode: "mixWithOthers",
               playsInSilentMode: true,
               shouldPlayInBackground: true,
-              shouldRouteThroughEarpiece: false,
             }),
           ]).then(() => undefined)
     ).then(() => {
@@ -1600,10 +1600,12 @@ export class MobileAudioManager {
       }) ?? Promise.resolve(),
       setModernAudioModeAsync({
         allowsRecording: false,
-        interruptionMode: "duckOthers",
+        // ExpoAV remains the single Android audio-focus coordinator. The
+        // playlist engine only supplies gapless ambience stems and must not
+        // compete with accessibility speech or change the system output route.
+        interruptionMode: "mixWithOthers",
         playsInSilentMode: true,
         shouldPlayInBackground: true,
-        shouldRouteThroughEarpiece: false,
       }),
     ]);
   }

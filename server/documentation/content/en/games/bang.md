@@ -17,6 +17,8 @@ Your secret role tells you whom you must protect or eliminate. At tables of 4 to
 
 Role counts are: Sheriff, Renegade, and two Outlaws at 4 players; add one Deputy at 5; add a third Outlaw at 6; add a second Deputy at 7; at 8 players use one Sheriff, two Deputies, three Outlaws, and two Renegades.
 
+Landing the killing blow on the Sheriff does not by itself make a Renegade win. The Renegade wins only when the Sheriff is eliminated and that Renegade is the sole survivor. If anyone else is still in play when the Sheriff falls, the Outlaws win, even if every Outlaw was eliminated earlier.
+
 At 3 players, the Deputy, Outlaw, and Renegade are all public. The Deputy's assigned target is the Renegade, the Renegade's is the Outlaw, and the Outlaw's is the Deputy. Personally eliminate your assigned target to win immediately. If you personally eliminate the wrong opponent, draw three cards and the final two players continue until only one survives. The Deputy takes the first turn.
 
 \*\*What you need to know first\*\*
@@ -85,7 +87,7 @@ If the target supplies too few Missed! effects, the target loses one life. Duel 
 
 At zero or less life, play enough Beer from hand or use Sid Ketchum's ability enough times to return above zero. Beer may be played at full life but is discarded without healing. Beer also has no healing effect when only two players remain. Saloon and Tequila still work with two players. Life never exceeds maximum life.
 
-An eliminated player reveals their role and discards all cards unless Vulture Sam collects them. The player responsible for eliminating an Outlaw draws three cards. If the Sheriff eliminates a Deputy, the Sheriff discards the entire hand and every card in play; a Sheriff who is also Vulture Sam collects first, then pays the penalty. Self-caused Duel damage has no responsible opponent.
+An eliminated player reveals their role and discards all cards unless Vulture Sam collects them. When cards are discarded, the eliminated player chooses their exact order across both the hand and cards in play, one card at a time; Finish uses the remaining menu order. The player responsible for eliminating an Outlaw draws three cards. If the Sheriff eliminates a Deputy, the Sheriff discards the entire hand and every card in play; a Sheriff who is also Vulture Sam collects first, then pays the penalty. Self-caused Duel damage has no responsible opponent.
 
 \*\*How combat sounds resolve\*\*
 
@@ -142,7 +144,7 @@ During Indians!, every other player resolves in clockwise order. A gunshot confi
 
 \*\*Green delayed-use cards\*\*
 
-\* \*\*Bible:\*\* Discard as one Missed! effect, then draw one card.
+\* \*\*Bible:\*\* Discard as one Missed! effect, then draw one card. If the same shot still needs another Missed! effect, an eligible card just drawn by Bible may be used immediately.
 \* \*\*Iron Plate, Sombrero, and Ten Gallon Hat:\*\* Discard as one Missed! effect.
 \* \*\*Buffalo Rifle:\*\* Choose and shoot any other player, regardless of distance.
 \* \*\*Can Can:\*\* Choose another player to lose one chosen card in play or one random hand card.
@@ -167,7 +169,7 @@ Life shown below is the character's normal maximum before the Sheriff's bonus.
 \* \*\*Kit Carlson — 4 life:\*\* Look at the top three cards, keep the required draw count, and return the rest to the top without changing their relative order.
 \* \*\*Lucky Duke — 4 life:\*\* Reveal two cards for every draw check and choose which result counts.
 \* \*\*Paul Regret — 3 life:\*\* Every other player sees Paul at distance +1.
-\* \*\*Pedro Ramirez — 4 life:\*\* The first normal draw may come from the top of the discard pile.
+\* \*\*Pedro Ramirez — 4 life:\*\* The first normal draw may be the face-up top card of the discard pile.
 \* \*\*Rose Doolan — 4 life:\*\* Sees every other player at distance -1, to a minimum of 1.
 \* \*\*Sid Ketchum — 4 life:\*\* Between completed card effects, even outside his turn, discard exactly two hand cards to regain one life. He may also do this during his own lethal recovery, but cannot interrupt an unresolved card or choice.
 \* \*\*Slab the Killer — 4 life:\*\* Each BANG! card requires two Missed! effects.
@@ -184,7 +186,7 @@ Life shown below is the character's normal maximum before the Sheriff's bonus.
 \* \*\*Herb Hunter — 4 life:\*\* Draw two cards whenever another player is eliminated.
 \* \*\*José Delgado — 4 life:\*\* Up to twice per turn, discard a blue hand card to draw two cards.
 \* \*\*Molly Stark — 4 life:\*\* Outside her turn, draw a replacement after playing or voluntarily discarding BANG!, Missed!, or Beer from hand. Dodge and cards already in play do not qualify; Duel replacements wait until Duel ends.
-\* \*\*Pat Brennan — 4 life:\*\* Instead of normal drawing, take exactly one card in play from any player.
+\* \*\*Pat Brennan — 4 life:\*\* Instead of normal drawing, take exactly one card in play from any player. Train Arrival then adds its extra draw, while Abandoned Mine and Peyote replace this choice.
 \* \*\*Pixie Pete — 3 life:\*\* Draw three cards in the normal draw phase.
 \* \*\*Sean Mallory — 3 life:\*\* Has an end-of-turn hand limit of 10 instead of current life.
 \* \*\*Tequila Joe — 4 life:\*\* Each Beer he plays restores two life instead of one.
@@ -217,17 +219,17 @@ When events are enabled, the first event is revealed at the start of the Sheriff
 
 \*\*Fistful event family\*\*
 
-\* \*\*Abandoned Mine:\*\* Normal draws come from the discard pile when possible; excess end-turn discards go face down on top of the draw pile.
+\* \*\*Abandoned Mine:\*\* During phase one, take the face-up cards from the top of the discard pile until it is empty, then finish the required draw from the draw pile. At phase three, put excess hand cards face down on top of the draw pile, even when the discard pile started empty or ran out.
 \* \*\*Ambush:\*\* Base distance between every pair of players is 1; modifiers still apply.
 \* \*\*Blood Brothers:\*\* At turn start, optionally lose one non-final life so another injured living player regains one. No prompt appears if nobody can be healed.
 \* \*\*Dead Man:\*\* The first eliminated player returns once, at that player's next turn, with two life and two cards, then performs the normal draw step.
 \* \*\*Hard Liquor:\*\* Instead of normal drawing, regain one life. At full life the skipped draw heals nothing.
-\* \*\*Lasso:\*\* Cards in play have no effect, but remain in place and may still be targeted.
+\* \*\*Lasso:\*\* Cards in play have no effect, but remain in place and may still be targeted. Jail and Dynamite stay with their owners and do not perform their turn-start checks until Lasso is replaced.
 \* \*\*Law of the West:\*\* Reveal the second normal draw and play it during the play phase if it still has a legal play. It cannot be spent as another action's extra cost.
-\* \*\*Peyote:\*\* Replace normal drawing with repeated red-or-black guesses. Keep each correctly guessed card; the first wrong guess is discarded and ends the draw.
+\* \*\*Peyote:\*\* Replace normal drawing with repeated red-or-black guesses. Reveal every guessed card to the whole table. Keep each correctly guessed card; the first wrong guess is discarded and ends the draw.
 \* \*\*Ranch:\*\* Once after drawing, discard any number of hand cards and draw the same number.
-\* \*\*Ricochet:\*\* Discard BANG! cards to attack cards in play at any distance. The owner may spend one Missed! effect to save each attacked card.
-\* \*\*Russian Roulette:\*\* Starting with the Sheriff, or Deputy at 3 players, players move clockwise and each supply one Missed! effect. The first failure loses two life and ends the roulette.
+\* \*\*Ricochet:\*\* Discard BANG! cards to attack cards in play at any distance. The owner may use one Missed! effect—including a successful Barrel or Jourdonnais check—to save each attacked card.
+\* \*\*Russian Roulette:\*\* Starting with the Sheriff, or Deputy at 3 players, players move clockwise and each supply one Missed! effect. If everyone succeeds, the roulette continues around the table again; the first failure loses two life and ends it. The target order is fixed by seating, not randomly selected.
 \* \*\*Sniper:\*\* Discard two BANG! cards to shoot one player within weapon range; the target needs two Missed! effects.
 \* \*\*The Judge:\*\* No player may put a blue or green card in play.
 \* \*\*Vendetta:\*\* At turn end, Hearts on a draw check grants one extra turn. The extra turn cannot trigger Vendetta again.

@@ -17,6 +17,8 @@ Thân phận bí mật cho biết bạn phải bảo vệ hoặc hạ ai. Ở b�
 
 Số thân phận như sau: bàn 4 người có Cảnh trưởng, Tay phản trắc và hai Kẻ cướp; bàn 5 thêm một Phó cảnh trưởng; bàn 6 thêm Kẻ cướp thứ ba; bàn 7 thêm Phó cảnh trưởng thứ hai; bàn 8 có một Cảnh trưởng, hai Phó cảnh trưởng, ba Kẻ cướp và hai Tay phản trắc.
 
+Tự tay hạ Cảnh trưởng chưa đủ để Tay phản trắc thắng. Tay phản trắc chỉ thắng khi Cảnh trưởng bị hạ và chính người đó là người sống sót duy nhất. Nếu lúc Cảnh trưởng ngã xuống vẫn còn bất kỳ ai khác trong ván, phe Kẻ cướp thắng, kể cả khi mọi Kẻ cướp đã bị hạ từ trước.
+
 Ở bàn 3 người, Phó cảnh trưởng, Kẻ cướp và Tay phản trắc đều công khai. Mục tiêu được giao cho Phó cảnh trưởng là Tay phản trắc; của Tay phản trắc là Kẻ cướp; của Kẻ cướp là Phó cảnh trưởng. Tự tay hạ đúng mục tiêu thì thắng ngay. Nếu tự tay hạ nhầm người, bạn rút 3 lá rồi hai người cuối đấu tới khi chỉ còn một. Phó cảnh trưởng đi trước.
 
 \*\*Những điều cần biết trước\*\*
@@ -85,7 +87,7 @@ Nếu không đủ hiệu ứng Trượt!, mục tiêu mất 1 máu. Trong Quy�
 
 Khi tụt xuống 0 máu hoặc thấp hơn, phải uống đủ Bia có sẵn trên tay hoặc dùng năng lực Sid Ketchum đủ lần để trở lại trên 0. Được phép bỏ Bia khi đang đầy máu, nhưng không hồi gì. Bia cũng không hồi máu khi bàn chỉ còn hai người. Quán rượu và Rượu tequila vẫn có tác dụng ở bàn hai người. Máu không bao giờ vượt mức tối đa.
 
-Người bị hạ lộ thân phận và mất toàn bộ bài, trừ khi Vulture Sam thu gom. Người gây ra cái chết của một Kẻ cướp được rút 3 lá. Nếu Cảnh trưởng hạ Phó cảnh trưởng, Cảnh trưởng bỏ sạch bài trên tay lẫn trước mặt; nếu Cảnh trưởng cũng là Vulture Sam thì thu bài trước rồi mới chịu phạt. Sát thương do chính mình mở Quyết đấu không tính cho đối thủ.
+Người bị hạ lộ thân phận và mất toàn bộ bài, trừ khi Vulture Sam thu gom. Khi phải bỏ, người bị hạ tự xếp chính xác thứ tự của cả bài trên tay lẫn bài trước mặt, từng lá một; chọn Chốt để bỏ phần còn lại theo thứ tự menu. Người gây ra cái chết của một Kẻ cướp được rút 3 lá. Nếu Cảnh trưởng hạ Phó cảnh trưởng, Cảnh trưởng bỏ sạch bài trên tay lẫn trước mặt; nếu Cảnh trưởng cũng là Vulture Sam thì thu bài trước rồi mới chịu phạt. Sát thương do chính mình mở Quyết đấu không tính cho đối thủ.
 
 \*\*Diễn biến âm thanh khi giao chiến\*\*
 
@@ -142,7 +144,7 @@ Trong Bộ lạc tập kích!, từng người khác lần lượt xử lý theo
 
 \*\*Lá đặt chờ\*\*
 
-\* \*\*Kinh Thánh:\*\* Bỏ thay cho 1 hiệu ứng Trượt!, rồi rút 1 lá.
+\* \*\*Kinh Thánh:\*\* Bỏ thay cho 1 hiệu ứng Trượt!, rồi rút 1 lá. Nếu cùng phát bắn vẫn cần thêm một hiệu ứng Trượt!, lá hợp lệ vừa rút nhờ Kinh Thánh có thể dùng ngay.
 \* \*\*Tấm sắt, Mũ Mexico vành rộng và Mũ cao bồi:\*\* Bỏ thay cho 1 hiệu ứng Trượt!.
 \* \*\*Súng trường săn bò rừng:\*\* Chọn bắn bất kỳ người nào, bất kể khoảng cách.
 \* \*\*Vũ điệu đá cao:\*\* Chọn một người khác để họ mất một lá đang lộ do bạn chọn hoặc một lá ngẫu nhiên trên tay.
@@ -167,7 +169,7 @@ Lượng máu ghi dưới đây là mức tối đa thường của nhân vật,
 \* \*\*Kit Carlson — 4 máu:\*\* Xem 3 lá đầu, giữ đủ số lá cần rút rồi đặt phần còn lại lên đầu chồng mà không đổi thứ tự tương đối.
 \* \*\*Lucky Duke — 4 máu:\*\* Mỗi lần thử vận lật 2 lá và chọn kết quả muốn dùng.
 \* \*\*Paul Regret — 3 máu:\*\* Khi người khác nhìn Paul, khoảng cách tăng 1.
-\* \*\*Pedro Ramirez — 4 máu:\*\* Lá đầu tiên rút bình thường có thể lấy từ đỉnh chồng bỏ.
+\* \*\*Pedro Ramirez — 4 máu:\*\* Lá đầu tiên rút bình thường có thể là lá ngửa trên cùng chồng bỏ.
 \* \*\*Rose Doolan — 4 máu:\*\* Khi nhìn người khác, khoảng cách giảm 1 nhưng không thấp hơn 1.
 \* \*\*Sid Ketchum — 4 máu:\*\* Giữa hai hiệu ứng bài đã giải quyết xong, kể cả ngoài lượt, bỏ đúng 2 lá trên tay để hồi 1 máu. Sid cũng làm được khi chính mình đang hấp hối, nhưng không được chen ngang một lá bài hoặc lựa chọn chưa xong.
 \* \*\*Slab the Killer — 4 máu:\*\* Mỗi lá BANG! cần 2 hiệu ứng Trượt! mới né được.
@@ -184,7 +186,7 @@ Lượng máu ghi dưới đây là mức tối đa thường của nhân vật,
 \* \*\*Herb Hunter — 4 máu:\*\* Rút 2 lá mỗi khi một người khác bị hạ.
 \* \*\*José Delgado — 4 máu:\*\* Mỗi lượt tối đa 2 lần, bỏ 1 lá xanh lam trên tay để rút 2 lá.
 \* \*\*Molly Stark — 4 máu:\*\* Ngoài lượt của mình, rút bù sau khi đánh hoặc tự nguyện bỏ BANG!, Trượt! hay Bia trên tay. Lách đạn và lá đã nằm trước mặt không được tính; bài bỏ trong Quyết đấu chỉ rút bù sau khi cuộc đấu xong.
-\* \*\*Pat Brennan — 4 máu:\*\* Thay bước rút bình thường bằng việc lấy đúng 1 lá đang nằm trước mặt bất kỳ người nào.
+\* \*\*Pat Brennan — 4 máu:\*\* Thay bước rút bình thường bằng việc lấy đúng 1 lá đang nằm trước mặt bất kỳ người nào. Tàu vào ga vẫn cho rút thêm 1 lá; Mỏ bỏ hoang và Xương rồng gây ảo giác thay thế lựa chọn này.
 \* \*\*Pixie Pete — 3 máu:\*\* Ở bước rút bình thường, rút 3 lá.
 \* \*\*Sean Mallory — 3 máu:\*\* Cuối lượt được giữ tối đa 10 lá thay vì theo lượng máu.
 \* \*\*Tequila Joe — 4 máu:\*\* Mỗi lá Bia tự đánh hồi 2 máu thay vì 1.
@@ -217,17 +219,17 @@ Khi bật biến cố, lá đầu tiên xuất hiện đầu lượt thứ hai c
 
 \*\*Nhóm biến cố Một nắm bài\*\*
 
-\* \*\*Mỏ bỏ hoang:\*\* Lần rút bình thường lấy từ chồng bỏ khi có thể; bài dư cuối lượt được úp lên đầu chồng rút.
+\* \*\*Mỏ bỏ hoang:\*\* Khi rút đầu lượt, lấy các lá ngửa trên cùng của chồng bỏ tới khi chồng này hết rồi lấy phần còn thiếu từ chồng rút. Ở bước bỏ bài cuối lượt, úp bài dư lên đầu chồng rút, kể cả khi chồng bỏ vốn trống hoặc đã hết giữa chừng.
 \* \*\*Phục kích:\*\* Khoảng cách gốc giữa mọi cặp người là 1; hiệu chỉnh khác vẫn tính.
 \* \*\*Anh em kết nghĩa:\*\* Đầu lượt, có thể trả 1 máu không phải điểm cuối để một người còn sống đang bị thương hồi 1 máu. Nếu không ai hồi được, menu không hỏi thừa.
 \* \*\*Kẻ chết trở về:\*\* Người đầu tiên bị hạ được trở lại đúng một lần ở lượt kế tiếp của mình, với 2 máu và 2 lá, rồi vẫn thực hiện bước rút bình thường.
 \* \*\*Rượu mạnh:\*\* Bỏ bước rút bình thường để hồi 1 máu. Nếu đang đầy máu, vẫn mất lượt rút mà không hồi gì.
-\* \*\*Thòng lọng:\*\* Mọi lá trước mặt mất hiệu lực nhưng vẫn nằm đó và vẫn có thể bị nhắm tới.
+\* \*\*Thòng lọng:\*\* Mọi lá trước mặt mất hiệu lực nhưng vẫn nằm đó và vẫn có thể bị nhắm tới. Nhà giam cùng Thuốc nổ ở nguyên chỗ và không thử vận đầu lượt cho tới khi Thòng lọng bị thay thế.
 \* \*\*Luật miền Tây:\*\* Công khai lá thứ hai rút bình thường và phải đánh nó trong lượt nếu vẫn còn nước hợp lệ. Không được dùng lá này làm phí trả thêm cho nước khác.
-\* \*\*Xương rồng gây ảo giác:\*\* Thay bước rút bằng chuỗi đoán đỏ hoặc đen. Đoán đúng thì giữ lá và đoán tiếp; lần đầu đoán sai, lá bị bỏ và chuỗi dừng.
+\* \*\*Xương rồng gây ảo giác:\*\* Thay bước rút bằng chuỗi đoán đỏ hoặc đen và lật công khai từng lá cho cả bàn. Đoán đúng thì giữ lá và đoán tiếp; lần đầu đoán sai, lá bị bỏ và chuỗi dừng.
 \* \*\*Trang trại:\*\* Một lần sau khi rút, bỏ bao nhiêu lá trên tay tùy ý rồi rút bù đúng bấy nhiêu.
-\* \*\*Đạn nảy:\*\* Bỏ BANG! để bắn một lá trước mặt ở bất kỳ khoảng cách nào. Chủ lá có thể dùng 1 hiệu ứng Trượt! để cứu từng lá bị bắn.
-\* \*\*Cò quay Nga:\*\* Bắt đầu từ Cảnh trưởng, hoặc Phó cảnh trưởng ở bàn 3 người, lần lượt theo chiều kim đồng hồ dùng 1 hiệu ứng Trượt!. Người đầu tiên thất bại mất 2 máu và vòng quay dừng.
+\* \*\*Đạn nảy:\*\* Bỏ BANG! để bắn một lá trước mặt ở bất kỳ khoảng cách nào. Chủ lá có thể dùng 1 hiệu ứng Trượt!—kể cả lần thử Thùng gỗ hoặc năng lực Jourdonnais thành công—để cứu từng lá bị bắn.
+\* \*\*Cò quay Nga:\*\* Bắt đầu từ Cảnh trưởng, hoặc Phó cảnh trưởng ở bàn 3 người, lần lượt theo chiều kim đồng hồ dùng 1 hiệu ứng Trượt!. Nếu mọi người đều thành công, vòng quay tiếp tục đi quanh bàn; người đầu tiên thất bại mất 2 máu và dừng vòng quay. Thứ tự mục tiêu cố định theo chỗ ngồi, không chọn ngẫu nhiên.
 \* \*\*Xạ thủ:\*\* Bỏ 2 lá BANG! để bắn một người trong tầm súng; nạn nhân cần 2 hiệu ứng Trượt!.
 \* \*\*Thẩm phán:\*\* Không ai được đặt lá xanh lam hoặc lá đặt chờ trước mặt.
 \* \*\*Báo thù:\*\* Cuối lượt, thử vận; lật Cơ thì được thêm 1 lượt. Lượt thêm không kích hoạt Báo thù lần nữa.

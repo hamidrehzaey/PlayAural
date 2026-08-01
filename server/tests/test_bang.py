@@ -39,6 +39,7 @@ from server.games.bang.game import (
     ROLE_SHERIFF,
     BangGame,
 )
+from server.games.bang.player import BangPlayer
 from server.games.bang.state import (
     PHASE_DISCARD,
     PHASE_GAME_OVER,
@@ -177,6 +178,31 @@ def clear_user_messages(game: BangGame) -> None:
         user = game.get_user(player)
         if isinstance(user, MockUser):
             user.clear_messages()
+
+
+def prepare_draw_phase(
+    game: BangGame,
+    player: BangPlayer,
+    *,
+    character: str,
+    event: str = "",
+    deck: list[BangCard] | None = None,
+    discard_pile: list[BangCard] | None = None,
+) -> None:
+    """Build a deterministic active turn immediately before phase one."""
+
+    player.character = character
+    player.hand.clear()
+    game.game_active = True
+    game.status = "playing"
+    game.set_turn_players(game.players)
+    game.current_player = player
+    game.current_event = event
+    if deck is not None:
+        game.deck = list(deck)
+    if discard_pile is not None:
+        game.discard_pile = list(discard_pile)
+    clear_user_messages(game)
 
 
 def tick_until(
@@ -543,6 +569,7 @@ def test_abandoned_mine_redirects_kit_carlsons_draw_without_using_his_ability():
     first_draw = make_card(1313, cards.DUEL)
     game.deck = [deck_card]
     game.discard_pile = [lower_discard, second_draw, first_draw]
+    clear_user_messages(game)
 
     game._start_draw_phase(player)
 
@@ -550,6 +577,185 @@ def test_abandoned_mine_redirects_kit_carlsons_draw_without_using_his_ability():
     assert {card.id for card in player.hand} == {1312, 1313}
     assert [card.id for card in game.discard_pile] == [1311]
     assert [card.id for card in game.deck] == [1310]
+    assert player.abandoned_mine_draw_from_discard
+    observer_text = " ".join(speech_texts(game, 1))
+    assert "Duel, 2 of clubs" in observer_text
+    assert "Beer, 2 of clubs" in observer_text
+    restored = BangGame.from_json(game.to_json())
+    restored_player = restored.get_player_by_id(player.id)
+    assert restored_player.abandoned_mine_draw_from_discard
+
+    first_discard = player.hand[0]
+    game.phase = PHASE_DISCARD
+    game.decision = BangDecision(
+        kind="discard_excess",
+        player_id=player.id,
+        card_ids=[card.id for card in player.hand],
+        selected_card_ids=[first_discard.id],
+        required=1,
+    )
+    game.game_active = False
+    game._finish_discard_selection(player)
+
+    assert game.deck[0] is first_discard
+    assert first_discard not in game.discard_pile
+    assert not player.abandoned_mine_draw_from_discard
+
+
+def test_abandoned_mine_uses_a_short_discard_pile_before_the_draw_pile():
+    game = make_game(4)
+    player = game.players[0]
+    player.character = "bart_cassidy"
+    player.life = player.max_life = 4
+    player.hand.clear()
+    game.game_active = True
+    game.set_turn_players(game.players)
+    game.current_player = player
+    game.current_event = "abandoned_mine"
+    first_draw = make_card(1314, cards.BANG)
+    second_draw = make_card(1315, cards.MISSED)
+    deck_tail = make_card(1316, cards.BEER)
+    lone_discard = make_card(1317, cards.DUEL)
+    game.deck = [first_draw, second_draw, deck_tail]
+    game.discard_pile = [lone_discard]
+    clear_user_messages(game)
+
+    game._start_draw_phase(player)
+
+    assert {card.id for card in player.hand} == {1314, 1317}
+    assert game.deck == [second_draw, deck_tail]
+    assert game.discard_pile == []
+    assert player.abandoned_mine_draw_from_discard
+    observer_text = " ".join(speech_texts(game, 1))
+    assert "Duel, 2 of clubs" in observer_text
+    assert "BANG!, 2 of clubs" not in observer_text
+
+
+def test_abandoned_mine_feeds_claus_from_discard_then_draw_pile():
+    game = make_game(4)
+    player = game.players[0]
+    player.character = "claus_the_saint"
+    player.life = player.max_life = 3
+    player.hand.clear()
+    game.game_active = True
+    game.set_turn_players(game.players)
+    game.current_player = player
+    game.current_event = "abandoned_mine"
+    deck_cards = [make_card(1320 + index, cards.BANG) for index in range(6)]
+    discards = [make_card(1330 + index, cards.MISSED) for index in range(3)]
+    game.deck = list(deck_cards)
+    game.discard_pile = list(discards)
+    clear_user_messages(game)
+
+    game._start_draw_phase(player)
+
+    assert game.decision and game.decision.kind == "claus_give"
+    assert game.general_store_cards == [
+        discards[2],
+        discards[1],
+        discards[0],
+        deck_cards[0],
+        deck_cards[1],
+    ]
+    assert game.deck == deck_cards[2:]
+    assert game.discard_pile == []
+    assert player.abandoned_mine_draw_from_discard
+    assert game._top_effect().data["public_draw_card_ids"] == [
+        discards[2].id,
+        discards[1].id,
+        discards[0].id,
+    ]
+    restored = BangGame.from_json(game.to_json())
+    assert restored._top_effect().data["public_draw_card_ids"] == [
+        discards[2].id,
+        discards[1].id,
+        discards[0].id,
+    ]
+
+    game._action_choose_item(player, f"choice_claus_{discards[2].id}")
+
+    observer_text = " ".join(speech_texts(game, 2))
+    assert "Missed!, 2 of clubs" in observer_text
+
+
+def test_abandoned_mine_replaces_pat_brennans_draw_choice():
+    game = make_game(4)
+    player = game.players[0]
+    owner = game.players[1]
+    player.character = "pat_brennan"
+    player.life = player.max_life = 4
+    player.hand.clear()
+    protected = make_card(1340, cards.BARREL, border=cards.BLUE)
+    owner.in_play = [BangInPlayCard(protected)]
+    first = make_card(1341, cards.BANG)
+    second = make_card(1342, cards.MISSED)
+    game.discard_pile = [second, first]
+    game.game_active = True
+    game.set_turn_players(game.players)
+    game.current_player = player
+    game.current_event = "abandoned_mine"
+
+    game._start_draw_phase(player)
+
+    assert game.decision is None
+    assert {card.id for card in player.hand} == {first.id, second.id}
+    assert owner.in_play == [BangInPlayCard(protected)]
+
+
+@pytest.mark.parametrize(
+    ("event", "expected_deck_draws"),
+    [("", 0), ("thirst", 0), ("train_arrival", 1)],
+)
+def test_pat_brennan_draw_replacement_respects_draw_count_events(
+    event: str,
+    expected_deck_draws: int,
+):
+    game = make_game(4)
+    player = game.players[0]
+    owner = game.players[1]
+    player.character = "pat_brennan"
+    player.life = player.max_life = 4
+    player.hand.clear()
+    in_play_card = make_card(1350, cards.MUSTANG, border=cards.BLUE)
+    owner.in_play = [BangInPlayCard(in_play_card)]
+    deck_cards = [
+        make_card(1351, cards.BANG),
+        make_card(1352, cards.MISSED),
+    ]
+    game.deck = list(deck_cards)
+    game.game_active = True
+    game.set_turn_players(game.players)
+    game.current_player = player
+    game.current_event = event
+
+    game._start_draw_phase(player)
+
+    assert game.decision and game.decision.kind == "pat_brennan"
+    game._action_choose_item(
+        player,
+        f"choice_in_play_{in_play_card.id}",
+    )
+
+    assert in_play_card in player.hand
+    assert owner.in_play == []
+    assert sum(card in player.hand for card in deck_cards) == expected_deck_draws
+    assert len(game.deck) == len(deck_cards) - expected_deck_draws
+
+
+@pytest.mark.parametrize(
+    ("event", "expected"),
+    [("", 5), ("thirst", 4), ("train_arrival", 6)],
+)
+def test_claus_the_saint_draw_total_respects_draw_count_events(
+    event: str,
+    expected: int,
+):
+    game = make_game(4)
+    player = game.players[0]
+    player.character = "claus_the_saint"
+    game.current_event = event
+
+    assert game._phase_one_cards_to_take(player) == expected
 
 
 def test_three_player_deputy_is_the_event_reveal_anchor():
@@ -745,6 +951,34 @@ def test_ambush_lasso_belle_star_and_hangover_distance_rules():
     assert game.distance(actor, target) == 2
 
 
+def test_lasso_suspends_dynamite_and_jail_without_discarding_them():
+    game = start_game(4, seed=177)
+    player = game.current_player
+    player.character = "bart_cassidy"
+    dynamite = make_card(1110, cards.DYNAMITE, border=cards.BLUE)
+    jail = make_card(1111, cards.JAIL, border=cards.BLUE)
+    player.in_play = [BangInPlayCard(dynamite), BangInPlayCard(jail)]
+    game.current_event = "lasso"
+    deck_before = list(game.deck)
+    frame = BangEffect(
+        kind="turn_start",
+        actor_id=player.id,
+        stage="dynamite",
+    )
+
+    game._continue_turn_start(frame)
+    assert frame.stage == "jail"
+    assert game.decision is None
+    assert game.deck == deck_before
+    assert [held.card for held in player.in_play] == [dynamite, jail]
+
+    game._continue_turn_start(frame)
+    assert frame.stage == "vera"
+    assert game.decision is None
+    assert game.deck == deck_before
+    assert [held.card for held in player.in_play] == [dynamite, jail]
+
+
 def test_weapon_range_replacement_and_volcanic_bang_limit():
     game = make_game(4)
     player = game.players[0]
@@ -828,6 +1062,7 @@ def test_audio_overlap_profiles_stay_in_the_requested_cinematic_band():
 
 
 def test_game_intro_delays_the_first_turn_by_ten_seconds():
+    random.seed(101)
     game = make_game(4)
     game.options.event_rules = NO_EVENTS
     clear_user_messages(game)
@@ -926,6 +1161,7 @@ def test_lobby_music_is_stopped_before_bang_intro_and_delayed_bgm():
 
 
 def test_intro_delay_survives_json_round_trip():
+    random.seed(101)
     game = make_game(4)
     game.options.event_rules = NO_EVENTS
     game.on_start()
@@ -1938,6 +2174,8 @@ def test_ricochet_auto_selects_the_only_card_of_the_selected_owner():
     game._action_choose_player(actor, f"choose_player_{first.id}")
     assert game.play_intent is None
     assert cost in game.discard_pile
+    assert game.decision and game.decision.kind == "barrel"
+    game._resolve_item_decision(first, "skip_barrels")
     tick_until(game, lambda: first_card in game.discard_pile)
     assert first_card in game.discard_pile
     assert not first.in_play
@@ -1968,6 +2206,8 @@ def test_ricochet_impact_only_plays_when_the_target_card_is_hit():
 
     game._start_ricochet(actor, target, protected.id)
 
+    assert game.decision and game.decision.kind == "barrel"
+    game._resolve_item_decision(target, "skip_barrels")
     assert game.decision and game.decision.kind == "ricochet"
     assert not set(sound_names(game)) & set(bang_audio.SOUND_IMPACT_RICOCHET)
     clear_user_messages(game)
@@ -1975,6 +2215,107 @@ def test_ricochet_impact_only_plays_when_the_target_card_is_hit():
 
     assert target.in_play[0].card == protected
     assert not set(sound_names(game)) & set(bang_audio.SOUND_IMPACT_RICOCHET)
+
+
+@pytest.mark.parametrize("defense", ["barrel", "jourdonnais"])
+def test_successful_barrel_effect_saves_a_card_from_ricochet(defense: str):
+    game = start_game(4, seed=181)
+    actor = game.current_player
+    target = game._clockwise_after(actor, exclude_actor=True)[0]
+    protected = make_card(2245, cards.MUSTANG, border=cards.BLUE)
+    target.character = (
+        "jourdonnais" if defense == "jourdonnais" else "bart_cassidy"
+    )
+    target.in_play = [BangInPlayCard(protected)]
+    if defense == "barrel":
+        target.in_play.append(
+            BangInPlayCard(
+                make_card(2246, cards.BARREL, border=cards.BLUE)
+            )
+        )
+    target.hand.clear()
+    heart = make_card(2247, cards.BANG, suit=cards.HEARTS)
+    game.deck = [heart, *game.deck]
+    game.decision = None
+    game.effect_stack.clear()
+    game.phase = PHASE_PLAY
+    clear_user_messages(game)
+
+    game._start_ricochet(actor, target, protected.id)
+
+    assert game.decision and game.decision.kind == "barrel"
+    game._resolve_item_decision(target, "use_barrel")
+    tick_until(game, lambda: not game.effect_stack)
+
+    assert any(in_play.card == protected for in_play in target.in_play)
+    assert heart in game.discard_pile
+    assert not set(sound_names(game)) & set(bang_audio.SOUND_IMPACT_RICOCHET)
+    assert any(
+        "You save Mustang" in text and "Barrel" in text
+        for text in speech_texts(game, game.players.index(target))
+    )
+
+
+def test_ricochet_barrel_choice_survives_json_round_trip():
+    game = start_game(4, seed=183)
+    actor = game.current_player
+    target = game._clockwise_after(actor, exclude_actor=True)[0]
+    target.character = "lucky_duke"
+    protected = make_card(2248, cards.MUSTANG, border=cards.BLUE)
+    barrel = make_card(2249, cards.BARREL, border=cards.BLUE)
+    target.in_play = [BangInPlayCard(protected), BangInPlayCard(barrel)]
+    target.hand.clear()
+    heart = make_card(2250, cards.BANG, suit=cards.HEARTS)
+    spade = make_card(2251, cards.MISSED, suit=cards.SPADES)
+    game.deck = [heart, spade, *game.deck]
+    game.decision = None
+    game.effect_stack.clear()
+    game.phase = PHASE_PLAY
+
+    game._start_ricochet(actor, target, protected.id)
+    assert game.decision and game.decision.kind == "barrel"
+    game._resolve_item_decision(target, "use_barrel")
+    assert game.decision and game.decision.kind == "draw_check"
+
+    restored = BangGame.from_json(game.to_json())
+    restored.rebuild_runtime_state()
+    restored_target = restored.get_player_by_id(target.id)
+    assert isinstance(restored_target, type(target))
+    assert restored.decision and restored.decision.kind == "draw_check"
+    assert [card.id for card in restored.revealed_cards] == [heart.id, spade.id]
+
+    restored._resolve_item_decision(restored_target, "draw_result_0")
+    tick_until(restored, lambda: not restored.effect_stack)
+
+    assert any(
+        in_play.card.id == protected.id for in_play in restored_target.in_play
+    )
+    assert {heart.id, spade.id} <= {
+        card.id for card in restored.discard_pile
+    }
+
+
+def test_ricochet_rejects_a_restored_card_owned_by_the_wrong_target():
+    game = start_game(4, seed=184)
+    actor = game.current_player
+    target, owner = game._clockwise_after(actor, exclude_actor=True)[:2]
+    protected = make_card(2252, cards.MUSTANG, border=cards.BLUE)
+    owner.in_play = [BangInPlayCard(protected)]
+    game.decision = None
+    game.effect_stack = [
+        BangEffect(
+            kind="ricochet",
+            actor_id=actor.id,
+            target_id=target.id,
+            card_ids=[protected.id],
+        )
+    ]
+
+    game._continue_effects()
+
+    assert game.decision is None
+    assert game.effect_stack == []
+    assert owner.in_play == [BangInPlayCard(protected)]
 
 
 def test_slabs_real_bang_requires_two_missed_effects():
@@ -2041,6 +2382,37 @@ def test_dodge_draw_can_supply_the_second_missed_against_slab():
     assert target.life == life
     assert game.decision is None
     assert dodge in game.discard_pile
+    assert drawn_missed in game.discard_pile
+
+
+def test_bible_draw_can_supply_the_second_missed_against_slab():
+    game = start_game(4, seed=178)
+    actor = game.current_player
+    target = game._clockwise_after(actor, exclude_actor=True)[0]
+    actor.character = "slab_the_killer"
+    bible = make_card(2312, cards.BIBLE, border=cards.GREEN)
+    drawn_missed = make_card(2313, cards.MISSED)
+    target.character = "bart_cassidy"
+    target.hand = []
+    target.in_play = [
+        BangInPlayCard(bible, usable_after_turn=game.turn_serial)
+    ]
+    game.deck.insert(0, drawn_missed)
+    life = target.life
+
+    game._start_shot(actor, target, source_kind="bang_card", required=2)
+    assert game.decision
+    assert bible.id in game.decision.data["green_card_ids"]
+    game._use_green_response(target, target.in_play[0])
+
+    tick_until(game, lambda: game.decision is not None)
+    assert game.decision and game.decision.kind == "missed"
+    assert game.decision.card_ids == [drawn_missed.id]
+    game._use_decision_card(target, drawn_missed)
+
+    assert target.life == life
+    assert game.decision is None
+    assert bible in game.discard_pile
     assert drawn_missed in game.discard_pile
 
 
@@ -2572,6 +2944,130 @@ def test_legacy_blocking_fall_stage_resumes_after_save_upgrade():
     assert not game.decision
 
 
+def test_restore_migrates_pending_elimination_order_to_sequential_choices():
+    game = start_game(4, seed=180)
+    victim = next(player for player in game.players if player.role == ROLE_OUTLAW)
+    hand_card = make_card(2708, cards.BANG)
+    in_play_card = make_card(2709, cards.BARREL, border=cards.BLUE)
+    victim.hand = [hand_card]
+    victim.in_play = [BangInPlayCard(in_play_card)]
+    victim.eliminated = True
+    game.effect_stack = [
+        BangEffect(
+            kind="elimination",
+            target_id=victim.id,
+            stage="discard",
+        )
+    ]
+    game.decision = BangDecision(
+        kind="elimination_discard",
+        player_id=victim.id,
+        card_ids=[hand_card.id],
+        item_ids=[f"in_play_{in_play_card.id}"],
+        selected_card_ids=[hand_card.id],
+    )
+
+    restored = BangGame.from_json(game.to_json())
+    restored.rebuild_runtime_state()
+
+    assert restored.decision
+    assert restored.decision.card_ids == [hand_card.id]
+    assert restored.decision.item_ids == [
+        f"in_play_{in_play_card.id}",
+        "finish_elimination_discard",
+    ]
+    assert restored.decision.selected_card_ids == []
+
+
+def test_eliminated_player_can_interleave_every_card_in_discard_order():
+    game = start_game(4, seed=179, touch=True)
+    victim = next(player for player in game.players if player.role == ROLE_OUTLAW)
+    observer = next(
+        player
+        for player in game.players
+        if player is not victim and player.role != ROLE_OUTLAW
+    )
+    first_hand = make_card(2710, cards.BANG)
+    second_hand = make_card(2711, cards.BEER)
+    weapon = make_card(2712, cards.SCHOFIELD, border=cards.BLUE)
+    barrel = make_card(2713, cards.BARREL, border=cards.BLUE)
+    victim.hand = [first_hand, second_hand]
+    victim.in_play = [BangInPlayCard(weapon), BangInPlayCard(barrel)]
+    victim.life = 0
+    victim.eliminated = True
+    victim.role_revealed = True
+    game.phase = PHASE_RESOLVING
+    game.discard_pile.clear()
+    frame = BangEffect(
+        kind="elimination",
+        target_id=victim.id,
+        stage="discard",
+        source=DamageSource(kind="high_noon"),
+    )
+    game.effect_stack = [frame]
+    game.decision = None
+
+    game._continue_elimination(frame)
+    assert game.decision and game.decision.kind == "elimination_discard"
+    game._sync_turn_actions(victim)
+    action_set = game.get_action_set(victim, "turn")
+    assert action_set
+    assert action_set._order == [
+        "input_prompt",
+        *(f"play_card_{card.id}" for card in victim.hand),
+        f"choice_in_play_{weapon.id}",
+        f"choice_in_play_{barrel.id}",
+        "choice_finish_elimination_discard",
+    ]
+    assert (
+        game._is_play_card_hidden(
+            victim,
+            action_id=f"play_card_{second_hand.id}",
+        )
+        is Visibility.VISIBLE
+    )
+    clear_user_messages(game)
+
+    game._action_play_card(victim, f"play_card_{second_hand.id}")
+    game._action_choose_item(victim, f"choice_in_play_{weapon.id}")
+    game._action_play_card(victim, f"play_card_{first_hand.id}")
+    game._action_choose_item(
+        victim,
+        "choice_finish_elimination_discard",
+    )
+
+    assert game.discard_pile == [second_hand, weapon, first_hand, barrel]
+    assert not victim.hand
+    assert not victim.in_play
+    assert game.decision is None
+    victim_text = " ".join(speech_texts(game, game.players.index(victim)))
+    observer_text = " ".join(
+        speech_texts(game, game.players.index(observer))
+    )
+    assert "You place Beer" in victim_text
+    assert "You place Schofield" in victim_text
+    assert "remaining cards in menu order: Barrel" in victim_text
+    assert f"{victim.name} places Beer" in observer_text
+    assert f"{victim.name} places Schofield" in observer_text
+    assert f"{victim.name} discards the remaining cards" in observer_text
+
+
+def test_bot_finishes_elimination_discard_in_deterministic_menu_order():
+    game = make_game(4, bots=True)
+    bot = game.players[0]
+    game.decision = BangDecision(
+        kind="elimination_discard",
+        player_id=bot.id,
+        card_ids=[card.id for card in bot.hand],
+        item_ids=["finish_elimination_discard"],
+    )
+
+    assert (
+        bang_bot.choose_action(game, bot)
+        == "choice_finish_elimination_discard"
+    )
+
+
 def test_partial_shot_response_announces_the_remaining_requirement():
     game = start_game(4, seed=82)
     actor = game.current_player
@@ -2964,6 +3460,78 @@ def test_in_play_use_buttons_match_their_actual_interaction_window():
         actor,
         action_id=f"use_in_play_{proactive.id}",
     ) is Visibility.HIDDEN
+
+
+@pytest.mark.parametrize("touch", [False, True])
+@pytest.mark.parametrize(
+    "kind",
+    [
+        cards.BIBLE,
+        cards.IRON_PLATE,
+        cards.SOMBRERO,
+        cards.TEN_GALLON_HAT,
+    ],
+)
+def test_ready_green_defenses_are_rendered_before_taking_the_hit(
+    kind: str,
+    touch: bool,
+):
+    game = start_game(4, seed=3, touch=touch)
+    actor = game.current_player
+    target = game._clockwise_after(actor, exclude_actor=True)[0]
+    defense = make_card(2392, kind, border=cards.GREEN)
+    target.hand.clear()
+    target.in_play = [
+        BangInPlayCard(defense, usable_after_turn=game.turn_serial)
+    ]
+    game.current_event = ""
+    game.effect_stack.clear()
+    game.decision = None
+    game.play_intent = None
+    game.phase = PHASE_PLAY
+
+    game._start_shot(actor, target, source_kind="bang_card", required=1)
+    game.flush_menus()
+
+    action_id = f"use_in_play_{defense.id}"
+    target_index = game.players.index(target)
+    items = list(turn_menu_items(game, target_index))
+    assert items[:3] == ["input_prompt", action_id, "choice_take_hit"]
+    user = game.get_user(target)
+    assert isinstance(user, MockUser)
+    assert user.menus["turn_menu"]["selection_id"] == action_id
+
+
+def test_hand_and_in_play_defenses_precede_the_damage_fallback():
+    game = start_game(4, seed=4)
+    actor = game.current_player
+    target = game._clockwise_after(actor, exclude_actor=True)[0]
+    missed = make_card(2393, cards.MISSED)
+    plate = make_card(2394, cards.IRON_PLATE, border=cards.GREEN)
+    target.hand = [missed]
+    target.in_play = [
+        BangInPlayCard(plate, usable_after_turn=game.turn_serial)
+    ]
+    game.current_event = ""
+    game.effect_stack.clear()
+    game.decision = None
+    game.play_intent = None
+    game.phase = PHASE_PLAY
+
+    game._start_shot(actor, target, source_kind="bang_card", required=1)
+    game.flush_menus()
+
+    target_index = game.players.index(target)
+    items = list(turn_menu_items(game, target_index))
+    assert items[:4] == [
+        "input_prompt",
+        f"play_card_{missed.id}",
+        f"use_in_play_{plate.id}",
+        "choice_take_hit",
+    ]
+    user = game.get_user(target)
+    assert isinstance(user, MockUser)
+    assert user.menus["turn_menu"]["selection_id"] == f"play_card_{missed.id}"
 
 
 def test_targeted_shot_splits_event_notice_from_one_complete_instruction():
@@ -3613,6 +4181,51 @@ def test_standard_victory_includes_eliminated_teammates():
     assert sheriff.id in game.winner_ids
 
 
+def test_renegade_killing_sheriff_loses_while_another_player_survives():
+    game = start_game(5, seed=181)
+    sheriff = next(player for player in game.players if player.role == ROLE_SHERIFF)
+    renegade = next(
+        player for player in game.players if player.role == ROLE_RENEGADE
+    )
+    deputy = next(player for player in game.players if player.role == ROLE_DEPUTY)
+    outlaws = [player for player in game.players if player.role == ROLE_OUTLAW]
+    for outlaw in outlaws:
+        outlaw.eliminated = True
+    sheriff.life = 0
+    sheriff.eliminated = True
+
+    game._apply_elimination_triggers(
+        sheriff,
+        DamageSource(player_id=renegade.id, kind="bang_card"),
+    )
+
+    assert not deputy.eliminated
+    assert game.winning_side == ROLE_OUTLAW
+    assert game.winner_ids == [outlaw.id for outlaw in outlaws]
+    assert renegade.id not in game.winner_ids
+
+
+def test_renegade_killing_sheriff_wins_as_the_only_survivor():
+    game = start_game(4, seed=182)
+    sheriff = next(player for player in game.players if player.role == ROLE_SHERIFF)
+    renegade = next(
+        player for player in game.players if player.role == ROLE_RENEGADE
+    )
+    for player in game.players:
+        if player.id not in {sheriff.id, renegade.id}:
+            player.eliminated = True
+    sheriff.life = 0
+    sheriff.eliminated = True
+
+    game._apply_elimination_triggers(
+        sheriff,
+        DamageSource(player_id=renegade.id, kind="bang_card"),
+    )
+
+    assert game.winning_side == ROLE_RENEGADE
+    assert game.winner_ids == [renegade.id]
+
+
 def test_game_end_discards_the_card_whose_effect_caused_victory():
     game = start_game(4, seed=106)
     actor = game.current_player
@@ -3739,6 +4352,174 @@ def test_general_store_reveal_and_each_public_pick_are_announced():
     )
 
 
+def test_peyote_publicly_reveals_correct_and_wrong_guesses():
+    game = make_game(4)
+    player = game.players[0]
+    correct = make_card(
+        2515,
+        cards.BANG,
+        rank="7",
+        suit=cards.HEARTS,
+    )
+    wrong = make_card(
+        2516,
+        cards.MISSED,
+        rank="8",
+        suit=cards.SPADES,
+    )
+    prepare_draw_phase(
+        game,
+        player,
+        character="rose_doolan",
+        event="peyote",
+        deck=[correct, wrong],
+    )
+
+    game._start_draw_phase(player)
+    assert game.decision and game.decision.kind == "peyote"
+    game._action_choose_item(player, "choice_guess_red")
+    assert game.decision and game.decision.kind == "peyote"
+    game._action_choose_item(player, "choice_guess_red")
+
+    assert player.hand == [correct]
+    assert game.discard_pile[-1] is wrong
+    for index in range(len(game.players)):
+        text = " ".join(speech_texts(game, index))
+        assert "BANG!, 7 of hearts" in text
+        assert "Missed!, 8 of spades" in text
+        assert "correct" in text
+        assert "wrong" in text
+
+
+def test_normal_and_kit_carlson_draws_remain_private_to_the_drawer():
+    game = make_game(4)
+    player = game.players[0]
+    first = make_card(2517, cards.BANG, rank="9", suit=cards.HEARTS)
+    second = make_card(2518, cards.MISSED, rank="10", suit=cards.CLUBS)
+    prepare_draw_phase(
+        game,
+        player,
+        character="rose_doolan",
+        deck=[first, second],
+    )
+
+    game._start_draw_phase(player)
+
+    player_text = " ".join(speech_texts(game, 0))
+    observer_text = " ".join(speech_texts(game, 1))
+    assert "BANG!, 9 of hearts" in player_text
+    assert "Missed!, 10 of clubs" in player_text
+    assert "BANG!, 9 of hearts" not in observer_text
+    assert "Missed!, 10 of clubs" not in observer_text
+    assert f"{player.name} draws 2 cards" in observer_text
+
+    game = make_game(4)
+    player = game.players[0]
+    inspected = [
+        make_card(2519, cards.BANG, rank="J", suit=cards.HEARTS),
+        make_card(2520, cards.MISSED, rank="Q", suit=cards.CLUBS),
+        make_card(2521, cards.BEER, rank="K", suit=cards.DIAMONDS),
+    ]
+    prepare_draw_phase(
+        game,
+        player,
+        character="kit_carlson",
+        deck=inspected,
+    )
+
+    game._start_draw_phase(player)
+
+    assert game.decision and game.decision.kind == "kit_return"
+    game.refresh_menus()
+    game.flush_menus()
+    observer_items = turn_menu_items(game, 1)
+    assert all(not item_id.startswith("choice_kit_") for item_id in observer_items)
+    game._action_choose_item(player, f"choice_kit_{inspected[2].id}")
+
+    observer_text = " ".join(speech_texts(game, 1))
+    assert f"{player.name} draws 2 cards" in observer_text
+    for card in inspected:
+        assert cards.card_label(card, "en") not in observer_text
+
+
+def test_jesse_jones_hides_stolen_and_deck_card_identities_from_observers():
+    game = make_game(4)
+    player, target = game.players[:2]
+    stolen = make_card(2522, cards.BANG, rank="A", suit=cards.SPADES)
+    deck_card = make_card(2523, cards.BEER, rank="2", suit=cards.HEARTS)
+    target.hand = [stolen]
+    prepare_draw_phase(
+        game,
+        player,
+        character="jesse_jones",
+        deck=[deck_card],
+    )
+
+    game._start_draw_phase(player)
+    assert game.decision and game.decision.kind == "jesse_jones"
+    game._action_choose_player(player, f"choose_player_{target.id}")
+
+    assert stolen in player.hand
+    assert deck_card in player.hand
+    target_text = " ".join(speech_texts(game, 1))
+    observer_text = " ".join(speech_texts(game, 2))
+    assert "BANG!, ace of spades" in target_text
+    assert "hidden card" in observer_text
+    assert "BANG!, ace of spades" not in observer_text
+    assert "Beer, 2 of hearts" not in observer_text
+
+
+def test_pedro_ramirez_preserves_public_discard_and_private_deck_visibility():
+    game = make_game(4)
+    player = game.players[0]
+    public_card = make_card(2524, cards.DUEL, rank="3", suit=cards.CLUBS)
+    private_card = make_card(2525, cards.BEER, rank="4", suit=cards.HEARTS)
+    prepare_draw_phase(
+        game,
+        player,
+        character="pedro_ramirez",
+        deck=[private_card],
+        discard_pile=[public_card],
+    )
+
+    game._start_draw_phase(player)
+    assert game.decision and game.decision.kind == "pedro_ramirez"
+    game._action_choose_item(player, "choice_draw_from_discard")
+
+    observer_text = " ".join(speech_texts(game, 1))
+    assert "Duel, 3 of clubs" in observer_text
+    assert "Beer, 4 of hearts" not in observer_text
+    assert f"{player.name} draws 1 card" in observer_text
+
+
+def test_pat_brennan_take_is_public_but_claus_gift_is_private():
+    game = make_game(4)
+    player, owner = game.players[:2]
+    public_card = make_card(
+        2526,
+        cards.BARREL,
+        rank="5",
+        suit=cards.SPADES,
+        border=cards.BLUE,
+    )
+    owner.in_play = [BangInPlayCard(public_card)]
+    prepare_draw_phase(game, player, character="pat_brennan")
+
+    game._start_draw_phase(player)
+    assert game.decision and game.decision.kind == "pat_brennan"
+    game._action_choose_item(player, f"choice_in_play_{public_card.id}")
+
+    observer_text = " ".join(speech_texts(game, 2))
+    assert "Barrel, 5 of spades" in observer_text
+
+    hidden = make_card(2527, cards.BANG, rank="6", suit=cards.DIAMONDS)
+    clear_user_messages(game)
+    game._announce_claus_gift(player, owner, hidden, public=False)
+    observer_text = " ".join(speech_texts(game, 2))
+    assert "hidden card" in observer_text
+    assert "BANG!, 6 of diamonds" not in observer_text
+
+
 def test_elimination_and_victory_use_listener_specific_perspectives():
     game = start_game(5, seed=155)
     killer = game.current_player
@@ -3809,26 +4590,77 @@ def test_elimination_and_victory_use_listener_specific_perspectives():
     )
 
 
-def test_touch_standard_info_order_and_no_score_actions():
+@pytest.mark.parametrize("client_type", ["mobile", "web"])
+def test_touch_standard_info_order_and_no_score_actions(
+    client_type: str,
+):
     game = start_game(4, seed=13, touch=True)
     player = game.players[0]
+    user = game.get_user(player)
+    assert isinstance(user, MockUser)
+    user.client_type = client_type
     action_set = game.get_action_set(player, "standard")
     assert action_set is not None
     order = action_set._order
     expected = [
-        "read_hand",
-        "read_role",
         "read_life",
+        "read_role",
         "read_distances",
         "read_piles",
         "read_event",
         "read_table",
+        "read_hand",
         "whose_turn",
         "whos_at_table",
     ]
     assert [action_id for action_id in order if action_id in expected] == expected
+    visible = [
+        resolved.action.id
+        for resolved in action_set.get_visible_actions(game, player)
+    ]
+    assert [
+        action_id for action_id in visible if action_id in expected
+    ] == expected
+    game.refresh_menus(player)
+    game.flush_menus()
+    rendered = list(turn_menu_items(game, 0))
+    assert [
+        action_id for action_id in rendered if action_id in expected
+    ] == expected
     assert "check_scores" not in order
     assert "check_scores_detailed" not in order
+
+
+def test_desktop_actions_menu_uses_the_same_bang_info_order():
+    game = start_game(4, seed=13)
+    player = game.players[0]
+    action_set = game.get_action_set(player, "standard")
+    assert action_set is not None
+    expected = [
+        "read_life",
+        "read_role",
+        "read_distances",
+        "read_piles",
+        "read_event",
+        "read_table",
+        "read_hand",
+    ]
+    enabled = [
+        resolved.action.id
+        for resolved in action_set.get_enabled_actions(game, player)
+    ]
+    assert [action_id for action_id in enabled if action_id in expected] == expected
+    user = game.get_user(player)
+    assert isinstance(user, MockUser)
+    game._action_show_actions_menu(player, "show_actions")
+    rendered = [
+        item.id
+        for item in user.menus["actions_menu"]["items"]
+        if item.id
+    ]
+    assert [
+        action_id for action_id in rendered if action_id in expected
+    ] == expected
 
 
 def test_read_piles_has_active_public_shortcut():
@@ -4597,10 +5429,18 @@ def test_sniper_sequence_synchronizes_aim_fire_tts_and_casing():
     assert game.decision and game.decision.kind == "missed"
 
 
-def test_russian_roulette_prepares_fully_before_opening_defense():
-    game = start_game(4, seed=97)
+@pytest.mark.parametrize(
+    ("player_count", "expected_role"),
+    [(4, ROLE_SHERIFF), (3, ROLE_DEPUTY)],
+)
+def test_russian_roulette_prepares_fully_before_opening_defense(
+    player_count: int,
+    expected_role: str,
+):
+    game = start_game(player_count, seed=97)
     target = game._event_anchor()
     assert target is not None
+    assert target.role == expected_role
     missed = make_card(2691, cards.MISSED)
     target.hand = [missed]
     target.in_play.clear()
@@ -4653,6 +5493,105 @@ def test_russian_roulette_prepares_fully_before_opening_defense():
     assert bang_audio.SOUND_WEAPON_EMPTY in sound_names(game)
     assert set(sound_names(game)) & set(
         bang_audio.SOUND_CARD_DISCARD
+    )
+
+
+def test_russian_roulette_moves_clockwise_and_stops_at_first_failure():
+    game = start_game(4, seed=105)
+    anchor = game._event_anchor()
+    assert anchor is not None
+    order = [anchor, *game._clockwise_after(anchor, exclude_actor=True)]
+    defender, casualty, spared = order[:3]
+    missed = make_card(2696, cards.MISSED)
+    defender.hand = [missed]
+    for player in order:
+        player.in_play.clear()
+    casualty.character = "willy_the_kid"
+    casualty.hand.clear()
+    spared.hand.clear()
+    starting_life = {player.id: player.life for player in order}
+    game.effect_stack.clear()
+    game.decision = None
+    game._push_effect(
+        BangEffect(
+            kind="russian_roulette",
+            player_ids=[player.id for player in order],
+        )
+    )
+
+    game._continue_effects()
+
+    assert game.decision is not None
+    assert game.decision.kind == "missed"
+    assert game.decision.player_id == defender.id
+    game._use_decision_card(defender, missed)
+    tick_until(
+        game,
+        lambda: not game.effect_stack and game.decision is None,
+    )
+
+    assert defender.life == starting_life[defender.id]
+    assert casualty.life == starting_life[casualty.id] - 2
+    assert spared.life == starting_life[spared.id]
+
+
+def test_russian_roulette_continues_after_everyone_survives_one_lap():
+    game = start_game(4, seed=106)
+    anchor = game._event_anchor()
+    assert anchor is not None
+    order = [anchor, *game._clockwise_after(anchor, exclude_actor=True)]
+    responses: dict[str, list[BangCard]] = {}
+    next_id = 2697
+    for player in order:
+        response = make_card(next_id, cards.MISSED)
+        next_id += 1
+        responses[player.id] = [response]
+        player.hand = [response]
+        player.in_play.clear()
+    anchor_extra = make_card(next_id, cards.MISSED)
+    responses[anchor.id].append(anchor_extra)
+    anchor.hand.append(anchor_extra)
+    casualty = order[1]
+    casualty.character = "willy_the_kid"
+    starting_life = {player.id: player.life for player in order}
+    game.effect_stack.clear()
+    game.decision = None
+    game._push_effect(
+        BangEffect(
+            kind="russian_roulette",
+            player_ids=[player.id for player in order],
+        )
+    )
+
+    for player in order:
+        tick_until(
+            game,
+            lambda player=player: (
+                game.decision is not None
+                and game.decision.player_id == player.id
+            ),
+        )
+        game._use_decision_card(player, responses[player.id][0])
+
+    tick_until(
+        game,
+        lambda: (
+            game.decision is not None
+            and game.decision.player_id == anchor.id
+        ),
+    )
+    assert game.decision and game.decision.card_ids == [anchor_extra.id]
+    game._use_decision_card(anchor, anchor_extra)
+    tick_until(
+        game,
+        lambda: not game.effect_stack and game.decision is None,
+    )
+
+    assert anchor.life == starting_life[anchor.id]
+    assert casualty.life == starting_life[casualty.id] - 2
+    assert all(
+        player.life == starting_life[player.id]
+        for player in order[2:]
     )
 
 
