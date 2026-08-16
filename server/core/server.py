@@ -7,7 +7,6 @@ import re
 import signal
 import sys
 import time
-import unicodedata
 import weakref
 from datetime import datetime
 from pathlib import Path
@@ -41,6 +40,7 @@ from ..auth.voice_rate_limit import VoiceRateLimiter
 from ..tables.manager import TableManager
 from ..users.network_user import NetworkUser
 from ..users.base import MenuItem, EscapeBehavior
+from ..users.identity import find_username_prefix, normalize_username, username_key
 from ..users.preferences import UserPreferences, DiceKeepingStyle, PREF_CATEGORIES
 from ..games.registry import GameRegistry, get_game_class
 from ..games.categories import (
@@ -76,7 +76,7 @@ from ..game_utils.bot_names import bot_name_key
 from ..game_utils.game_result import GameResult
 
 
-VERSION = "1.0.4.11"
+VERSION = "1.0.4.14"
 # Legacy native-updater compatibility constants. Retain these exact names and
 # values until an explicit compatibility cleanup removes them.
 UPDATE_URL = "https://github.com/Daoductrung/PlayAural/releases/latest/download/PlayAural.zip"
@@ -705,7 +705,7 @@ PlayAural Server
 
     def _session_lock_for(self, username: str) -> asyncio.Lock:
         """Return a casing-stable account lock without retaining idle locks."""
-        key = username.casefold()
+        key = username_key(username)
         lock = self._session_locks.get(key)
         if lock is None:
             lock = asyncio.Lock()
@@ -1237,7 +1237,7 @@ PlayAural Server
             await client.close()
             return
 
-        username = packet.get("username", "")
+        username = str(packet.get("username", "") or "").strip()
         password = packet.get("password", "")
         client_type = self._get_auth_client_type(packet)
         client_platform = self._get_auth_client_platform(packet)
@@ -1298,7 +1298,8 @@ PlayAural Server
         # verification and activation share this lock with password resets and
         # account deletion, so a credential result can never become stale
         # while it waits to install a session.
-        candidate_record = self._auth.get_user(username)
+        candidate_resolution = self._db.resolve_user(username)
+        candidate_record = candidate_resolution.user
         canonical_username = (
             candidate_record.username if candidate_record else username
         )
@@ -1307,45 +1308,43 @@ PlayAural Server
         auth_failure_reason = None
         update_bootstrap_packet = None
         async with self._session_lock_for(canonical_username):
-            if not self._auth.authenticate(username, password):
-                auth_failure_reason = (
-                    "wrong_password"
-                    if self._auth.get_user(username)
-                    else "user_not_found"
-                )
+            resolution = self._db.resolve_user(username)
+            user_record = resolution.user
+            if resolution.ambiguous:
+                auth_failure_reason = "username_ambiguous"
+            elif not user_record:
+                auth_failure_reason = "user_not_found"
+            elif not self._auth.verify_password(password, user_record.password_hash):
+                auth_failure_reason = "wrong_password"
             else:
-                user_record = self._auth.get_user(username)
-                if not user_record:
-                    auth_failure_reason = "user_not_found"
+                canonical_username = user_record.username
+                if client_version != VERSION:
+                    # Native clients need the existing authorize-success
+                    # shape to launch their mandatory updater. This is an
+                    # update-only bootstrap: it never installs an online
+                    # user, owns an account session, or accepts gameplay.
+                    update_bootstrap_packet = {
+                        "type": "authorize_success",
+                        "username": canonical_username,
+                        "locale": user_record.locale or "en",
+                        **self._client_release_metadata(
+                            client_type=client_type,
+                            client_platform=client_platform,
+                            release_platform=release_platform,
+                        ),
+                        "preferences": {},
+                    }
                 else:
-                    canonical_username = user_record.username
-                    if client_version != VERSION:
-                        # Native clients need the existing authorize-success
-                        # shape to launch their mandatory updater. This is an
-                        # update-only bootstrap: it never installs an online
-                        # user, owns an account session, or accepts gameplay.
-                        update_bootstrap_packet = {
-                            "type": "authorize_success",
-                            "username": canonical_username,
-                            "locale": user_record.locale or "en",
-                            **self._client_release_metadata(
-                                client_type=client_type,
-                                client_platform=client_platform,
-                                release_platform=release_platform,
-                            ),
-                            "preferences": {},
-                        }
-                    else:
-                        old_client, old_disconnect_packet = (
-                            await self._activate_authenticated_session(
-                                client,
-                                canonical_username=canonical_username,
-                                client_type=client_type,
-                                client_platform=client_platform,
-                                release_platform=release_platform,
-                                user_record=user_record,
-                            )
+                    old_client, old_disconnect_packet = (
+                        await self._activate_authenticated_session(
+                            client,
+                            canonical_username=canonical_username,
+                            client_type=client_type,
+                            client_platform=client_platform,
+                            release_platform=release_platform,
+                            user_record=user_record,
                         )
+                    )
 
         if auth_failure_reason:
             self._rate_limiter.record_failed_login(client.ip_address)
@@ -2124,7 +2123,7 @@ PlayAural Server
         # Strip surrounding whitespace, then NFC-normalize so that visually
         # identical Vietnamese strings (precomposed vs. decomposed) are always
         # stored in the same canonical form.
-        username = unicodedata.normalize('NFC', packet.get("username", "").strip())
+        username = normalize_username(packet.get("username", ""))
         password = packet.get("password", "")
         locale = packet.get("locale", "en") # Get locale from client, default to en
         email = packet.get("email", "")
@@ -2164,37 +2163,6 @@ PlayAural Server
             })
             return
 
-        # Length is checked after stripping so padding spaces don't inflate it
-        if len(username) < 3 or len(username) > 30:
-            await client.send({
-                "type": "register_response",
-                "status": "error",
-                "error": "username_length",
-                "text": Localization.get(locale, "auth-error-username-length")
-            })
-            return
-
-        # No runs of multiple spaces (e.g. "Nguyen  Van")
-        if '  ' in username:
-            await client.send({
-                "type": "register_response",
-                "status": "error",
-                "error": "username_invalid_chars",
-                "text": Localization.get(locale, "auth-error-username-invalid-chars")
-            })
-            return
-
-        # Positive allowlist: only Unicode letters, digits, and single spaces.
-        # This structurally blocks <, >, ", ', `, control characters, etc.
-        if not all(c.isalpha() or c.isdigit() or c == ' ' for c in username):
-            await client.send({
-                "type": "register_response",
-                "status": "error",
-                "error": "username_invalid_chars",
-                "text": Localization.get(locale, "auth-error-username-invalid-chars")
-            })
-            return
-
         # Silently cap bio length to prevent database bloat
         bio = bio[:500]
 
@@ -2219,9 +2187,6 @@ PlayAural Server
             })
             return
 
-        # Check if this will be a user that needs approval (not the first user)
-        needs_approval = self._db.get_user_count() > 0
-
         # Try to register the user
         reg_result = self._auth.register(username, password, locale=locale, email=email, bio=bio)
         if reg_result == "ok":
@@ -2232,10 +2197,6 @@ PlayAural Server
                 "text": Localization.get(locale, "auth-registration-success"), # Fallback text
                 "locale": locale
             })
-            # Notify admins of new account request (only if user needs approval)
-            if needs_approval:
-                self._notify_admins("account-request", "accountrequest.ogg")
-                self.admin_manager.refresh_account_approval_menus()
         elif reg_result == "username_taken":
             await client.send({
                 "type": "register_response",
@@ -2249,6 +2210,14 @@ PlayAural Server
                 "status": "error",
                 "error": "username_reserved_bot",
                 "text": Localization.get(locale, "auth-username-reserved-bot")
+            })
+        elif reg_result in {"username_length", "username_invalid_chars"}:
+            locale_key = f"auth-error-{reg_result.replace('_', '-')}"
+            await client.send({
+                "type": "register_response",
+                "status": "error",
+                "error": reg_result,
+                "text": Localization.get(locale, locale_key)
             })
         else:
             logging.getLogger("playaural").error(
@@ -2914,22 +2883,22 @@ PlayAural Server
             MenuItem(
                 text=Localization.get(user.locale, "language-option", language=current_lang),
                 id="language",
-                description="general-desc-language",
+                description_key="general-desc-language",
             ),
             MenuItem(
                 text=Localization.get(user.locale, "options-category-audio"),
                 id="options_audio",
-                description="general-desc-audio",
+                description_key="general-desc-audio",
             ),
             MenuItem(
                 text=Localization.get(user.locale, "options-category-accessibility"),
                 id="options_accessibility",
-                description="general-desc-accessibility",
+                description_key="general-desc-accessibility",
             ),
             MenuItem(
                 text=Localization.get(user.locale, "options-category-notifications"),
                 id="options_notifications",
-                description="general-desc-notifications",
+                description_key="general-desc-notifications",
             ),
             MenuItem(text=Localization.get(user.locale, "back"), id="back"),
         ]
@@ -2953,22 +2922,22 @@ PlayAural Server
             MenuItem(
                 text=Localization.get(user.locale, "music-volume-option", value=prefs.music_volume),
                 id="music_volume",
-                description="general-desc-music-volume",
+                description_key="general-desc-music-volume",
             ),
             MenuItem(
                 text=Localization.get(user.locale, "sound-volume-option", value=prefs.sound_volume),
                 id="sound_volume",
-                description="general-desc-sound-volume",
+                description_key="general-desc-sound-volume",
             ),
             MenuItem(
                 text=Localization.get(user.locale, "ambience-volume-option", value=prefs.ambience_volume),
                 id="ambience_volume",
-                description="general-desc-ambience-volume",
+                description_key="general-desc-ambience-volume",
             ),
             MenuItem(
                 text=Localization.get(user.locale, "voice-volume-option", value=prefs.voice_volume),
                 id="voice_volume",
-                description="general-desc-voice-volume",
+                description_key="general-desc-voice-volume",
             ),
         ]
         if not is_web_client_type(user.client_type) and not is_mobile_client_type(user.client_type):
@@ -2976,7 +2945,7 @@ PlayAural Server
                 MenuItem(
                     text=Localization.get(user.locale, "audio-input-device-option", device=audio_input_device_name),
                     id="audio_input_device",
-                    description="general-desc-audio-input-device",
+                    description_key="general-desc-audio-input-device",
                 )
             )
         if not uses_self_voicing_settings_type(user.client_type):
@@ -2991,7 +2960,7 @@ PlayAural Server
                         ),
                     ),
                     id="play_typing_sounds",
-                    description="general-desc-play-typing-sounds",
+                    description_key="general-desc-play-typing-sounds",
                 )
             )
         items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
@@ -3163,26 +3132,38 @@ PlayAural Server
     def _show_accessibility_submenu(self, user: NetworkUser) -> None:
         """Accessibility submenu."""
         prefs = user.preferences
+        items = [
+            MenuItem(
+                text=Localization.get(
+                    user.locale,
+                    "menu-hints-option",
+                    status=Localization.get(
+                        user.locale,
+                        "option-on" if prefs.show_menu_hints else "option-off",
+                    ),
+                ),
+                id="show_menu_hints",
+                description_key="general-desc-menu-hints",
+            )
+        ]
         if is_web_client_type(user.client_type):
-            items = [
+            items.append(
                 MenuItem(
                     text=Localization.get(user.locale, "speech-settings"),
                     id="web_speech_settings",
-                    description="general-desc-web-speech-settings",
-                ),
-                MenuItem(text=Localization.get(user.locale, "back"), id="back"),
-            ]
+                    description_key="general-desc-web-speech-settings",
+                )
+            )
         elif is_mobile_client_type(user.client_type):
-            items = [
+            items.append(
                 MenuItem(
                     text=Localization.get(user.locale, "mobile-speech-settings"),
                     id="mobile_speech_settings",
-                    description="general-desc-mobile-speech-settings",
-                ),
-                MenuItem(text=Localization.get(user.locale, "back"), id="back"),
-            ]
+                    description_key="general-desc-mobile-speech-settings",
+                )
+            )
         else:
-            items = [
+            items.append(
                 MenuItem(
                     text=Localization.get(
                         user.locale,
@@ -3193,10 +3174,10 @@ PlayAural Server
                         ),
                     ),
                     id="invert_multiline_enter",
-                    description="general-desc-invert-multiline-enter",
-                ),
-                MenuItem(text=Localization.get(user.locale, "back"), id="back"),
-            ]
+                    description_key="general-desc-invert-multiline-enter",
+                )
+            )
+        items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
         user.show_menu(
             "options_accessibility_submenu",
             items,
@@ -3218,7 +3199,7 @@ PlayAural Server
                     ),
                 ),
                 id="mute_global_chat",
-                description="general-desc-mute-global-chat",
+                description_key="general-desc-mute-global-chat",
             ),
             MenuItem(
                 text=Localization.get(
@@ -3229,7 +3210,7 @@ PlayAural Server
                     ),
                 ),
                 id="mute_table_chat",
-                description="general-desc-mute-table-chat",
+                description_key="general-desc-mute-table-chat",
             ),
             MenuItem(
                 text=Localization.get(
@@ -3241,7 +3222,7 @@ PlayAural Server
                     ),
                 ),
                 id="notify_user_presence",
-                description="general-desc-notify-user-presence",
+                description_key="general-desc-notify-user-presence",
             ),
             MenuItem(
                 text=Localization.get(
@@ -3253,7 +3234,7 @@ PlayAural Server
                     ),
                 ),
                 id="notify_friend_presence",
-                description="general-desc-notify-friend-presence",
+                description_key="general-desc-notify-friend-presence",
             ),
             MenuItem(
                 text=Localization.get(
@@ -3265,7 +3246,7 @@ PlayAural Server
                     ),
                 ),
                 id="notify_table_created",
-                description="general-desc-notify-table-created",
+                description_key="general-desc-notify-table-created",
             ),
             MenuItem(text=Localization.get(user.locale, "back"), id="back"),
         ]
@@ -3337,6 +3318,7 @@ PlayAural Server
                 MenuItem(
                     text=self._get_pref_label(user.locale, prefs, name, meta),
                     id=f"pref_{name}",
+                    description_key=meta.description or None,
                 )
             )
         cat_name = ""
@@ -3379,6 +3361,7 @@ PlayAural Server
                     ),
                 ),
                 id="detail_global",
+                description_key=meta.description or None,
             )
         ]
         for game_type in GameRegistry.get_games_for_preference(field_name):
@@ -3400,6 +3383,7 @@ PlayAural Server
                         value=value_text,
                     ),
                     id=f"detail_game_{game_type}",
+                    description_key=meta.description or None,
                 )
             )
         items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
@@ -3599,7 +3583,7 @@ PlayAural Server
                 status=Localization.get(user.locale, mode_key)
             ),
             id="speech_mode",
-            description="general-desc-speech-mode",
+            description_key="general-desc-speech-mode",
         ))
 
         # Speech Rate
@@ -3610,7 +3594,7 @@ PlayAural Server
                 value=prefs.speech_rate
             ),
             id="speech_rate",
-            description="general-desc-speech-rate",
+            description_key="general-desc-speech-rate",
         ))
 
         # Speech Voice
@@ -3624,7 +3608,7 @@ PlayAural Server
                 voice=voice_name
             ),
             id="speech_voice",
-            description="general-desc-speech-voice",
+            description_key="general-desc-speech-voice",
         ))
 
         items.append(MenuItem(text=Localization.get(user.locale, "back"), id="back"))
@@ -3727,7 +3711,7 @@ PlayAural Server
                     engine=engine_name,
                 ),
                 id="mobile_tts_engine",
-                description="general-desc-mobile-tts-engine",
+                description_key="general-desc-mobile-tts-engine",
             ),
             MenuItem(
                 text=Localization.get(
@@ -3736,7 +3720,7 @@ PlayAural Server
                     voice=voice_name,
                 ),
                 id="mobile_tts_voice",
-                description="general-desc-mobile-tts-voice",
+                description_key="general-desc-mobile-tts-voice",
             ),
             MenuItem(
                 text=Localization.get(
@@ -3745,7 +3729,7 @@ PlayAural Server
                     value=prefs.mobile_tts_rate,
                 ),
                 id="mobile_tts_rate",
-                description="general-desc-mobile-tts-rate",
+                description_key="general-desc-mobile-tts-rate",
             ),
             MenuItem(text=Localization.get(user.locale, "back"), id="back"),
         ]
@@ -4953,27 +4937,27 @@ PlayAural Server
             MenuItem(
                 text=Localization.get(user.locale, "profile"),
                 id="profile",
-                description="general-desc-profile",
+                description_key="general-desc-profile",
             ),
             MenuItem(
                 text=Localization.get(user.locale, "friends"),
                 id="friends",
-                description="general-desc-friends",
+                description_key="general-desc-friends",
             ),
             MenuItem(
                 text=Localization.get(user.locale, "my-stats"),
                 id="my_stats",
-                description="general-desc-my-stats",
+                description_key="general-desc-my-stats",
             ),
             MenuItem(
                 text=Localization.get(user.locale, "general-options"),
                 id="options",
-                description="general-desc-general-options",
+                description_key="general-desc-general-options",
             ),
             MenuItem(
                 text=Localization.get(user.locale, "game-options"),
                 id="game_options",
-                description="general-desc-game-options",
+                description_key="general-desc-game-options",
             ),
             MenuItem(text=Localization.get(user.locale, "back"), id="back")
         ]
@@ -5060,7 +5044,13 @@ PlayAural Server
                     friends_data.append({"name": f_name, "is_online": is_online})
 
             # Sort: Online first, then alphabetically
-            friends_data.sort(key=lambda x: (not x["is_online"], x["name"].lower()))
+            friends_data.sort(
+                key=lambda entry: (
+                    not entry["is_online"],
+                    username_key(entry["name"]),
+                    entry["name"],
+                )
+            )
 
             page_data = paginate_sequence(
                 friends_data,
@@ -5205,7 +5195,7 @@ PlayAural Server
             MenuItem(text=Localization.get(user.locale, "view-profile"), id="view_profile"),
         ]
         target_record = self._db.get_user(target_username)
-        is_self = target_username.lower() == user.username.lower()
+        is_self = bool(target_record and target_record.uuid == user.uuid)
         if target_record and not is_self and not self._find_current_friend_record(user, target_username):
             items.append(
                 MenuItem(
@@ -5331,7 +5321,7 @@ PlayAural Server
 
     def _send_friend_request_to_record(self, user: NetworkUser, target_record) -> str:
         """Send or accept a friend request and notify both users consistently."""
-        if target_record.username.lower() == user.username.lower():
+        if target_record.uuid == user.uuid:
             user.speak_l("friend-error-self", buffer="system")
             return "self"
 
@@ -5689,7 +5679,7 @@ PlayAural Server
         )
         self._user_states[requesting_user.username] = {
             "menu": "public_profile_menu",
-            "target_username": target_username,
+            "target_username": target_record.username,
         }
 
     async def _handle_public_profile_selection(self, user: NetworkUser, selection_id: str, state: dict) -> None:
@@ -6093,6 +6083,20 @@ PlayAural Server
             self._nav_push(user, self._show_speech_settings_menu)
         elif selection_id == "mobile_speech_settings":
             self._nav_push(user, self._show_mobile_speech_settings_menu)
+        elif selection_id == "show_menu_hints":
+            prefs = user.preferences
+            prefs.show_menu_hints = not prefs.show_menu_hints
+            self._save_user_preferences(user)
+            status = Localization.get(
+                user.locale,
+                "option-on" if prefs.show_menu_hints else "option-off",
+            )
+            user.speak_l(
+                "menu-hints-changed",
+                buffer="system",
+                status=status,
+            )
+            self._nav_refresh(user, self._show_accessibility_submenu)
         elif selection_id == "invert_multiline_enter":
             prefs = user.preferences
             prefs.invert_multiline_enter_behavior = not prefs.invert_multiline_enter_behavior
@@ -6149,62 +6153,13 @@ PlayAural Server
                 raw = value.value if hasattr(value, "value") else value
                 self._sync_pref_to_client(user, meta.sync_key, raw)
 
-    def _pref_field_for_description_row(
+    def _menu_item_description(
         self,
         user: NetworkUser,
         current_menu: str | None,
         menu_item_id: str,
     ) -> str | None:
-        """Return the preference field explicitly bound to a describable row."""
-        if not current_menu or not menu_item_id:
-            return None
-        menu_state = self._current_menu_state(user, current_menu)
-        if not menu_state or menu_item_id not in self._menu_item_ids(menu_state):
-            return None
-
-        state = self._user_states.get(user.username, {})
-        if current_menu == "pref_category_menu":
-            if (
-                not menu_item_id.startswith("pref_")
-                or menu_item_id.startswith("pref_reset")
-            ):
-                return None
-            return menu_item_id[5:]
-        if current_menu == "pref_detail_menu":
-            if menu_item_id == "detail_global" or menu_item_id.startswith(
-                "detail_game_"
-            ):
-                field_name = state.get("pref_field")
-                return field_name if isinstance(field_name, str) else None
-        return None
-
-    def _speak_pref_description(
-        self,
-        user: NetworkUser,
-        current_menu: str | None,
-        menu_item_id: str,
-    ) -> bool:
-        """Speak a preference description only for rows explicitly bound to it."""
-        field_name = self._pref_field_for_description_row(
-            user,
-            current_menu,
-            menu_item_id,
-        )
-        if not field_name:
-            return False
-        meta = UserPreferences.get_pref_meta(field_name)
-        if not meta or not meta.description:
-            return False
-        user.speak_l(meta.description, buffer="system")
-        return True
-
-    def _menu_item_description_key(
-        self,
-        user: NetworkUser,
-        current_menu: str | None,
-        menu_item_id: str,
-    ) -> str | None:
-        """Return the active menu row's description key, if that exact row has one."""
+        """Return localized help attached to the exact active menu row."""
         if not current_menu or not menu_item_id:
             return None
         menu_state = self._current_menu_state(user, current_menu)
@@ -6216,7 +6171,7 @@ PlayAural Server
                 description = item.get("description")
             elif isinstance(item, MenuItem):
                 item_id = item.id
-                description = item.description
+                description = item.resolved_description(user.locale)
             else:
                 continue
             if item_id == menu_item_id and isinstance(description, str):
@@ -6230,10 +6185,14 @@ PlayAural Server
         menu_item_id: str,
     ) -> bool:
         """Speak help attached to the exact active menu row."""
-        description = self._menu_item_description_key(user, current_menu, menu_item_id)
+        description = self._menu_item_description(
+            user,
+            current_menu,
+            menu_item_id,
+        )
         if not description:
             return False
-        user.speak_l(description, buffer="system")
+        user.speak(description, buffer="system")
         return True
 
     async def _handle_game_options_selection(self, user: NetworkUser, selection_id: str) -> None:
@@ -7431,11 +7390,10 @@ PlayAural Server
         target = game.get_player_by_name(target_name)
         if target:
             return target
-        target_key = bot_name_key(target_name)
         for player in game.players:
             if (
                 getattr(player, "replaced_human", False)
-                and bot_name_key(getattr(player, "replaced_human_name", "")) == target_key
+                and getattr(player, "replaced_human_name", "") == target_name
             ):
                 return player
         return None
@@ -7638,8 +7596,8 @@ PlayAural Server
         rows: list[dict[str, Any]] = []
         seen_users: set[str] = set()
         game = table.game
-        members_by_key = {
-            bot_name_key(member.username): member
+        members_by_name = {
+            member.username: member
             for member in table.members
         }
 
@@ -7647,13 +7605,13 @@ PlayAural Server
             for player in game.players:
                 replaced_human_name = getattr(player, "replaced_human_name", "")
                 replaced_member = (
-                    members_by_key.get(bot_name_key(replaced_human_name))
+                    members_by_name.get(replaced_human_name)
                     if replaced_human_name
                     else None
                 )
                 if getattr(player, "is_bot", False) and replaced_member:
                     human_name = replaced_member.username
-                    seen_users.add(bot_name_key(human_name))
+                    seen_users.add(human_name)
                     rows.append(
                         {
                             "kind": "user",
@@ -7692,7 +7650,7 @@ PlayAural Server
                     )
                     continue
 
-                seen_users.add(bot_name_key(player.name))
+                seen_users.add(player.name)
                 rows.append(
                     {
                         "kind": "user",
@@ -7713,7 +7671,7 @@ PlayAural Server
                 )
 
         for member in table.members:
-            if bot_name_key(member.username) in seen_users:
+            if member.username in seen_users:
                 continue
             rows.append(
                 {
@@ -7739,27 +7697,24 @@ PlayAural Server
                 bool(row.get("is_spectator")),
                 row["kind"] == "bot",
                 row["kind"] == "user" and not row.get("is_online", True),
-                row["name"].lower(),
+                username_key(row["name"]),
+                row["name"],
             )
         )
         return rows
 
     def _is_table_member_online(self, username: str) -> bool:
         """Return whether a human table member currently has a live server user."""
-        username_key = bot_name_key(username)
-        return any(bot_name_key(name) == username_key for name in self._users)
+        return username in self._users
 
     def _is_table_member_in_voice_chat(self, table: "Table", username: str) -> bool:
         """Return whether a human table member is in this table's voice chat."""
-        username_key = bot_name_key(username)
-        for presence_username, presence in self._voice_presence_by_user.items():
-            if bot_name_key(presence_username) != username_key:
-                continue
-            return (
-                presence.get("scope") == "table"
-                and presence.get("context_id") == table.table_id
-            )
-        return False
+        presence = self._voice_presence_by_user.get(username)
+        return bool(
+            presence
+            and presence.get("scope") == "table"
+            and presence.get("context_id") == table.table_id
+        )
 
     def _table_member_status_text(self, locale: str, row: dict[str, Any]) -> str:
         """Return all concurrent table statuses for one roster row."""
@@ -7841,7 +7796,7 @@ PlayAural Server
                 status = self._table_member_status_text(locale, row)
                 is_self = (
                     row["kind"] == "user"
-                    and row["name"].lower() == user.username.lower()
+                    and row["name"] == user.username
                 )
                 item_id = (
                     f"table_member_self_{row['id']}"
@@ -7918,7 +7873,7 @@ PlayAural Server
         locale = user.locale
         items: list[MenuItem] = []
         target_name = row["name"]
-        is_self = target_name.lower() == user.username.lower()
+        is_self = target_name == user.username
         is_host = table.host == user.username
 
         if is_host and not is_self:
@@ -8059,7 +8014,7 @@ PlayAural Server
         else:
             return
 
-        if target_kind == "user" and target_id.lower() == user.username.lower():
+        if target_kind == "user" and target_id == user.username:
             self._nav_refresh(user, self._show_table_members_menu, table)
             return
 
@@ -8974,7 +8929,14 @@ PlayAural Server
                 if total_denom > 0:
                     value = total_num / total_denom
                     player_scores.append((player_id, player_name, value))
-            player_scores.sort(key=lambda x: (-x[2], x[1].lower(), x[0]))
+            player_scores.sort(
+                key=lambda entry: (
+                    -entry[2],
+                    username_key(entry[1]),
+                    entry[1],
+                    entry[0],
+                )
+            )
             player_scores = player_scores[:10]  # Apply limit for ratio stats
         else:
             # Simple stat
@@ -9385,13 +9347,6 @@ PlayAural Server
                     user, current_menu, menu_item_id
                 ):
                     return
-                if (
-                    current_menu in ("pref_category_menu", "pref_detail_menu")
-                    and self._speak_pref_description(
-                        user, current_menu, menu_item_id
-                    )
-                ):
-                    return
 
         if current_menu not in self.GLOBAL_SYSTEM_MENUS:
             table = self._tables.find_user_table(username)
@@ -9562,17 +9517,17 @@ PlayAural Server
                 return
 
             elif menu_id == "send_friend_request_input":
-                value = value.strip()
+                value = str(value or "").strip()
                 if not value:
                      self._restore_input_parent(user, user_state)
                      return
 
-                if value.lower() == user.username.lower():
-                     user.speak_l("friend-error-self", buffer="system")
+                resolution = self._db.resolve_user(value)
+                if resolution.ambiguous:
+                     user.speak_l("username-ambiguous", buffer="system", username=value)
                      self._restore_input_parent(user, user_state)
                      return
-
-                target_record = self._db.get_user(value)
+                target_record = resolution.user
                 if not target_record:
                      user.speak_l("unknown-player", buffer="system")
                      self._restore_input_parent(user, user_state)
@@ -9594,12 +9549,43 @@ PlayAural Server
 
     async def _deliver_private_message(self, sender: NetworkUser, target_username: str, message: str) -> None:
         """Deliver a private message after validating friendship and online status."""
-        target_user = self._users.get(target_username)
+        resolution = self._db.resolve_user(target_username)
+        if resolution.ambiguous:
+            sender.speak_l(
+                "username-ambiguous",
+                buffer="system",
+                username=normalize_username(target_username),
+            )
+            sender.play_sound("accounterror.ogg")
+            return
+
+        target_record = resolution.user
+        canonical_username = (
+            target_record.username
+            if target_record
+            else normalize_username(target_username)
+        )
+        target_user = self._users.get(canonical_username)
 
         # 1. Online Check
         if not target_user or not target_user.approved:
-            sender.speak_l("pm-error-offline", buffer="system", username=target_username)
+            sender.speak_l(
+                "pm-error-offline",
+                buffer="system",
+                username=canonical_username,
+            )
             sender.play_sound("accounterror.ogg")
+            return
+
+        # A private note to yourself is valid and must not require friendship.
+        if target_user.uuid == sender.uuid:
+            sender.speak_l(
+                "pm-sent-content",
+                buffer="chat",
+                username=target_user.username,
+                message=message,
+            )
+            sender.play_sound("pm.ogg")
             return
 
         # 2. Friend Check
@@ -9615,7 +9601,12 @@ PlayAural Server
         target_user.play_sound("pm.ogg")
 
         # Sender FTL confirmation
-        sender.speak_l("pm-sent-content", buffer="chat", username=target_username, message=message)
+        sender.speak_l(
+            "pm-sent-content",
+            buffer="chat",
+            username=target_user.username,
+            message=message,
+        )
         sender.play_sound("pm.ogg")
 
 
@@ -9678,10 +9669,7 @@ PlayAural Server
 
         # Handle Private Message chat command
         if message.startswith("@"):
-            text_after_at = message[1:]
-
-            # Longest matching prefix algorithm for usernames containing spaces
-            longest_match_name = ""
+            text_after_at = message[1:].strip()
 
             # Search through all known usernames (both online and offline friends)
             # Since users might message an offline friend and we want to correctly identify the target
@@ -9694,18 +9682,12 @@ PlayAural Server
                 # Add all currently online users to the pool
                 potential_targets.extend(self._get_online_usernames())
 
-                for target in set(potential_targets):
-                    if text_after_at.lower().startswith(target.lower()):
-                        next_char_idx = len(target)
-                        # Ensure the match ends at a word boundary (space or end of string)
-                        if next_char_idx == len(text_after_at) or text_after_at[next_char_idx] == " ":
-                            if len(target) > len(longest_match_name):
-                                longest_match_name = target
-
-                if longest_match_name:
-                    pm_content = text_after_at[len(longest_match_name):].strip()
+                match = find_username_prefix(text_after_at, potential_targets)
+                if match:
+                    target_username, consumed = match
+                    pm_content = text_after_at[consumed:].strip()
                     if pm_content:
-                        await self._deliver_private_message(user, longest_match_name, pm_content)
+                        await self._deliver_private_message(user, target_username, pm_content)
                 else:
                     # Fallback if no matching user found: just split by space and try to deliver anyway
                     # so the user gets the standard "user not found/offline" error instead of broadcasting a PM.
@@ -9837,7 +9819,10 @@ PlayAural Server
             state = self._user_states.get(username, {})
             if state.get("menu") != "banned_menu":
                 online_users.append(username)
-        return sorted(online_users, key=str.lower)
+        return sorted(
+            online_users,
+            key=lambda name: (username_key(name), name),
+        )
 
     def _format_presence_status(self, locale: str, username: str) -> str:
         """Return a localized, table-aware presence status for an online user."""
@@ -10964,10 +10949,11 @@ PlayAural Server
             elif isinstance(item, dict):
                 restored.append(
                     MenuItem(
-                        text=str(item.get("text", "")),
+                        text=str(item.get("label", item.get("text", ""))),
                         id=item.get("id"),
                         sound=item.get("sound"),
                         description=item.get("description"),
+                        label=item.get("label"),
                     )
                 )
             else:

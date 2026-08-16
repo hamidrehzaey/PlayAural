@@ -2101,6 +2101,23 @@ class MainWindow(wx.Frame):
 
     def on_authorize_success(self, packet):
         """Handle authorization success from server."""
+        canonical_username = packet.get("username")
+        if isinstance(canonical_username, str) and canonical_username:
+            previous_username = self.credentials.get("username")
+            self.credentials["username"] = canonical_username
+            account_id = self.credentials.get("account_id")
+            if (
+                previous_username != canonical_username
+                and self.config_manager
+                and self.server_id
+                and account_id
+            ):
+                self.config_manager.update_account(
+                    self.server_id,
+                    account_id,
+                    username=canonical_username,
+                )
+
         if packet.get("reset_ui", False):
             # Reset stale menus, editboxes, voice, and managed game audio
             # before ordered session UI/audio packets are released by the server.
@@ -2900,7 +2917,8 @@ class MainWindow(wx.Frame):
         if menu_id == "options_menu":
             self._refresh_audio_input_devices(sync_server=True)
 
-        # Parse items - can be strings or objects with {text, id, sound}
+        # Parse items. Server-only label/description metadata may also be
+        # present; every client renders the preference-aware text field.
         items = []
         item_ids = []
         item_sounds = []
@@ -3057,6 +3075,15 @@ class MainWindow(wx.Frame):
             max_length,
             input_id,
         )
+
+    def on_server_remove_editbox(self, packet):
+        """Dismiss an input which authoritative server state superseded."""
+        input_id = packet.get("input_id")
+        if self.current_mode != "edit":
+            return
+        if input_id and input_id != self.current_edit_input_id:
+            return
+        self.switch_to_list_mode()
 
     def on_server_clear_ui(self, packet):
         """Handle clear_ui packet from server."""

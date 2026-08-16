@@ -1741,6 +1741,7 @@ class PlayAuralWebApp {
     const map = {
       wrong_password: "auth-error-wrong-password",
       user_not_found: "auth-error-user-not-found",
+      username_ambiguous: "auth-error-username-ambiguous",
       version_mismatch: "auth-error-version-mismatch",
       rate_limit: "auth-error-rate-limit",
       captcha_missing: "auth-error-captcha-unavailable",
@@ -2286,6 +2287,14 @@ class PlayAuralWebApp {
       case "request_input":
         this.showInlineInput(packet);
         break;
+      case "remove_editbox":
+        if (!packet.input_id || packet.input_id === this.pendingInput?.input_id) {
+          if (this.pendingInput) {
+            this.focusMenuOnNextPacket = true;
+          }
+          this.hideInlineInput();
+        }
+        break;
       case "update_locale":
         if (packet.locale) {
           Localization.load(packet.locale).then(() => this.applyLocalization());
@@ -2355,6 +2364,9 @@ class PlayAuralWebApp {
     this.voice.setCapability(packet.voice || { enabled: false, provider: "", url: "" });
     if (packet.username) {
       this.lastUser = packet.username;
+      if (this.elements.username) {
+        this.elements.username.value = packet.username;
+      }
     }
     if (packet.sounds_info?.version) {
       this.audio.setSoundVersion(packet.sounds_info.version);
@@ -2602,7 +2614,12 @@ class PlayAuralWebApp {
   }
 
   handleMenuPacket(packet) {
-    this.hideInlineInput();
+    // An action editbox is authoritative until the user submits/cancels it or
+    // the server explicitly removes it.  In particular, a delayed turn-menu
+    // repaint must not dismiss the input and expose stale controls underneath.
+    if (this.pendingInput) {
+      return;
+    }
     let items = this.normalizeMenuItems(packet.items);
     if (packet.menu_id === "voice_selection_menu") {
       this.webSpeech.requestVoiceRefresh();

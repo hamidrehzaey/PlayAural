@@ -46,3 +46,50 @@ def test_welcome_sound_has_one_server_ordering_authority():
 
     for pack in ("client", "web_client", "mobile_client"):
         assert (repo_root / pack / "sounds" / "welcome.ogg").is_file()
+
+
+def test_all_clients_adopt_server_canonical_username_after_authorization():
+    repo_root = CLIENT_DIR.parent
+    network_source = (CLIENT_DIR / "network_manager.py").read_text(encoding="utf-8")
+    window_source = (CLIENT_DIR / "ui" / "main_window.py").read_text(
+        encoding="utf-8"
+    )
+    web_source = (repo_root / "web_client" / "app.js").read_text(encoding="utf-8")
+    mobile_source = (
+        repo_root / "mobile_client" / "src" / "app" / "PlayAuralApp.tsx"
+    ).read_text(encoding="utf-8")
+
+    assert 'canonical_username = packet.get("username")' in network_source
+    assert 'self.credentials["username"] = canonical_username' in window_source
+    assert "username: packet.username || this.lastUser" in web_source
+    assert "this.elements.username.value = packet.username" in web_source
+    assert "credentialsRef.current.username = authPacket.username" in mobile_source
+    assert "setUsername(authPacket.username);" in mobile_source
+
+
+def test_all_clients_dismiss_server_superseded_editboxes():
+    repo_root = CLIENT_DIR.parent
+    network_source = (CLIENT_DIR / "network_manager.py").read_text(
+        encoding="utf-8"
+    )
+    window_source = (CLIENT_DIR / "ui" / "main_window.py").read_text(
+        encoding="utf-8"
+    )
+    web_source = (repo_root / "web_client" / "app.js").read_text(encoding="utf-8")
+    mobile_source = (
+        repo_root / "mobile_client" / "src" / "app" / "PlayAuralApp.tsx"
+    ).read_text(encoding="utf-8")
+
+    assert 'packet_type == "remove_editbox"' in network_source
+    assert "on_server_remove_editbox" in window_source
+    assert 'case "remove_editbox":' in web_source
+    assert 'packet.type === "remove_editbox"' in mobile_source
+
+    web_handler = web_source.split('case "remove_editbox":', 1)[1].split(
+        'case "update_locale":', 1
+    )[0]
+    mobile_handler = mobile_source.split(
+        "const handleRemoveEditboxPacket", 1
+    )[1].split("const applyMenuPacket", 1)[0]
+    assert "this.focusMenuOnNextPacket = true" in web_handler
+    assert "requestNativeMenuFocusOnNextPacket();" in mobile_handler

@@ -245,11 +245,16 @@ class NetworkUser(User):
         self._queue_packet(packet)
 
     def _convert_items(self, items: list[str | MenuItem]) -> list[str | dict]:
-        """Convert MenuItem objects to dicts for JSON serialization."""
+        """Render menu hints and convert rows for JSON serialization."""
         result = []
         for item in items:
             if isinstance(item, MenuItem):
-                result.append(item.to_dict())
+                result.append(
+                    item.to_dict(
+                        locale=self.locale,
+                        show_description=self.preferences.show_menu_hints,
+                    )
+                )
             else:
                 result.append(item)
         return result
@@ -415,7 +420,10 @@ class NetworkUser(User):
 
     def remove_editbox(self, input_id: str) -> None:
         self._current_editboxes.pop(input_id, None)
-        # There's no explicit remove_editbox packet, showing a menu will replace it
+        # The client may have had an overlay above the last recorded menu, so
+        # the first replacement menu must never be content-diff suppressed.
+        self._last_menu_packet_id = None
+        self._queue_packet({"type": "remove_editbox", "input_id": input_id})
 
     def clear_ui(self) -> None:
         self._current_menus.clear()

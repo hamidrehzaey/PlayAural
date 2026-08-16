@@ -49,7 +49,7 @@ cd mobile_client && cmd /c npm run typecheck && npx expo start
 
 ## Core Architecture
 
-- `server/games/` currently registers 44 games. Categories are `cards`, `dice`,
+- `server/games/` currently registers 45 games. Categories are `cards`, `dice`,
   `board`, `poker`, `arcade`, and `misc`; user-facing category labels must be
   localized. The Play menu uses dynamic counts, not hardcoded category counts.
 - Games are `@dataclass` classes registered with `@register_game`, inherit from
@@ -361,6 +361,11 @@ Any persistent feature must define and test:
 - cleanup/pruning of stale data
 - account-deletion behavior
 - migration/backward compatibility when schemas or supported games change
+
+`Game.on_discard()` is the idempotent lifecycle hook for match-scoped caches,
+bot observations, and similar memory that must not outlive its game instance.
+The framework calls it on both table destruction and game restart; it does not
+replace the retention and cleanup rules required for genuinely persistent data.
 
 Do not add database rows, tables, saved runtime state, notifications, chat logs,
 tokens, invites, moderation records, or similar data without this lifecycle.

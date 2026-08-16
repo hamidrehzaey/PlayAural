@@ -73,8 +73,8 @@ import { TtsManager, type TtsVoiceOption } from "../tts/TtsManager";
 import { ENABLE_CLIENT_DEBUG_LOGS } from "../utils/debug";
 import { MobileVoiceManager, type MobileVoiceConnectionState } from "../voice/MobileVoiceManager";
 
-const MOBILE_CLIENT_VERSION = "1.0.4.11";
-const MOBILE_BUILD_STAMP = "2026-07-31 00:13:47 +07:00";
+const MOBILE_CLIENT_VERSION = "1.0.4.14";
+const MOBILE_BUILD_STAMP = "2026-08-16 19:07:22 +07:00";
 const DEFAULT_SERVER_URL = "wss://playaural.ddt.one:443";
 const CLIENT_CONFIG_STORAGE_KEY = "playaural.mobile.clientConfig";
 const CLIENT_PASSWORD_STORAGE_KEY = "playaural.mobile.password";
@@ -119,6 +119,7 @@ const SERVER_AUTH_RESPONSE_KEYS: Record<ServerAuthResponseContext, Record<string
     captcha_missing: "error-captcha-failed",
     rate_limit: "auth-error-rate-limit",
     user_not_found: "auth-error-user-not-found",
+    username_ambiguous: "auth-error-username-ambiguous",
     version_mismatch: "auth-error-version-mismatch",
     wrong_password: "auth-error-wrong-password",
   },
@@ -1725,6 +1726,9 @@ export function PlayAuralApp() {
     if (packet.input_id && currentInput?.inputId !== packet.input_id) {
       return;
     }
+    if (currentInput) {
+      requestNativeMenuFocusOnNextPacket();
+    }
     Keyboard.dismiss();
     activeTextInputKeyRef.current = null;
     inputStateRef.current = null;
@@ -2304,6 +2308,10 @@ export function PlayAuralApp() {
         if (packet.type === "authorize_success") {
           const authPacket = packet as AuthorizeSuccessPacket;
           stopConnectionAudio();
+          if (authPacket.username) {
+            credentialsRef.current.username = authPacket.username;
+            setUsername(authPacket.username);
+          }
           if (authPacket.reset_ui === true) {
             // Reset the previous socket before the server releases this
             // session's ordered UI and audio packets.

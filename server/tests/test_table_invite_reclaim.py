@@ -121,7 +121,11 @@ class TestTableInviteReclaim:
             replacement,
             "options_accessibility_submenu",
         )
-        assert item_ids == ["invert_multiline_enter", "back"]
+        assert item_ids == [
+            "show_menu_hints",
+            "invert_multiline_enter",
+            "back",
+        ]
 
     @pytest.mark.asyncio
     async def test_new_table_created_sound_follows_new_table_notification_preference(self):
@@ -1317,6 +1321,36 @@ class TestTableInviteReclaim:
             member.username == spectator.username for member in table.members
         )
         assert spectator.username not in table._member_offline_since
+
+    def test_playing_disconnected_spectator_is_removed_from_table_roster(self):
+        host = self._create_online_user("Host")
+        guest = self._create_online_user("Guest")
+        spectator = self._create_online_user("Spectator")
+        table, game = self._create_started_table(host, guest)
+        table.add_member(
+            spectator.username,
+            spectator,
+            as_spectator=True,
+        )
+        spectator_player = game.add_spectator(
+            spectator.username,
+            spectator,
+        )
+        self.server._users.pop(spectator.username, None)
+
+        game.on_player_disconnect(spectator_player.id)
+
+        assert game.get_player_by_id(spectator_player.id) is None
+        assert not any(
+            member.username == spectator.username
+            for member in table.members
+        )
+        assert table.get_user(spectator.username) is None
+        assert self.server._tables.find_user_table(spectator.username) is None
+        assert not any(
+            row["name"] == spectator.username
+            for row in self.server._table_member_rows(table)
+        )
 
     def test_table_reset_converts_replacement_bot_to_fresh_bot_identity(self):
         host = self._create_online_user("Host")

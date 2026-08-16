@@ -208,6 +208,9 @@ class NetworkManager:
         if packet_type == "update_locale":
              self.main_window.on_update_locale(packet)
         elif packet_type == "authorize_success":
+            canonical_username = packet.get("username")
+            if isinstance(canonical_username, str) and canonical_username:
+                self.username = canonical_username
             self.main_window.on_authorize_success(packet)
         elif packet_type == "speak":
             self.main_window.on_server_speak(packet)
@@ -217,6 +220,8 @@ class NetworkManager:
             self.main_window.on_server_menu(packet)
         elif packet_type == "request_input":
             self.main_window.on_server_request_input(packet)
+        elif packet_type == "remove_editbox":
+            self.main_window.on_server_remove_editbox(packet)
         elif packet_type == "clear_ui":
             self.main_window.on_server_clear_ui(packet)
         elif packet_type == "game_list":

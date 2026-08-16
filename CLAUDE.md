@@ -92,6 +92,7 @@ Important server-driven packets include:
 - `menu`
 - `update_menu`
 - `request_input`
+- `remove_editbox`
 - `speak`
 - `audio`
 - `chat`
@@ -171,7 +172,7 @@ loading an asset.
 ### Server Architecture
 - **`server/core/server.py`** — Main orchestrator, auth routing, menus, reconnect, moderation, MOTD, presence
 - **`server/network/websocket_server.py`** — Async WebSocket transport
-- **`server/games/`** — 44 registered game implementations
+- **`server/games/`** — 45 registered game implementations
 - **`server/game_utils/`** — shared game mixins and helpers
 - **`server/tables/`** — table lifecycle, save/restore, membership
 - **`server/auth/`** — authentication, CAPTCHA checks, password reset, rate limiting
@@ -604,6 +605,11 @@ Any new persistent feature must define:
 - what happens on account deletion
 - tests for cleanup behavior
 
+`Game.on_discard()` is the idempotent lifecycle hook for match-scoped caches,
+bot observations, and similar memory that must not outlive its game instance.
+The framework calls it on both table destruction and game restart; it does not
+replace the retention and cleanup rules required for genuinely persistent data.
+
 ### Localization
 - All player-facing strings go through Fluent (`speak_l`, `broadcast_l`,
   `broadcast_personal_l`, and the localized option/pref/sequence helpers). No
@@ -775,11 +781,11 @@ Mobile rules:
   language names; metadata complements it and does not replace it.
 
 ### Game Counts and Catalog
-The server currently registers **44 games**:
+The server currently registers **45 games**:
 - category ids are `cards`, `dice`, `board`, `poker`, `arcade`, and `misc`
 - the Play menu exposes a persisted category filter with dynamic per-category game counts
 - games usually expose one category through `get_category()`, while `get_categories()` supports future multi-category games
-- recent additions include `Metal Pipe`, `Nine`, `Senet`, `Cards Against Humanity`, `21`, `Age of Heroes`, `UNO`, `Exploding Kittens`, and `BANG! The Bullet`
+- recent additions include `Metal Pipe`, `Nine`, `Senet`, `Cards Against Humanity`, `21`, `Age of Heroes`, `UNO`, `Exploding Kittens`, `BANG! The Bullet`, and `Monopoly`
 
 ### Key Tech Stack
 - Python 3.11, `asyncio`, `websockets>=12.0`, `mashumaro`, `fluent-runtime`, `openskill`, `argon2-cffi`
