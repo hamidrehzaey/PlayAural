@@ -33,6 +33,8 @@ Trên hầu hết bàn cờ, mọi người bắt đầu tại ô Khởi hành v
 
 Mỗi người tung mở đầu bằng hai xúc xắc. Người có tổng cao nhất đi trước. Những người hòa ở tổng cao nhất tung lại. Sau đó, lượt chơi tiếp tục quanh bàn.
 
+Chưa ai có lượt cho đến khi mọi lần tung mở đầu kết thúc. Trong lúc thiết lập này, các nút tung sẽ yêu cầu bạn chờ, còn \*\*Kiểm tra lượt\*\* sẽ báo rằng hiện chưa có lượt nào.
+
 \*\*Xúc xắc và ra đôi\*\*
 
 Một lần tung thông thường dùng hai xúc xắc sáu mặt. Mỗi xúc xắc có thể ra từ 1 đến 6. Cộng hai số lại để biết mình đi bao nhiêu ô. Chẳng hạn, mặt 2 và mặt 4 cho tổng 6 nên bạn đi 6 ô.
@@ -80,6 +82,8 @@ Khi dừng tại bất động sản chưa có chủ, trình đơn mua cho biế
 
 Không mua sẽ lập tức mở đấu giá. Người vừa từ chối vẫn được đặt giá. Chọn \*\*Đặt mức giá tối thiểu\*\* để tăng đúng mức nhỏ nhất, \*\*Nhập mức giá khác\*\* để đặt cao hơn hoặc \*\*Rời cuộc đấu giá\*\*. Đã rời thì không thể quay lại. Người đặt giá cuối cùng trả số tiền thắng và nhận bất động sản. Nếu mọi người đều rời trước khi có ai đặt giá, bất động sản vẫn chưa có chủ.
 
+Khi bạn còn tham gia đấu giá, các nút đấu giá luôn ở trong trình đơn lượt. Mức giá tối thiểu trên nút sẽ tự cập nhật, còn các nút bị vô hiệu hóa trong lúc người khác đặt giá. Chúng chỉ biến mất khi bạn rời cuộc đấu giá đó hoặc khi cuộc đấu giá kết thúc.
+
 Trên hầu hết bàn cờ, giá đầu tiên là 1 và mỗi lần tăng ít nhất 1. Bàn cờ Hà Nội, Việt Nam mở giá ở 10.000 đồng và mỗi lần tăng ít nhất 5.000 đồng. Bạn có thể quản lý bất động sản để lấy thêm tiền trước khi đặt giá.
 
 \*\*Tiền thuê\*\*
@@ -90,9 +94,9 @@ Tiền thuê phụ thuộc vào loại bất động sản:
 
 \* \*\*Đường phố hoặc hàng quán Hà Nội:\*\* Dùng mức tiền thuê trên giấy sở hữu. Bất động sản chưa phát triển thu gấp đôi mức cơ bản khi một người sở hữu trọn nhóm màu.
 \* \*\*Đường sắt, nhà ga hoặc bến xe Hà Nội:\*\* Tiền thuê tăng khi chủ sở hữu có thêm bất động sản giao thông.
-\* \*\*Công ty tiện ích hoặc địa danh Hà Nội:\*\* Tiền thuê thường bằng 4 lần tổng xúc xắc khi chủ sở hữu có một nơi, hoặc 10 lần khi có cả hai.
+\* \*\*Công ty tiện ích hoặc địa danh Hà Nội:\*\* Khi dừng tại công ty tiện ích hoặc địa danh đã có chủ, bạn tung một lần mới để tính tiền thuê. Mỗi điểm xúc xắc trị giá 4 đơn vị tiền của bàn cờ khi chủ sở hữu có một nơi, hoặc 10 đơn vị khi có trọn nhóm. Riêng bàn cờ Hà Nội, mỗi điểm trị giá 4.000 đồng khi chủ sở hữu có một địa danh hoặc 10.000 đồng khi có cả hai.
 
-Một số thẻ đưa bạn đến bất động sản giao thông hoặc công ty tiện ích gần nhất. Bất động sản giao thông đến bằng cách này thu gấp đôi tiền thuê. Công ty tiện ích đã có chủ sẽ dùng một lần tung mới và thu 10 lần tổng vừa tung.
+Một số thẻ đưa bạn đến bất động sản giao thông hoặc công ty tiện ích gần nhất. Bất động sản giao thông đến bằng cách này thu gấp đôi tiền thuê. Công ty tiện ích đã có chủ vẫn dùng lần tung mới, nhưng áp dụng mức của trọn nhóm ngay cả khi chủ sở hữu mới có một công ty.
 
 \*\*Nhóm màu và phát triển\*\*
 
@@ -129,6 +133,8 @@ Tại thời điểm an toàn trong ván, bất kỳ người nào còn chơi c�
 
 Trong lúc soạn đề nghị, chưa tài sản nào đổi chủ. Người nhận xem toàn bộ đề nghị rồi đồng ý hoặc từ chối. Nếu nhận bất động sản đang thế chấp, họ phải đủ tiền trả khoản lãi bắt buộc ngay lúc nhận. Bản nháp chỉ hiện với người đề nghị; đề nghị đã gửi là thông tin công khai.
 
+Một cuộc trao đổi có thể khiến người chơi không còn tiền mặt lẫn bất động sản. Chỉ riêng tình trạng đó không làm người chơi phá sản: phá sản chỉ xảy ra khi về sau họ mắc một khoản nợ lớn hơn tổng tiền mặt và mọi khoản có thể huy động hợp lệ bằng cách bán hoặc thế chấp.
+
 \*\*Nhà tù\*\*
 
 Bạn bị đưa thẳng vào tù khi dừng ở ô Vào tù, rút thẻ yêu cầu vào tù hoặc ra đôi ba lần trong một lượt. Đi thẳng vào tù không nhận tiền ở ô bắt đầu.
@@ -160,7 +166,9 @@ Nếu nợ người chơi khác, chủ nợ nhận tiền mặt, giấy sở h�
 \* \*\*Xem tình trạng ván chơi:\*\* Xem lượt, người đang phải quyết định, giai đoạn, lần tung gần nhất cùng cuộc đấu giá, khoản nợ hoặc trao đổi đang diễn ra.
 \* \*\*Kiểm tra lượt:\*\* Nghe người đang có lượt và bất kỳ ai hiện phải hành động ngoài lượt.
 
-Các bảng thông tin trực tiếp tự cập nhật mà không làm mất vị trí đang đọc. Trình đơn do hành động của bạn mở sẽ bắt đầu tại mục đầu tiên. Cập nhật nền thông thường giữ nguyên mục hiện tại.
+Các bảng thông tin trực tiếp tự cập nhật mà không làm mất vị trí đang đọc. Trình đơn do hành động của bạn mở sẽ bắt đầu tại mục đầu tiên. Cập nhật nền thông thường giữ nguyên mục hiện tại. Khi bạn chủ động chọn \*\*Kết thúc lượt\*\*, chỉ con trỏ của bạn trở về nút \*\*Tung xúc xắc\*\* luôn hiện diện; hành động của người khác không bao giờ ép con trỏ của bạn nhảy vị trí.
+
+Trong khi lần tung, bước di chuyển quân cờ hoặc hiệu ứng thẻ đang được xử lý, các nút có thể làm thay đổi ván sẽ bị vô hiệu hóa. Các bảng thông tin chỉ đọc vẫn dùng được và không bị đóng.
 
 Tùy chọn \*\*Gợi ý trong menu\*\* tại \*\*Tùy chỉnh chung > Hỗ trợ tiếp cận\*\* thêm lời giải thích dành cho người mới vào những hành động cần thiết. Gợi ý của nút bị vô hiệu hóa vẫn giải thích chức năng; hãy kích hoạt nút để nghe đúng lý do nó hiện chưa dùng được.
 

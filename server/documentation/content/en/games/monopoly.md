@@ -33,6 +33,8 @@ On most boards, everyone begins on Go with 1,500 in the selected currency. The B
 
 Everyone makes an opening roll with two dice. The highest total takes the first turn. Players tied for the highest total roll again. Play then continues around the table.
 
+No turn is assigned until all opening rolls finish. During this setup, roll controls ask you to wait, and \*\*Check whose turn\*\* reports that no one has a turn yet.
+
 \*\*Dice and doubles\*\*
 
 A normal roll uses two six-sided dice. Each die can show 1 through 6. Add the two numbers to find how many spaces you move. For example, a 2 and a 4 move you 6 spaces.
@@ -80,6 +82,8 @@ When you land on unowned property, the purchase menu gives its color group, grou
 
 Declining the purchase starts an auction immediately. The player who declined may still bid. Choose \*\*Bid the minimum\*\* for the smallest legal raise, \*\*Enter a custom bid\*\* for a larger amount, or \*\*Leave the auction\*\*. Leaving is permanent. The final bidder pays the winning bid and receives the property. If everyone leaves before any bid, the property remains unowned.
 
+While you remain in an auction, its controls stay in your turn menu. They update to show the current minimum bid and stay disabled while another bidder acts. They disappear only after you leave that auction or the auction ends.
+
 On most boards, the opening bid is 1 and each raise is at least 1. The Hanoi, Vietnam board opens at 10,000 VND and raises by at least 5,000 VND. You may manage property to obtain cash before bidding.
 
 \*\*Rent\*\*
@@ -90,9 +94,9 @@ Rent depends on the property type:
 
 \* \*\*Street or Hanoi business:\*\* Uses the rent level on its deed. An undeveloped property earns double its base rent when one player owns the complete color group.
 \* \*\*Railroad, station, or Hanoi bus station:\*\* Rent rises as the owner collects more transit properties.
-\* \*\*Utility or Hanoi landmark:\*\* Rent is normally 4 times the dice total when the owner has one, or 10 times the dice total when the owner has both.
+\* \*\*Utility or Hanoi landmark:\*\* When you land on an owned utility or landmark, make a fresh rent roll. Each dice pip is worth 4 units of that board's currency when the owner has one, or 10 units when the owner has the complete group. On the Hanoi board, each pip is worth 4,000 VND with one landmark or 10,000 VND with both.
 
-Some cards send you to the nearest transit property or utility. A transit property reached this way charges double rent. An owned utility reached this way uses a fresh dice roll and charges 10 times that total.
+Some cards send you to the nearest transit property or utility. A transit property reached this way charges double rent. An owned utility reached this way uses the same fresh rent roll but charges the complete-group rate even when its owner has only one utility.
 
 \*\*Color groups and development\*\*
 
@@ -129,6 +133,8 @@ At a safe point in play, any active player may propose a trade with another acti
 
 Nothing changes ownership while the offer is being prepared. The recipient reviews the complete offer, then accepts or rejects it. A recipient of mortgaged property must be able to pay the immediate mortgage interest. Draft offers are private to the proposer; submitted offers are public.
 
+A trade may leave a player with no cash and no property. That alone is not bankruptcy: bankruptcy occurs only when the player later owes more than their cash and everything they can legally sell or mortgage can cover.
+
 \*\*Jail\*\*
 
 You go directly to jail after landing on Go to Jail, drawing a card that sends you there, or rolling doubles three times in one turn. Direct jail movement pays no start-space salary.
@@ -160,7 +166,9 @@ If you owe another player, that creditor receives your remaining cash, deeds, an
 \* \*\*Read game status:\*\* View the turn, required decision maker, phase, last roll, and any auction, debt, or trade in progress.
 \* \*\*Check whose turn:\*\* Hear the turn player and anyone currently required to act outside their turn.
 
-Live information views update without moving your reading position. Menus opened by your action begin on their first item. Normal background updates preserve your current item.
+Live information views update without moving your reading position. Menus opened by your action begin on their first item. Normal background updates preserve your current item. Explicitly choosing \*\*End turn\*\* returns only your focus to the persistent \*\*Roll dice\*\* control; another player's action never forces your focus to jump.
+
+While a roll, token movement, or card effect is resolving, controls that could change the game stay disabled. Read-only information views remain available and stay open.
 
 The \*\*Menu Hints\*\* setting under \*\*General options > Accessibility\*\* adds beginner explanations to actions that need them. A disabled action's hint continues to explain its purpose; activate the action to hear the exact reason it is currently unavailable.
 
