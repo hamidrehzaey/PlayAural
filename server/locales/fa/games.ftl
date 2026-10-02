@@ -100,9 +100,9 @@ card-name = { $rank } { $suit }
 no-cards = بدون کارت
 
 suit-diamonds = خشت
-suit-clubs = پیک
+suit-clubs = گشنیز
 suit-hearts = دل
-suit-spades = خشت‌های سیاه
+suit-spades = پیک
 
 rank-ace = آس
 rank-two = ۲

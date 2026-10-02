@@ -1,4 +1,4 @@
-game-name-ludo = لودو
+game-name-ludo = منچ
 
 ludo-roll-die = پرتاب تاس
 ludo-move-token = حرکت مهره
