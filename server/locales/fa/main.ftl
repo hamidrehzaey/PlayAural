@@ -769,3 +769,473 @@ success-reset-email-sent = یک کد بازنشانی به آدرس ایمیل �
 error-smtp-send-failed = ارسال ایمیل بازنشانی ناموفق بود. لطفاً بعداً دوباره تلاش کنید.
 error-invalid-reset-code = کد بازنشانی نامعتبر یا منقضی شده است.
 success-password-reset = رمز عبور شما با موفقیت بازنشانی شد. اکنون می‌توانید وارد شوید.
+
+auth-username-reserved = این نام توسط PlayAural رزرو شده است. لطفاً یک نام کاربری دیگر انتخاب کنید.
+username-ambiguous = بیش از یک حساب قدیمی با «{ $username }» مطابقت دارد. املا دقیق ثبت شده را وارد کنید.
+table-listing-game-composition-status = { $game } [{ $status }]: میز { $host }. { $composition }.
+table-composition-human-players = { $count } { $count ->
+    [one] بازیکن
+   *[other] بازیکن
+}: { $names }
+table-composition-bots = { $count } { $count ->
+    [one] ربات
+   *[other] ربات
+}
+table-composition-spectators = { $count ->
+    [one] تماشاگر
+   *[other] تماشاگر
+}: { $names }
+table-composition-spectators-more = تماشاگران: { $names }؛ به علاوه { $remaining } نفر دیگر
+table-composition-spectator-host = { $host } (میزبان)
+table-composition-two = { $first }؛ { $second }
+table-composition-three = { $first }؛ { $second }؛ { $third }
+table-composition-empty = بدون شرکت‌کننده
+table-closed-disconnect-timeout = میز بسته شد زیرا هیچ بازیکن فعالی در عرض { $minutes } دقیقه بازنگشت.
+online-users-summary = { $count ->
+    [one] { $count } کاربر آنلاین است. { $groups }
+   *[other] { $count } کاربر آنلاین هستند. { $groups }
+}
+online-users-group = { $role ->
+    [dev] { $count ->
+        [one] { $count } توسعه‌دهنده: { $users }.
+       *[other] { $count } توسعه‌دهنده: { $users }.
+    }
+    [admin] { $count ->
+        [one] { $count } مدیر: { $users }.
+       *[other] { $count } مدیر: { $users }.
+    }
+   *[user] { $staff_count ->
+        [0] { $users }.
+       *[other] { $count ->
+            [one] { $count } کاربر: { $users }.
+           *[other] { $count } کاربر: { $users }.
+        }
+    }
+}
+online-users-more = { $count } نفر دیگر
+general-desc-global-chat-channel = کانال زبانی که برای ارسال و دریافت گفتگوی جهانی استفاده می‌شود را انتخاب کنید. حتی زمانی که گفتگوی جهانی فعال است، یک کانال لازم است.
+saved-table-blocked-by-you = این میز ذخیره شده شامل کاربرانی است که شما مسدود کرده‌اید: { $players }. برای بازیابی آن، شخصی و گزینه‌ها، دوستان، سپس کاربران مسدود شده را باز کنید و آنها را از حالت مسدود خارج کنید. بازیابی تنها در صورتی می‌تواند ادامه یابد که تماس اجتماعی مستقیم برای همه در دسترس باشد. فایل ذخیره حفظ شد.
+saved-table-social-blocked = این میز ذخیره شده قابل بازیابی نیست زیرا تماس اجتماعی مستقیم بین شما و { $players } در دسترس نیست. فایل ذخیره حفظ شد.
+saved-table-social-blocked-mixed = این میز ذخیره شده شامل کاربرانی است که شما مسدود کرده‌اید: { $blocked }. شخصی و گزینه‌ها، دوستان، سپس کاربران مسدود شده را باز کنید و آنها را از حالت مسدود خارج کنید. تماس اجتماعی مستقیم با این افراد نیز در دسترس نیست: { $unavailable }. فایل ذخیره حفظ شد.
+saved-table-invalid = این میز ذخیره شده دیگر قابل بازیابی نیست زیرا داده‌های بازی یا بازیکن ذخیره شده در آن ناقص یا ناسازگار است. فایل ذخیره حفظ شد.
+action-start-needs-human-player = نمی‌توان فقط با ربات‌ها شروع کرد. حداقل یک انسان باید به عنوان بازیکن شرکت کند. از تماشاگر به بازیکن تغییر وضعیت دهید؛ اگر میز پر است، ابتدا یک ربات را حذف کنید.
+action-role-change-rate-limited = شما خیلی سریع بین حالت بازی و تماشا جابه‌جا می‌شوید. دوباره امتحان کنید در { $seconds ->
+    [one] 1 ثانیه
+   *[other] { $seconds } ثانیه
+}.
+global-chat-channel-option = زبان گفتگوی جهانی: { $channel }
+global-chat-channel-none = هیچ کانالی انتخاب نشده است
+global-chat-channel-none-current = هیچ کانالی انتخاب نشده است (فعلی)
+global-chat-channel-name = { $language }
+global-chat-channel-recommended = { $language } (برای زبان رابط کاربری شما توصیه می‌شود)
+global-chat-channel-current = { $language } (فعلی)
+global-chat-channel-current-recommended = { $language } (فعلی، برای زبان رابط کاربری شما توصیه می‌شود)
+global-chat-channel-selected = زبان گفتگوی جهانی روی { $language } تنظیم شد. گفتگوی جهانی در زمان واقعی نظارت نمی‌شود. اگر کسی فحاشی کرد یا به شما توهین کرد، او را مسدود کنید. لطفاً سوء استفاده جدی یا مکرر را برای بررسی بعدی گزارش دهید.
+global-chat-channel-cleared = هیچ زبان گفتگوی جهانی انتخاب نشده است. شما پیام‌های جهانی ارسال یا دریافت نخواهید کرد.
+table-members-summary-compact = خلاصه میز: { $composition }.
+table-summary-human-players = { $count } { $count ->
+    [one] بازیکن انسانی
+   *[other] بازیکن انسانی
+}
+table-summary-bots = { $count } { $count ->
+    [one] ربات
+   *[other] ربات
+}
+table-summary-spectators = { $count } { $count ->
+    [one] تماشاگر
+   *[other] تماشاگر
+}
+my-stats-custom = { $name }: { $value }
+admin-moderation = مدیریت گفتگو
+admin-moderation-global-chat-toggle = گفتگوی جهانی: { $status }
+admin-moderation-global-chat-toggle-description = ارسال پیام را برای هر کانال زبان جهانی روشن یا خاموش کنید. این تنظیم پس از راه‌اندازی مجدد سرور باقی می‌ماند.
+admin-moderation-global-chat-status-description = وضعیت فعلی در کل سرور. فقط یک توسعه‌دهنده می‌تواند این تنظیم را تغییر دهد.
+admin-moderation-global-chat-update-failed = تنظیمات گفتگوی جهانی ذخیره نشد، بنابراین هیچ تغییری اعمال نشد. لطفاً دوباره امتحان کنید.
+global-chat-availability-enabled = گفتگوی جهانی توسط توسعه‌دهنده فعال شده است. قبل از ارسال یا دریافت پیام‌های جهانی، یک کانال زبان انتخاب کنید.
+global-chat-availability-disabled = گفتگوی جهانی موقتاً توسط توسعه‌دهنده غیرفعال شده است.
+admin-moderation-section-reports = گزارش‌ها
+admin-moderation-open-reports = گزارش‌های باز: { $count }
+admin-moderation-closed-reports = گزارش‌های بسته شده: { $count }
+admin-moderation-all-reports = تمام گزارش‌های نگه‌داشته شده: { $count }
+admin-moderation-section-messages = تاریخچه پیام‌های جهانی
+admin-moderation-browse-messages = مرور و فیلتر کردن تمام پیام‌های جهانی
+admin-moderation-find-history = یافتن تاریخچه گفتگوی جهانی با نام کاربری دقیق
+admin-moderation-retained-summary = شواهد نگه‌داشته شده: { $messages } پیام جهانی و { $closed } گزارش بسته شده.
+admin-moderation-section-retention = حذف دائمی
+admin-moderation-clear-history = پاک کردن تمام پیام‌های گفتگوی جهانی نگه‌داشته شده ({ $count })
+admin-moderation-clear-closed-reports = پاک کردن تمام گزارش‌های بسته شده ({ $count })
+admin-moderation-open-report-list = گزارش‌های باز، جدیدترین در ابتدا
+admin-moderation-closed-report-list = گزارش‌های بسته شده، جدیدترین در ابتدا
+admin-moderation-all-report-list = تمام گزارش‌های نگه‌داشته شده، جدیدترین در ابتدا
+admin-moderation-report-row = گزارش #{ $id }، ثبت شده در { $time }. کاربر گزارش شده: { $target }، شناسه { $target_id }. دلیل: { $reason }. گزارش‌دهنده: { $reporter }. وضعیت: { $status }.
+admin-moderation-no-reports = هیچ گزارشی با این نما مطابقت ندارد.
+admin-moderation-value-unknown = ناشناخته
+admin-moderation-status-open = باز
+admin-moderation-status-reviewed = بررسی شده
+admin-moderation-status-dismissed = رد شده
+admin-moderation-status-actioned = اقدام ثبت شد
+admin-moderation-status-unknown = ناشناخته
+admin-moderation-report-unavailable = این گزارش دیگر وجود ندارد. ممکن است توسعه‌دهنده دیگری آن را پاک کرده باشد.
+admin-moderation-report-id = شناسه گزارش: { $id }
+admin-moderation-report-time = ثبت شده در: { $time }
+admin-moderation-report-status = وضعیت: { $status }
+admin-moderation-report-origin = مبدا: { $origin }
+admin-moderation-origin-manual = ثبت شده توسط کاربر
+admin-moderation-origin-automatic = ایجاد شده به صورت خودکار توسط سیستم
+admin-moderation-report-reporter = گزارش‌دهنده: { $username }. شناسه حساب: { $uuid }
+admin-moderation-report-target = کاربر گزارش شده: { $username }. شناسه حساب: { $uuid }
+admin-moderation-report-reason = دلیل: { $reason }
+admin-moderation-report-channel = کانال متنی گفتگوی جهانی: { $channel }
+admin-moderation-report-scope = شناسایی شده در: { $scope }
+admin-moderation-scope-global = گفتگوی جهانی
+admin-moderation-scope-table = گفتگوی میز
+admin-moderation-detection-rate-limited = پیام‌ها خیلی سریع ارسال شدند
+admin-moderation-detection-repeated-message = پیام‌های مشابه تکراری
+admin-moderation-automatic-evidence = به صورت خودکار توسط سیستم فقط برای بررسی دستی ایجاد شده است؛ هیچ جریمه‌ای اعمال نشد. در { $scope }، سیستم شناسایی { $incidents } حادثه هرزنامه مجزا را مشاهده کرد و { $rejected } تلاش را در طول یک پنجره مشاهداتی { $window } رد کرد. { $accepted } پیام اخیر پذیرفته شد. شناسایی: { $detection }. آخرین پیام رد شده: { $sample }
+admin-moderation-automatic-evidence-unavailable = این گزارش به صورت خودکار توسط سیستم فقط برای بررسی دستی ایجاد شده است، و هیچ جریمه‌ای اعمال نشده است. شواهد شناسایی ساختاریافته آن در دسترس نیست یا از نسخه پشتیبانی نشده‌ای است.
+admin-moderation-report-anchor = شناسه پیام متنی ذخیره شده: { $id }
+admin-moderation-report-anchor-unavailable = هیچ پیام متنی ذخیره شده‌ای در دسترس نیست. ممکن است حساب گزارش شده پیامی در این کانال ارسال نکرده باشد، یا تاریخچه گفتگو پاک شده باشد.
+admin-moderation-report-details = جزئیات بیشتر: { $details }
+admin-moderation-report-review = بررسی شده توسط { $reviewer }، شناسه حساب { $reviewer_id }، در { $time }.
+admin-moderation-view-context = مشاهده گفتگو در حوالی زمان گزارش
+admin-moderation-view-target-history = مشاهده تمام پیام‌های جهانی نگه‌داشته شده از شناسه حساب گزارش شده
+admin-moderation-mark-reviewed = علامت‌گذاری به عنوان بررسی شده بدون ثبت جریمه
+admin-moderation-dismiss-report = رد گزارش
+admin-moderation-mark-actioned = علامت‌گذاری به عنوان اقدام ثبت شده. این کار جریمه‌ای اعمال نمی‌کند.
+admin-moderation-context-heading = متن برای گزارش #{ $id }، ثبت شده در { $time }. کانال: { $channel }. پیام‌ها به ترتیب زمانی هستند؛ پیام‌های کاربر گزارش شده مشخص شده‌اند.
+admin-moderation-context-message = { $username }: { $message } پیام #{ $id }، ارسال شده در { $time }. شناسه حساب: { $uuid }. زبان: { $channel }.
+admin-moderation-context-target-message = کاربر گزارش شده { $username }: { $message } پیام #{ $id }، ارسال شده در { $time }. شناسه حساب: { $uuid }. زبان: { $channel }.
+admin-moderation-context-anchor-message = پیام لنگر کاربر گزارش شده از { $username }: { $message } پیام #{ $id }، ارسال شده در { $time }. شناسه حساب: { $uuid }. زبان: { $channel }.
+admin-moderation-context-empty = هیچ پیام جهانی نگه‌داشته شده‌ای در حوالی این زمان گزارش باقی نمانده است.
+admin-moderation-copy-page = { $count ->
+    [one] کپی پیام در این صفحه (1)
+   *[other] کپی پیام‌ها در این صفحه ({ $count })
+}
+admin-moderation-copy-page-success = { $count ->
+    [one] 1 پیام از این صفحه در کلیپ‌بورد کپی شد.
+   *[other] { $count } پیام از این صفحه در کلیپ‌بورد کپی شد.
+}
+admin-moderation-copy-page-failed = امکان کپی این صفحه در کلیپ‌بورد وجود نداشت. مجوز کلیپ‌بورد را بررسی کرده و دوباره امتحان کنید.
+admin-moderation-history-prompt = نام کاربری دقیق شخصی را که می‌خواهید تاریخچه گفتگوی جهانی او را پیدا کنید وارد کنید. شناسه‌های حساب تاریخی با نام کاربری یکسان به طور جداگانه فهرست می‌شوند.
+admin-moderation-sender-results-heading = هویت‌های فرستنده نگه‌داشته شده مطابق با نام کاربری دقیق "{ $username }".
+admin-moderation-sender-result = { $username }، شناسه حساب { $uuid }. { $count } پیام از { $first } تا { $last }.
+admin-moderation-no-sender-history = هیچ تاریخچه گفتگوی جهانی نگه‌داشته شده‌ای با نام کاربری دقیق "{ $username }" مطابقت ندارد.
+admin-moderation-history-heading = تاریخچه گفتگوی جهانی نگه‌داشته شده برای { $username }، شناسه حساب { $uuid }: { $count } پیام، جدیدترین در ابتدا.
+admin-moderation-history-message = { $username }: { $message } پیام #{ $id }، ارسال شده در { $time }. زبان: { $channel }.
+admin-moderation-history-empty = هیچ پیام جهانی نگه‌داشته شده‌ای برای این شناسه حساب باقی نمانده است.
+admin-moderation-message-list-heading = تاریخچه پیام‌های جهانی. { $count } پیام مطابقت دارد. ترتیب: { $sort }. زبان: { $channel }. دوره: { $period }. تمام زمان‌ها به وقت UTC است.
+admin-moderation-message-row = { $username }: { $message } پیام #{ $id }، ارسال شده در { $time }. شناسه حساب: { $uuid }. زبان: { $channel }.
+admin-moderation-message-list-empty = هیچ پیام جهانی نگه‌داشته شده‌ای با این فیلترها مطابقت ندارد.
+admin-moderation-message-filter-sort = ترتیب مرتب‌سازی: { $sort }
+admin-moderation-message-filter-language = زبان: { $channel }
+admin-moderation-message-filter-period = دوره زمانی: { $period }
+admin-moderation-message-filter-reset = بازنشانی تمام فیلترهای پیام
+admin-moderation-message-sort-newest = جدیدترین در ابتدا
+admin-moderation-message-sort-oldest = قدیمی‌ترین در ابتدا
+admin-moderation-message-language-all = تمام زبان‌ها
+admin-moderation-message-period-all = تمام زمان‌ها
+admin-moderation-message-period-today = امروز
+admin-moderation-message-period-yesterday = دیروز
+admin-moderation-message-period-last-7-days = 7 روز گذشته
+admin-moderation-message-period-last-30-days = 30 روز گذشته
+admin-moderation-message-period-current-month = ماه تقویمی جاری
+admin-moderation-message-period-previous-month = ماه تقویمی قبلی
+admin-moderation-message-language-menu = فیلتر کردن پیام‌ها بر اساس زبان. فیلتر فعلی { $channel } است.
+admin-moderation-message-period-menu = فیلتر کردن پیام‌ها بر اساس دوره زمانی UTC. فیلتر فعلی { $period } است.
+admin-moderation-message-filter-current = { $value } (فعلی)
+admin-moderation-clear-history-confirm = تمام { $count } پیام گفتگوی جهانی نگه‌داشته شده برای همیشه حذف شوند؟ این عمل غیرقابل بازگشت است. { $open } گزارش باز باقی خواهد ماند، اما لنگرهای پیام ذخیره شده و متن گفتگوی آنها حذف خواهند شد.
+admin-moderation-clear-closed-confirm = تمام { $count } گزارش بسته شده برای همیشه حذف شوند؟ گزارش‌های باز و تاریخچه گفتگوی جهانی باقی خواهند ماند. این عمل غیرقابل بازگشت است.
+admin-moderation-report-already-closed = این گزارش قبلاً با اقدام بررسی دیگری بسته شده بود. رکورد فعلی دوباره بارگیری شده است.
+admin-moderation-report-status-updated = گزارش #{ $id } اکنون به عنوان { $status } علامت‌گذاری شده است. هیچ جریمه خودکاری اعمال نشد.
+admin-new-manual-report = گزارش مدیریت جدید #{ $id }: { $reporter } کاربر { $target } را گزارش کرد.
+admin-new-automatic-report = گزارش هرزنامه جدید سیستم #{ $id } نیاز به بررسی دستی دارد: { $target }.
+admin-moderation-history-cleared = { $count } پیام گفتگوی جهانی نگه‌داشته شده برای همیشه حذف شدند. گزارش‌های موجود بدون لنگر پیام باقی می‌مانند. اگر هیچ پیامی باقی نماند، شماره‌گذاری پیام‌ها از 1 شروع می‌شود.
+admin-moderation-closed-reports-cleared = { $count } گزارش بسته شده برای همیشه حذف شدند. گزارش‌های باز باقی می‌مانند. اگر هیچ گزارشی باقی نماند، شماره‌گذاری گزارش‌ها از 1 شروع می‌شود.
+
+admin-database-management = مدیریت پایگاه داده
+admin-database-management-summary = نگهداری پایگاه داده فقط برای توسعه‌دهندگان. تجزیه و تحلیل فقط خواندنی است. پشتیبان‌گیری، پاکسازی و فشرده‌سازی موقتاً گیم‌پلی و تغییرات حساب را در سراسر سرور متوقف می‌کنند.
+admin-database-backup = پشتیبان‌گیری از پایگاه داده
+admin-database-backup-confirm = اکنون از پایگاه داده پشتیبان تهیه شود؟ در حالی که SQLite یک عکس فوری بازیابی ایجاد و تأیید می‌کند، گیم‌پلی و تغییرات حساب متوقف می‌شوند. پشتیبان تا زمانی که یک اپراتور آن را حذف نکند، در پوشه پشتیبان سرور باقی می‌ماند.
+admin-database-backup-success = پشتیبان‌گیری پایگاه داده تکمیل شد: { $filename } ({ $size }).
+admin-database-backup-failed = پشتیبان‌گیری پایگاه داده با شکست مواجه شد. هیچ پشتیبان ناقصی منتشر نشد. برای جزئیات، گزارش سرور را بررسی کنید.
+admin-database-size-bytes = { $value ->
+    [one] 1 بایت
+   *[other] { NUMBER($value, maximumFractionDigits: 0) } بایت
+}
+admin-database-size-kib = { NUMBER($value, maximumFractionDigits: 1) } کیلوبایت
+admin-database-size-mib = { NUMBER($value, maximumFractionDigits: 1) } مگابایت
+admin-database-size-gib = { NUMBER($value, maximumFractionDigits: 1) } گیگابایت
+admin-database-storage-analyze = تحلیل نامزدهای پاکسازی
+admin-database-storage-analysis-summary = اندازه پایگاه داده: { $size }. فضای قابل استفاده مجدد SQLite: { $reusable }. رکوردهای پایگاه داده واجد شرایط: { $records }.
+admin-database-storage-analysis-failed = تحلیل فضای ذخیره‌سازی بدون تغییر در هیچ داده‌ای با شکست مواجه شد. برای جزئیات، گزارش سرور را بررسی کنید.
+admin-database-storage-refresh-analysis = تازه‌سازی تحلیل فضای ذخیره‌سازی
+admin-database-storage-cleanup = اجرای پاکسازی فضای ذخیره‌سازی
+admin-database-storage-cleanup-confirm = اکنون پاکسازی امن فضای ذخیره‌سازی اجرا شود؟ در حالی که سرور یک پشتیبان ایمنی ایجاد و تأیید می‌کند، فقط رکوردهای موقت یا یتیم لیست شده را حذف می‌کند و نتیجه را تأیید می‌کند، گیم‌پلی و تغییرات حساب متوقف می‌شوند. فایل پایگاه داده فشرده نخواهد شد.
+admin-database-storage-cleanup-not-needed = نیازی به پاکسازی فضای ذخیره‌سازی نیست. هیچ رکورد واجد شرایط یا فایل پشتیبان موقت رها شده‌ای یافت نشد.
+admin-database-storage-cleanup-success = پاکسازی فضای ذخیره‌سازی تکمیل شد. رکوردهای حذف شده: { $records }. فایل‌های پشتیبان موقت رها شده حذف شدند: { $files } ({ $file_size }). فضای قابل استفاده مجدد SQLite: { $reusable }. برای کاهش اندازه فایل پایگاه داده، فشرده‌سازی را جداگانه اجرا کنید. پشتیبان ایمنی: { $filename }.
+admin-database-storage-cleanup-failed = پاکسازی فضای ذخیره‌سازی با شکست مواجه شد. هرگونه پشتیبان ایمنی تکمیل شده حفظ شد. پیش از تلاش مجدد، گزارش سرور را بررسی کنید.
+admin-database-storage-no-record-candidates = در حال حاضر هیچ رکوردی برای پاکسازی امن واجد شرایط نیست.
+admin-database-storage-temporary-files = فایل‌های پشتیبان موقت رها شده PlayAural: { $count } ({ $size }).
+admin-database-storage-invalid-timestamps = هشدار ایمنی: { $count } رکورد دارای برچسب‌های زمانی حفظ نامعتبر هستند. پاکسازی هرگز با حدس زدن سن آنها، آنها را منقضی طبقه‌بندی نمی‌کند؛ آنها را دستی بررسی کنید.
+admin-database-storage-exclusions = همیشه از پاکسازی خودکار مستثنی می‌شوند: میزهای ذخیره شده، نتایج بازی، تاریخچه گفتگوی جهانی، گزارش‌های مدیریت، حساب‌های کاربری، مسدودی‌های معتبر، داده‌های فعال، آمار بازی‌های ثبت شده، داده‌های سازگاری، پشتیبان‌های معتبر، و گزارش‌ها. میزهای ذخیره شده فقط از طریق اقدام صریح مالک یا توسعه‌دهنده حذف می‌شوند.
+admin-database-storage-category-row = { $category }: { $count }
+admin-database-storage-category-expired-table-checkpoints = نقاط ذخیره میز موقت منقضی شده
+admin-database-storage-category-expired-password-reset-tokens = توکن‌های بازنشانی رمز عبور منقضی شده
+admin-database-storage-category-expired-bans = رکوردهای ممنوعیت که بیش از { $days } روز پس از انقضا نگهداری شده‌اند
+admin-database-storage-category-stale-pending-friend-requests = درخواست‌های دوستی در حال انتظار قدیمی‌تر از { $days } روز
+admin-database-storage-category-orphaned-friendships = رکوردهای دوستی یتیم
+admin-database-storage-category-orphaned-user-blocks = رکوردهای مسدودی کاربر یتیم
+admin-database-storage-category-stale-user-notifications = اعلان‌های کاربری قدیمی‌تر از { $days } روز
+admin-database-storage-category-orphaned-user-notifications = رکوردهای اعلان کاربری یتیم
+admin-database-storage-category-expired-mutes = رکوردهای بی‌صدا کردن منقضی شده
+admin-database-storage-category-orphaned-mutes = رکوردهای بی‌صدا کردن یتیم
+admin-database-compact = فشرده‌سازی پایگاه داده و بازیابی فضای استفاده نشده
+admin-database-compact-confirm = اکنون پایگاه داده فشرده شود؟ گیم‌پلی و تغییرات حساب متوقف خواهند شد. قبل از اینکه SQLite پایگاه داده زنده را بازسازی کند، یک پشتیبان ایمنی تایید شده ایجاد خواهد شد. این عملیات به فضای دیسک موقت قابل توجهی نیاز دارد و باید در زمان خلوتی اجرا شود.
+admin-database-compact-success = فشرده‌سازی پایگاه داده تکمیل شد. اندازه فایل از { $before } به { $after } تغییر کرد؛ { $reclaimed } بازیابی شد. پشتیبان ایمنی: { $filename }.
+admin-database-compact-failed = فشرده‌سازی پایگاه داده با شکست مواجه شد. پایگاه داده زنده به طور عمدی تغییر نکرد و هرگونه پشتیبان ایمنی تکمیل شده حفظ شد. برای جزئیات، گزارش سرور را بررسی کنید.
+admin-database-maintenance-busy = یک عملیات انحصاری دیگر سرور از قبل فعال است. قبل از شروع نگهداری پایگاه داده، منتظر بمانید تا پایان یابد.
+database-maintenance-operation-backup = پشتیبان‌گیری پایگاه داده
+database-maintenance-operation-cleanup = پاکسازی فضای ذخیره‌سازی
+database-maintenance-operation-compaction = فشرده‌سازی پایگاه داده
+database-maintenance-not-active = نگهداری پایگاه داده در حال حاضر فعال نیست.
+database-maintenance-input-blocked = عملیات { $operation } سرور در حال انجام است. گیم‌پلی، ورود، ثبت نام، و تغییرات حساب موقتاً متوقف شده‌اند. منوی فعلی شما همچنان در دسترس است، اما اقدامات تا پایان نگهداری اجرا نخواهند شد.
+database-maintenance-auth-blocked = نگهداری پایگاه داده سرور در حال انجام است. ورود، ثبت نام، و تغییرات رمز عبور موقتاً در دسترس نیستند. لطفاً پس از پایان نگهداری دوباره امتحان کنید.
+database-maintenance-backup-started = توسعه‌دهنده در حال پشتیبان‌گیری از پایگاه داده سرور است. گیم‌پلی و تغییرات حساب موقتاً متوقف شده‌اند؛ منوهای فعلی همچنان قابل مشاهده هستند. با از سرگیری خدمات عادی به شما اطلاع داده خواهد شد.
+database-maintenance-backup-completed = پشتیبان‌گیری پایگاه داده سرور تکمیل شد. گیم‌پلی عادی و دسترسی به حساب اکنون از سر گرفته می‌شود.
+database-maintenance-backup-failed = پشتیبان‌گیری پایگاه داده سرور به پایان نرسید. هیچ پشتیبان ناقصی منتشر نشد. گیم‌پلی عادی و دسترسی به حساب اکنون از سر گرفته می‌شود.
+database-maintenance-cleanup-started = توسعه‌دهنده در حال اجرای پاکسازی فضای ذخیره‌سازی سرور است. گیم‌پلی و تغییرات حساب موقتاً متوقف شده‌اند، اما منوهای فعلی قابل مشاهده هستند. ابتدا یک پشتیبان ایمنی تایید شده در حال ایجاد است. با از سرگیری خدمات عادی به شما اطلاع داده خواهد شد.
+database-maintenance-cleanup-completed = پاکسازی فضای ذخیره‌سازی سرور و اعتبارسنجی پایگاه داده تکمیل شد. گیم‌پلی عادی و دسترسی به حساب اکنون از سر گرفته می‌شود.
+database-maintenance-cleanup-failed = پاکسازی فضای ذخیره‌سازی سرور نتوانست با خیال راحت تکمیل شود. گیم‌پلی عادی و دسترسی به حساب اکنون از سر گرفته می‌شود.
+database-maintenance-compaction-started = توسعه‌دهنده در حال فشرده‌سازی پایگاه داده سرور است. گیم‌پلی و تغییرات حساب موقتاً متوقف شده‌اند؛ منوهای فعلی قابل مشاهده هستند. با از سرگیری خدمات عادی به شما اطلاع داده خواهد شد.
+database-maintenance-compaction-completed = فشرده‌سازی پایگاه داده سرور تکمیل شد. گیم‌پلی عادی و دسترسی به حساب اکنون از سر گرفته می‌شود.
+database-maintenance-compaction-failed = فشرده‌سازی پایگاه داده سرور به پایان نرسید. گیم‌پلی عادی و دسترسی به حساب بدون اعمال فشرده‌سازی از سر گرفته می‌شود.
+database-maintenance-reopen-failed = خطای بحرانی در نگهداری پایگاه داده: پایگاه داده زنده نتوانست با خیال راحت دوباره باز شود، بنابراین سرور همچنان ثابت می‌ماند. لطفاً منتظر بمانید تا توسعه‌دهنده خدمات را بازیابی کند.
+
+chat-repeated-message = لطفاً پیام تکراری ارسال نکنید.
+chat-global-channel-required-send = قبل از ارسال پیام‌ها، یک زبان برای گفتگوی جهانی انتخاب کنید. گفتگوی جهانی در زمان واقعی نظارت نمی‌شود. اگر کسی فحاشی کرد یا به شما توهین کرد، او را مسدود کنید. لطفاً سوء استفاده جدی یا مکرر را برای بررسی بعدی گزارش دهید.
+chat-global-log-unavailable = گفتگوی جهانی موقتاً در دسترس نیست زیرا این پیام به صورت ایمن ذخیره نشد. لطفاً بعداً دوباره امتحان کنید.
+chat-global-temporarily-disabled-send = گفتگوی جهانی موقتاً توسط توسعه‌دهنده غیرفعال شده است.
+chat-invalid-channel = آن کانال گفتگو در دسترس نیست.
+chat-invalid-message = این پیام قابل ارسال نیست زیرا فرمت آن نامعتبر است.
+chat-message-too-long = آن پیام خیلی طولانی است. پیام‌ها حداکثر می‌توانند شامل { $limit } نویسه باشند.
+
+report-user = گزارش کاربر
+enter-report-username = نام کاربری را برای گزارش وارد کنید.
+report-error-self = شما نمی‌توانید حساب خود را گزارش کنید.
+report-select-reason = گزارش { $username }: دلیلی که رفتار را به بهترین شکل توصیف می‌کند انتخاب کنید.
+report-reason-spam = هرزنامه یا اختلال مکرر
+report-reason-harassment = آزار و اذیت یا توهین شخصی
+report-reason-hateful-content = محتوای نفرت‌انگیز
+report-reason-sexual-content = محتوای جنسی
+report-reason-threats = تهدید به آسیب
+report-reason-personal-information = به اشتراک‌گذاری اطلاعات شخصی
+report-reason-other = سایر سوء رفتارهای جدی
+report-channel-unspecified = هیچ کانال گفتگوی جهانی انتخاب نشده است
+report-confirm-summary = گزارش { $username } به دلیل { $reason }. کانال متنی: { $channel }. این گزارش برای بررسی دستی ذخیره خواهد شد. کاربر مطلع یا به طور خودکار جریمه نخواهد شد.
+report-submit = ارسال گزارش
+report-change-reason = تغییر دلیل
+report-submitted = گزارش شما درباره { $username } با زمان دقیق ثبت برای بررسی دستی ذخیره شد. کاربر مطلع نشد. شما همچنین می‌توانید او را مسدود کنید تا تماس مستقیم متوقف شود و پیام‌های جهانی او را پنهان کنید.
+report-target-cooldown = شما اخیراً { $username } را گزارش کرده‌اید. فقط پس از { $duration } گزارش دیگری اضافه کنید؛ اگر نمی‌خواهید پیام‌های او را دریافت کنید، اکنون از مسدود کردن استفاده کنید.
+report-rate-limited = شما اخیراً چندین گزارش ارسال کرده‌اید. پس از { $duration } دوباره امتحان کنید.
+report-failed = امکان ذخیره ایمن گزارش وجود نداشت. لطفاً بعداً دوباره امتحان کنید.
+
+admin-localized-text-subject-motd = پیام روز
+admin-localized-text-subject-power = دلیل روشن/خاموش بودن سرور
+admin-localized-text-subject-ban = دلیل سفارشی ممنوعیت
+admin-localized-text-subject-mute = دلیل سفارشی بی‌صدا کردن
+admin-localized-text-instructions = ترجمه‌های { $subject } را ویرایش کنید. زبان‌های رسمی الزامی هستند. زبان‌های انجمن اختیاری هستند و در صورت خالی بودن از { $fallback } استفاده می‌کنند.
+admin-localized-text-motd-version = نسخه پیام روز: { $version }
+admin-localized-text-official-heading = زبان‌های رسمی، الزامی
+admin-localized-text-community-heading = زبان‌های انجمن، اختیاری
+admin-localized-text-field = { $language }: { $status }
+admin-localized-text-required-set = وارد شده، الزامی
+admin-localized-text-required-missing = وارد نشده، الزامی
+admin-localized-text-optional-set = وارد شده، اختیاری
+admin-localized-text-optional-fallback = وارد نشده، اختیاری، استفاده از پیش‌فرض
+admin-localized-text-prompt = { $subject } را به { $language } وارد کنید. حداکثر { $max } نویسه.
+admin-localized-text-too-long = آن ترجمه خیلی طولانی است. حداکثر { $max } نویسه مجاز است.
+admin-localized-text-missing-required = ابتدا تمام ترجمه‌های الزامی را وارد کنید. موارد ناموجود: { $languages }.
+admin-localized-text-publish-motd = انتشار پیام روز
+admin-localized-text-continue = ادامه
+admin-localized-text-apply-ban = اعمال ممنوعیت
+admin-localized-text-apply-mute = اعمال بی‌صدا کردن
+
+unknown-user = کاربر ناشناخته
+user-account-unavailable = این حساب کاربری دیگر در دسترس نیست.
+
+server-power-maintenance-active = در حالی که نگهداری پایگاه داده فعال است، نمی‌توان عملیات روشن/خاموش بودن سرور را زمان‌بندی کرد. منتظر بمانید تا نگهداری پایان یابد و دوباره امتحان کنید.
+profile-date-unknown = ناشناخته
+
+gender-term-subject = او
+gender-term-subject-capitalized = او
+gender-term-subject-be = او است
+gender-term-subject-be-capitalized = او است
+gender-term-subject-have = او دارد
+gender-term-subject-have-capitalized = او دارد
+gender-term-object = او را
+gender-term-possessive-determiner = او
+gender-term-possessive-determiner-capitalized = او
+gender-term-possessive-pronoun = مال او
+gender-term-reflexive = خودش
+
+friends-sent-requests = { $count ->
+    [0] درخواست‌های ارسال شده
+   *[other] درخواست‌های ارسال شده ({ $count })
+}
+friends-block-user = مسدود کردن کاربر
+enter-block-username = نام کاربری شخصی را که می‌خواهید مسدود کنید وارد کنید:
+friends-blocked-users = { $count ->
+    [0] کاربران مسدود شده
+   *[other] کاربران مسدود شده ({ $count })
+}
+friends-blocked-empty = شما هیچ‌کس را مسدود نکرده‌اید.
+friend-status-offline-last-online = آفلاین، آخرین بار آنلاین { $relative_time }
+block-user = مسدود کردن کاربر
+unblock-user = رفع مسدودی کاربر
+no-sent-requests = شما هیچ درخواست ارسالی در حال انتظاری ندارید.
+friend-request-to = درخواست دوستی به { $username } ارسال شد
+friend-request-manage-sent = مدیریت درخواست دوستی ارسال شده
+friend-request-accept-action = پذیرش درخواست دوستی
+friend-request-cancel-action = لغو درخواست دوستی
+friend-request-cancel-confirm = درخواست دوستی در حال انتظار خود را به { $username } لغو می‌کنید؟
+friend-request-cancelled = درخواست دوستی شما به { $username } لغو شد.
+friend-request-cancel-unavailable = این درخواست دوستی دیگر در حال انتظار نیست، بنابراین لغو نشد.
+
+relative-time-just-now = همین الان
+relative-time-minutes-ago = { $count ->
+    [one] 1 دقیقه پیش
+   *[other] { $count } دقیقه پیش
+}
+relative-time-hours-ago = { $count ->
+    [one] 1 ساعت پیش
+   *[other] { $count } ساعت پیش
+}
+relative-time-days-ago = { $count ->
+    [one] 1 روز پیش
+   *[other] { $count } روز پیش
+}
+relative-time-weeks-ago = { $count ->
+    [one] 1 هفته پیش
+   *[other] { $count } هفته پیش
+}
+relative-time-months-ago = { $count ->
+    [one] 1 ماه پیش
+   *[other] { $count } ماه پیش
+}
+relative-time-years-ago = { $count ->
+    [one] 1 سال پیش
+   *[other] { $count } سال پیش
+}
+
+friend-error-blocked-by-you = شما { $username } را مسدود کرده‌اید. قبل از ارسال درخواست دوستی او را از مسدودی خارج کنید.
+friend-error-blocked = درخواست‌های دوستی بین شما و { $username } در دسترس نیست.
+block-confirm = { $username } مسدود شود؟ این کار هرگونه دوستی و درخواست‌های در حال انتظار بین شما را حذف می‌کند. هیچ‌کدام از شما قادر به ارسال درخواست دوستی، پیام خصوصی، یا دعوت به میز برای دیگری نخواهید بود، و پیام‌های گفتگوی عادی در هر دو جهت پنهان خواهند شد. تا زمانی که مسدودی لغو نشود، هیچ‌کدام از کاربران نمی‌توانند وارد میزی شوند که توسط دیگری میزبانی می‌شود یا میزی را که شامل هر دو کاربر است بازیابی کنند. مسدود کردن، هیچ یک از شما را از یک میز مشترک حذف نمی‌کند، مانع از بازیابی یک صندلی رزرو شده نمی‌شود، یا گفتگوی صوتی میز را بی‌صدا نمی‌کند.
+block-success = شما { $username } را مسدود کردید. اکنون تماس اجتماعی مستقیم بین شما در دسترس نیست؛ پیام‌های گفتگوی عادی او پنهان است، و هیچ‌کدام از شما نمی‌توانید وارد میزی شوید که توسط دیگری میزبانی می‌شود یا میز ذخیره شده‌ای را که شامل هر دو کاربر است بازیابی کنید.
+block-error-self = شما نمی‌توانید خودتان را مسدود کنید.
+block-already-active = شما قبلاً { $username } را مسدود کرده‌اید.
+block-no-longer-active = این مسدودی دیگر فعال نیست.
+unblock-success = شما { $username } را از مسدودی خارج کردید. دوستی‌ها و درخواست‌های قبلی بازیابی نشدند.
+
+pm-error-blocked = پیام‌های خصوصی بین شما و این کاربر در دسترس نیست.
+pm-error-self = شما نمی‌توانید به خودتان پیام خصوصی ارسال کنید.
+pm-error-message-required = یک پیام خصوصی وارد کنید. هنگام استفاده از گفتگو، نام کاربری را درج کنید، به عنوان مثال: سلام @User.
+host-management-voice = مدیریت گفتگوی صوتی
+host-management-switch-game = تغییر به بازی دیگر
+host-management-player-substitution = جایگزینی بازیکن
+host-game-switch-current = بازی فعلی: { $game }. این میز دارای { $seats } صندلی فعال است. فقط بازی‌هایی که می‌توانند همه صندلی‌های فعال را در خود جای دهند لیست شده‌اند.
+host-game-switch-no-compatible-games = در حال حاضر هیچ بازی دیگری نمی‌تواند همه { $seats } صندلی فعال را در خود جای دهد.
+host-game-switch-confirm = آیا این میز از { $old_game } به { $new_game } تغییر کند؟ همه کسانی که هنوز حضور دارند با همان نقش بازی یا تماشاچی به لابی انتظار جدید منتقل می‌شوند، و ربات‌ها باقی خواهند ماند. مسابقه فعلی یا تنظیمات لابی، گزینه‌ها، تیم‌ها، و وضعیت آمادگی کنار گذاشته می‌شوند. مالکیت میز، حریم خصوصی، ممنوعیت‌ها، و گفتگوی صوتی متصل می‌مانند. دعوت‌های در حال انتظار برای بازی قبلی لغو خواهند شد.
+host-game-switch-target-unavailable = آن بازی دیگر به عنوان هدف تغییر در دسترس نیست. هیچ وضعیت میزی تغییر نکرد.
+host-game-switch-roster-invalid = عضویت زنده این میز دیگر با لیست بازی آن مطابقت ندارد، بنابراین تغییر بازی برای جلوگیری از حذف هر شخص مسدود شد. به میز برگردید و پس از تازه‌سازی لیست دوباره امتحان کنید.
+host-game-switch-too-many-seats = نمی‌توان به { $game } تغییر داد: از حداکثر { $max } صندلی فعال پشتیبانی می‌کند، اما این میز در حال حاضر به { $seats } نیاز دارد.
+host-game-switch-failed = بازی با خیال راحت قابل تغییر نبود. میز و بازی فعلی بدون تغییر باقی ماندند.
+host-game-switch-you = شما این میز را از { $old_game } به { $new_game } تغییر دادید. اکنون همه در لابی انتظار جدید هستند؛ گفتگوی صوتی میز همچنان متصل است.
+host-game-switch-player = { $player } این میز را از { $old_game } به { $new_game } تغییر داد. اکنون همه در لابی انتظار جدید هستند؛ گفتگوی صوتی میز همچنان متصل است.
+player-substitution-offer-action = جایگزین کردن یک تماشاگر در این صندلی
+player-substitution-seat-bot = صندلی ربات: { $bot }
+player-substitution-seat-replacement = { $bot }، در حال بازی در صندلی رزرو شده { $player }
+player-substitution-seat-self = صندلی شما: { $player }
+player-substitution-seat-player = صندلی بازیکن: { $player }
+player-substitution-no-seats = (هیچ صندلی بازیکن فعالی در دسترس نیست)
+player-substitution-seat-unavailable = این صندلی بازیکن دیگر برای جایگزینی در دسترس نیست. هیچ نقشی تغییر نکرد.
+player-substitution-no-spectators = (هیچ تماشاچی واجد شرایطی در دسترس نیست)
+player-substitution-spectator-unavailable = این تماشاگر دیگر برای جایگزینی در دسترس نیست. هیچ نقشی تغییر نکرد.
+player-substitution-user-busy = { $player } در حال تکمیل یک ورودی یا نمای وضعیت دیگر است. وقتی نما دیگر برای او باز نبود دوباره امتحان کنید.
+player-substitution-game-busy = بازی در حال تکمیل یک انتخاب هماهنگ یا بازیابی میز است که به طور موقت جایگزینی بازیکنان را قفل می‌کند. پس از پایان آن دوباره امتحان کنید.
+player-substitution-offer-sent = صندلی { $seat } به { $player } پیشنهاد شد. او باید قبل از تغییر کنترل آن را بپذیرد.
+player-substitution-self-offer-sent = صندلی شما به { $player } پیشنهاد شد. اگر پیشنهاد توسط او پذیرفته شود، شما به یک تماشاچی تبدیل می‌شوید و میزبان میز باقی می‌مانید؛ نتیجه نهایی صندلی برای او ثبت خواهد شد.
+player-substitution-self-incoming-consent-sent = از { $player } درخواست شد که صندلی خود را به شما بدهد. اگر این درخواست توسط او پذیرفته شود، شما فوراً کنترل را در دست می‌گیرید زیرا انتخاب خود از قبل رضایت شما را تأیید کرده است.
+player-substitution-outgoing-consent-sent = از { $player } درخواست شد که صندلی خود را به { $substitute } بدهد. اگر این درخواست توسط او پذیرفته شود، { $substitute } نیز باید قبل از تغییر کنترل آن را بپذیرد.
+player-substitution-offer-pending = { $player } از قبل یک درخواست جایگزینی در انتظار پاسخ دارد.
+player-substitution-seat-offer-pending = صندلی { $seat } از قبل یک درخواست جایگزینی در انتظار پاسخ دارد.
+player-substitution-self-seat-offer-pending = صندلی شما از قبل یک درخواست جایگزینی در انتظار پاسخ دارد.
+player-substitution-request-outgoing = { $host } می‌خواهد { $player } در صندلی فعلی جایگزین شما شود. اگر بپذیرید، به یک تماشاگر تبدیل می‌شوید و او وضعیت دقیق بازی شما، اطلاعات خصوصی، زمان باقی مانده نوبت و نتیجه نهایی را دریافت خواهد کرد. هیچ تایمری تنظیم مجدد نخواهد شد.
+player-substitution-request-outgoing-host-incoming = { $host } می‌خواهد در صندلی فعلی جایگزین شما شود. اگر بپذیرید، به یک تماشاگر تبدیل می‌شوید و او وضعیت دقیق بازی شما، اطلاعات خصوصی، زمان باقی مانده نوبت و نتیجه نهایی را دریافت خواهد کرد. هیچ تایمری تنظیم مجدد نخواهد شد.
+player-substitution-request-player = { $host } صندلی { $player } را با رضایت وی به شما پیشنهاد می‌دهد. اگر بپذیرید، وضعیت دقیق بازی، اطلاعات خصوصی، زمان باقی مانده نوبت، و نتیجه نهایی صندلی را به ارث می‌برید؛ هیچ تایمری تنظیم مجدد نمی‌شود و او به یک تماشاگر تبدیل خواهد شد.
+player-substitution-request-host-seat = { $host } صندلی خود را به شما پیشنهاد می‌دهد. اگر بپذیرید، وضعیت دقیق بازی، اطلاعات خصوصی، زمان باقی مانده نوبت، و نتیجه نهایی صندلی را به ارث می‌برید؛ هیچ تایمری تنظیم مجدد نمی‌شود، و او به یک تماشاگر تبدیل می‌شود در حالی که همچنان میزبان میز باقی می‌ماند.
+player-substitution-request-bot = { $host } صندلی را که در حال حاضر تحت کنترل { $bot } است به شما پیشنهاد می‌دهد. اگر بپذیرید، وضعیت دقیق بازی، اطلاعات خصوصی، زمان باقی مانده نوبت، و نتیجه نهایی آن را به ارث می‌برید؛ هیچ تایمری تنظیم مجدد نمی‌شود.
+player-substitution-request-replacement = { $host } صندلی رزرو شده { $player } را که در حال حاضر توسط { $bot } کنترل می‌شود به شما پیشنهاد می‌دهد. اگر بپذیرید، وضعیت دقیق بازی، اطلاعات خصوصی، زمان باقی مانده نوبت، و نتیجه نهایی آن را به ارث می‌برید؛ هیچ تایمری تنظیم مجدد نمی‌شود و او دیگر قادر به پس گرفتن این صندلی نخواهد بود.
+player-substitution-decline = رد جایگزینی
+player-substitution-accept = پذیرش جایگزینی
+player-substitution-offer-expired = درخواست جایگزینی منقضی شد. هیچ نقشی تغییر نکرد.
+player-substitution-offer-expired-host = { $player } قبل از انقضای درخواست جایگزینی پاسخی نداد. هیچ نقشی تغییر نکرد.
+player-substitution-offer-declined = { $player } درخواست جایگزینی را رد کرد. هیچ نقشی تغییر نکرد.
+player-substitution-no-longer-available = این درخواست جایگزینی دیگر در دسترس نیست. هیچ نقشی تغییر نکرد.
+player-substitution-awaiting-incoming = { $player } اکنون ممکن است جایگزینی را بپذیرد یا رد کند. هنوز هیچ نقشی تغییر نکرده است.
+player-substitution-complete-player-you = شما کنترل صندلی سابق { $player } را در دست گرفتید. او اکنون یک تماشاگر است.
+player-substitution-complete-outgoing-you = { $player } کنترل صندلی سابق شما را در دست گرفت. شما اکنون یک تماشاگر هستید.
+player-substitution-complete-player = { $player } کنترل صندلی سابق { $outgoing } را در دست گرفت. او اکنون یک تماشاگر است.
+player-substitution-complete-host-player-you = شما کنترل صندلی سابق { $player } را در دست گرفتید. او اکنون یک تماشاگر است، و نقش میزبان میز با او باقی می‌ماند.
+player-substitution-complete-outgoing-host-you = { $player } کنترل صندلی سابق شما را در دست گرفت. شما اکنون یک تماشاگر هستید و میزبان میز باقی می‌مانید.
+player-substitution-complete-host = { $player } کنترل صندلی سابق { $outgoing } را در دست گرفت. او اکنون یک تماشاگر است و میزبان میز باقی می‌ماند.
+player-substitution-complete-bot-you = شما کنترل صندلی { $bot } را در دست گرفتید.
+player-substitution-complete-bot = { $player } کنترل صندلی { $bot } را در دست گرفت.
+player-substitution-complete-replacement-you = شما کنترل صندلی رزرو شده { $replaced_player } را از { $bot } در دست گرفتید. رزرو قبلی به پایان رسیده است.
+player-substitution-complete-replacement = { $player } کنترل صندلی رزرو شده { $replaced_player } را از { $bot } در دست گرفت. رزرو قبلی به پایان رسیده است.
+host-invite-pair-cooldown = لطفاً { $seconds ->
+    [one] 1 ثانیه
+   *[other] { $seconds } ثانیه
+} قبل از دعوت مجدد آن دوست صبر کنید.
+host-invite-rate-limited = شما در حال ارسال دعوت‌نامه به میز خیلی سریع هستید. دوباره امتحان کنید در { $seconds ->
+    [one] 1 ثانیه
+   *[other] { $seconds } ثانیه
+}.
+table-invite-no-longer-available = این دعوت میز دیگر در دسترس نیست.
+table-join-social-blocked = شما نمی‌توانید وارد این میز شوید زیرا تماس اجتماعی مستقیم بین شما و میزبان آن در دسترس نیست. شما هنوز هم می‌توانید صندلی را که قبلاً برای شما رزرو شده است بازیابی کنید.
+
+voice-member-status-connected = به گفتگوی صوتی متصل است
+voice-member-status-not-connected = به گفتگوی صوتی متصل نیست
+voice-member-status-host-muted = میکروفون توسط میزبان غیرفعال شده است
+voice-member-status-host-unmuted = مجاز به استفاده از میکروفون است
+voice-member-entry = { $player }: { $status }
+voice-host-management-no-members = هیچ عضو دیگری برای مدیریت میز وجود ندارد.
+voice-host-target-summary = وضعیت صوتی برای { $player }: { $voice_status }؛ { $moderation_status }.
+voice-host-mute-action = غیرفعال کردن میکروفون { $player }
+voice-host-unmute-action = اجازه دادن به { $player } برای استفاده از میکروفون خود
+voice-host-cannot-mute-self = شما به عنوان میزبان نمی‌توانید میکروفون خود را غیرفعال کنید.
+voice-host-moderation-rate-limited = مدیریت صدا خیلی سریع در حال تغییر است. در { $seconds } ثانیه دوباره امتحان کنید.
+voice-host-muted-actor = شما میکروفون { $player } را برای این میز غیرفعال کردید. او هنوز می‌تواند گوش کند، اما نمی‌تواند صدای میکروفون را پخش کند.
+voice-host-muted-target = { $host } میکروفون شما را برای این میز غیرفعال کرد. شما هنوز می‌توانید گوش دهید، اما نمی‌توانید میکروفون خود را روشن کنید.
+voice-host-muted-observer = { $host } میکروفون { $player } را برای این میز غیرفعال کرد.
+voice-host-unmuted-actor = شما دوباره به { $player } اجازه استفاده از میکروفون خود را دادید. میکروفون او تا زمانی که صریحاً آن را روشن نکند خاموش می‌ماند.
+voice-host-unmuted-target = { $host } دوباره به شما اجازه استفاده از میکروفون خود را داد. میکروفون شما تا زمانی که صریحاً آن را روشن نکنید خاموش می‌ماند.
+voice-host-unmuted-observer = { $host } دوباره به { $player } اجازه استفاده از میکروفون خود را داد.
+voice-host-unmuted-self = شما دوباره به خودتان اجازه استفاده از میکروفون را دادید. این میکروفون تا زمانی که صریحاً آن را روشن نکنید خاموش می‌ماند.
+voice-personal-settings-action = تنظیمات صدای شخصی
+voice-personal-settings-summary = تنظیمات صدای شخصی برای { $player }: میزان صدا { $volume } درصد؛ { $mute_status }؛ { $connection_status }.
+voice-personal-status-muted = به صورت محلی بی‌صدا شده است
+voice-personal-status-unmuted = به صورت محلی بی‌صدا نشده است
+voice-personal-mute-action = بی‌صدا کردن { $player } برای من
+voice-personal-unmute-action = باصدا کردن { $player } برای من
+voice-personal-volume-action = تغییر میزان صدای شخصی، در حال حاضر { $volume } درصد
+voice-personal-volume-choice = { $volume } درصد
+voice-personal-reset-action = بازنشانی تنظیمات صدای شخصی
+voice-personal-muted = شما به صورت محلی { $player } را بی‌صدا کردید. فقط شما دیگر صدای او را نخواهید شنید.
+voice-personal-unmuted = شما به صورت محلی { $player } را باصدا کردید.
+voice-personal-volume-set = شما میزان صدای شخصی { $player } را روی { $volume } درصد تنظیم کردید.
+voice-personal-reset = شما تنظیمات صدای شخصی خود را برای { $player } بازنشانی کردید.
+voice-member-left = این عضو میز دیگر در این میز نیست. تنظیمات صدای میز حفظ شده وی تغییر نکرد.
+voice-settings-limit-reached = این میز به حد ایمنی تنظیمات صدای خود رسیده است. هیچ تنظیمی تغییر نکرد.
+voice-settings-invalid = آن تنظیمات صدا نامعتبر است. هیچ تنظیمی تغییر نکرد.
+voice-invalid-participant = این شرکت‌کننده صوتی نامعتبر است.
+voice-moderation-provider-failed = مدیریت صدا در حال حاضر قابل اعمال نیست. هیچ تنظیمی تغییر نکرد؛ لطفاً دوباره امتحان کنید.
