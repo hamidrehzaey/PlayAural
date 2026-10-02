@@ -136,3 +136,5 @@ battleship-enemy-ship-sunk = { $ship } (اندازه { $size }): غرق‌شده
 # صفحه‌ی پایان
 battleship-winner-line = { $player } برنده شد!
 battleship-stats-line = { $player }: { $shots } شلیک، { $hits } اصابت، { $accuracy }% دقت
+
+battleship-select-orientation = جهت استقرار را انتخاب کنید

@@ -175,3 +175,52 @@ backgammon-option-bot-difficulty = دشواری ربات: { $bot_difficulty }
 backgammon-option-select-bot-difficulty = انتخاب دشواری ربات
 backgammon-option-changed-bot-difficulty = دشواری ربات روی { $bot_difficulty } تنظیم شد.
 backgammon-desc-bot-difficulty = نحوه‌ی حرکت ربات‌ها را انتخاب می‌کند: تصادفی حرکت‌های قانونی را به‌طور ساده انجام می‌دهد، در حالی که ساده حرکت‌های تاکتیکی قوی‌تر را ترجیح می‌دهد.
+
+backgammon-game-started-you-red = شما قرمز هستید. { $opponent } سفید است.
+backgammon-game-started-you-white = شما سفید هستید. { $opponent } قرمز است.
+backgammon-opening-roll-you = تاس شروع: شما { $your_die } آوردید، { $opponent } { $opponent_die } آورد.
+backgammon-point-occupied-selected-bearoff = خانه { $point } { $color }، { $count } انتخاب شده؛ دوباره فعال کنید تا خارج شود
+backgammon-label-roll = تاس ریختن
+backgammon-move-would-waste-die = این حرکت مانع از آن می‌شود که شما به تعداد لازم تاس استفاده کنید. یک حرکت مجاز دیگر انتخاب کنید.
+backgammon-bearoff-outside-home-point = خانه { $point } خارج از صفحه اصلی شما است. فقط مهره‌های خانه‌های ۱ تا ۶ می‌توانند خارج شوند.
+backgammon-undo-move = { $listener ->
+    [actor] شما حرکت خود را از { $source } به { $destination } لغو کردید.
+   *[observer] { $player } حرکت خود را از { $source } به { $destination } لغو کرد.
+}
+backgammon-undo-hit = { $listener ->
+    [actor] شما حرکت خود را از { $source } به { $destination } لغو کردید، و مهره { $opponent } بازیابی شد.
+    [target] { $player } حرکت خود را از { $source } به { $destination } لغو کرد، و مهره شما بازیابی شد.
+   *[observer] { $player } حرکت خود را از { $source } به { $destination } لغو کرد، و مهره { $opponent } بازیابی شد.
+}
+backgammon-selection-cleared = انتخاب مهره پاک شد.
+backgammon-no-selection = هیچ مهره‌ای انتخاب نشده است.
+backgammon-double-single-game = مکعب دوبل در بازی تکی استفاده نمی‌شود.
+backgammon-double-crawford = این بازی کرافورد است، بنابراین مکعب دوبل در دسترس نیست.
+backgammon-double-dead-cube = شما با برنده شدن با ارزش فعلی مکعب نیز بازی را می‌برید، بنابراین مکعب برای شما مرده است و نمی‌توان آن را دوبل کرد.
+backgammon-double-cube-owned = { $opponent } صاحب مکعب است، بنابراین فقط او می‌تواند پیشنهاد دوبل بعدی را بدهد.
+backgammon-double-cube-owned-unknown = حریف شما صاحب مکعب است، بنابراین شما نمی‌توانید پیشنهاد دوبل بعدی را بدهد.
+backgammon-double-before-roll-only = شما فقط در شروع نوبت خود و قبل از تاس ریختن می‌توانید پیشنهاد دوبل بدهید.
+backgammon-roll-before-moving-only = شما فقط در شروع نوبت خود و قبل از حرکت می‌توانید تاس بریزید.
+backgammon-check-legal-moves = حرکات مجاز
+backgammon-no-dice-list = هیچ‌کدام
+backgammon-legal-moves-awaiting-roll = { $is_self ->
+    [yes] قبل از اینکه حرکت مهره‌ای در دسترس باشد، باید تاس بریزید.
+   *[no] { $player } قبل از اینکه حرکت مهره‌ای در دسترس باشد، باید تاس بریزد.
+}
+backgammon-legal-moves-awaiting-double-response = { $is_self ->
+    [yes] قبل از ادامه بازی، باید پیشنهاد دوبل را بپذیرید یا رد کنید.
+   *[no] { $player } قبل از ادامه بازی، باید پیشنهاد دوبل را بپذیرد یا رد کند.
+}
+backgammon-legal-moves-none = { $is_self ->
+    [yes] شما هیچ حرکت مجاز مهره‌ای ندارید.
+   *[no] { $player } هیچ حرکت مجاز مهره‌ای ندارد.
+}
+backgammon-move-source-bar = بیرون (بار)
+backgammon-move-destination-off = خارج از صفحه
+backgammon-legal-move-line = { $is_self ->
+    [yes] شما: { $source } به { $destination } با استفاده از { $die }
+   *[no] { $player }: { $source } به { $destination } با استفاده از { $die }
+}{ $hit ->
+    [yes] ، و زدن یک مهره تک.
+   *[no] .
+}

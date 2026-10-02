@@ -180,3 +180,13 @@ milebymile-dirty-trick = بازی ترفند کثیف
 milebymile-info-button = اطلاعات
 milebymile-info-msg-individual = { $player }: موانع: { $hazards }. ایمنی‌ها: { $safeties }. مسافت: { $miles } مایل.
 milebymile-info-msg-team = { $team } ({ $members }): موانع: { $hazards }. ایمنی‌ها: { $safeties }. مسافت: { $miles } مایل.
+
+milebymile-teammate-plays-distance-team = { $player } کارت مسافت { $distance } مایلی را بازی می‌کند؛ تیم شما اکنون در { $total } مایلی است.
+milebymile-you-play-team-card = شما { $card } را برای تیم خود بازی می‌کنید.
+milebymile-teammate-plays-team-card = { $player } کارت { $card } را برای تیم شما بازی می‌کند.
+milebymile-opponent-plays-team-card = { $player } کارت { $card } را برای تیم خود بازی می‌کند.
+milebymile-you-play-dirty-trick-team = شما { $card } را به عنوان یک ترفند کثیف برای تیم خود بازی می‌کنید!
+milebymile-teammate-plays-dirty-trick-team = { $player } کارت { $card } را به عنوان یک ترفند کثیف برای تیم شما بازی می‌کند!
+milebymile-opponent-plays-dirty-trick-team = { $player } کارت { $card } را به عنوان یک ترفند کثیف برای تیم خود بازی می‌کند!
+milebymile-false-virtue-teammate = { $player } فضیلت دروغین را بازی می‌کند؛ تیم شما کارمای خود را به دست می‌آورد!
+milebymile-false-virtue-opponent = { $player } فضیلت دروغین را بازی می‌کند؛ تیم او کارمای خود را به دست می‌آورد!

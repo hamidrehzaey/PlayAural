@@ -1131,3 +1131,5 @@ monopoly-space-hanoi-gia-lam-bus-station = ایستگاه اتوبوس جیا ل
 monopoly-space-hanoi-nha-chung = نا چونگ (Nhà Chung)
 monopoly-space-hanoi-excise-tax = مالیات غیرمستقیم (Excise Tax)
 monopoly-space-hanoi-lo-duc = لو دوک (Lò Đúc)
+
+monopoly-portfolio-player-unavailable = دارایی‌های این بازیکن دیگر در دسترس نیست.
