@@ -500,3 +500,9 @@ ageofheroes-offered-card-unavailable = کارت پیشنهادشده دیگر د
 ageofheroes-trade-card-type-mismatch = کارت انتخاب‌شده‌ی شما با نوع کارت درخواستی مطابقت ندارد.
 ageofheroes-trade-card-subtype-mismatch = کارت انتخاب‌شده‌ی شما با کارت درخواستی مطابقت ندارد.
 ageofheroes-trade-offer-label = { $player }: { $offered } در ازای { $wanted }
+
+ageofheroes-status-detail-recovering-armies =
+    { $count }در حال بهبودی{ $count ->
+        [one] ارتش
+       *[other] ارتش ها
+    }
