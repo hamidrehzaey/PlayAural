@@ -7,7 +7,7 @@ conflict, follow `CLAUDE.md` and update `AGENTS.md`.
 ## Project
 
 PlayAural is an audio-first multiplayer gaming platform for screen reader users.
-It is GPL-licensed and has four first-party components:
+It is licensed under GPL-3.0-or-later and has four first-party components:
 
 - `server/`: Python 3.11 asyncio WebSocket server, games, auth, tables,
   persistence, localization, ratings, voice authorization.
@@ -121,7 +121,7 @@ cd mobile_client && cmd /c npm run typecheck && npx expo start
 
 ## Core Architecture
 
-- `server/games/` currently registers 47 games. Categories are `cards`, `dice`,
+- `server/games/` currently registers 51 games. Categories are `cards`, `dice`,
   `board`, `poker`, `arcade`, and `misc`; user-facing category labels must be
   localized. The Play menu uses dynamic counts, not hardcoded category counts.
 - Games are `@dataclass` classes registered with `@register_game`, inherit from
@@ -362,6 +362,11 @@ Audio-first is mandatory. Every important state change needs TTS and/or sound.
   direct-mute names, never message history.
 - Use `play_sound`, `user.play_sound`, `play_music`, ambience helpers, scheduled
   sounds, or sequences as appropriate.
+- Sound-pack version increments are maintainer-controlled release actions.
+  Never bump a sound-pack version merely because audio assets or generated
+  manifests changed. Change version markers only when the project maintainer
+  explicitly requests a bump; otherwise preserve them when adding, replacing,
+  converting, normalizing, or regenerating audio assets.
 - All server-driven SFX, music, and ambience use the versioned `audio` command
   contract in `server/audio.py`. Do not add separate packet types or
   client-specific routing. Asset paths and command values must be validated.
@@ -498,7 +503,10 @@ participants; do not reuse game-player error strings for account lookups.
   vocabulary, an allowlisted context backed by
   `<context>-gender-term-<form>`. Unspecified and non-binary values use the
   locale's neutral fallback.
-- Maintain EN/VI parity: same keys, variables, and plural/select arms.
+- Maintain EN/VI parity: same keys, data-bearing variables, and plural/select
+  arms. A locale may omit a variable used only as a `GENDER_TERM(...)`
+  selector when its natural sentence does not need gender; if used, the
+  selector name must still match the source key.
 - Agents author both EN and VI strings in this repo, but Vietnamese is
   provisional and should be flagged for native review when quality matters.
 - Prefer writing locale keys before feature code so every announcement path is
