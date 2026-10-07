@@ -320,11 +320,13 @@ class TestGameRegistryIntegration:
             "coup": "cards",
             "crazyeights": "cards",
             "deadmansdeck": "cards",
+            "deadmansdice": "dice",
             "deadmanspoker": "poker",
             "dominos": "cards",
             "explodingkittens": "cards",
             "farkle": "dice",
             "fivecarddraw": "poker",
+            "flip7": "cards",
             "holdem": "poker",
             "humanitycards": "cards",
             "leftrightcenter": "dice",
@@ -343,6 +345,7 @@ class TestGameRegistryIntegration:
             "bingo": "misc",
             "scopa": "cards",
             "senet": "board",
+            "skipbo": "cards",
             "snakesandladders": "board",
             "sorry": "board",
             "threes": "dice",
@@ -352,6 +355,7 @@ class TestGameRegistryIntegration:
             "twentyone": "cards",
             "uno": "cards",
             "yahtzee": "dice",
+            "zombiedice": "dice",
         }
 
         actual_categories = {
